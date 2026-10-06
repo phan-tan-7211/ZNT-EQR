@@ -219,7 +219,7 @@ export function InventoryItemDetailDialogs({
               {t('inventoryDetail.selectEquipment')}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="min-w-0 space-y-4">
             <InventoryCompatibleEquipmentPicker
               allEquipment={allEquipment}
               searchValue={equipmentDialog.equipmentSearch}
@@ -231,7 +231,7 @@ export function InventoryItemDetailDialogs({
               noMatchesText={t('inventoryDetail.noEquipmentFound')}
               selectedBadgeLabel={t('inventoryDetail.selected')}
             />
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex flex-wrap justify-end gap-2 pt-4">
               <Button variant="outline" onClick={() => equipmentDialog.setShowAddEquipmentDialog(false)}>
                 {t('inventoryDetail.cancel')}
               </Button>

@@ -285,7 +285,7 @@ export const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pb-safe-bottom">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="min-w-0 space-y-6 pb-safe-bottom">
             <InventoryItemFormBasicFields form={form} />
 
             {!editingItem && (
@@ -329,7 +329,7 @@ export const InventoryItemForm: React.FC<InventoryItemFormProps> = ({
               />
             )}
 
-            <div className="sticky bottom-0 z-10 -mx-6 flex justify-end space-x-2 border-t bg-background/95 px-6 py-3 pb-safe-bottom backdrop-blur supports-[backdrop-filter]:bg-background/90">
+            <div className="sticky bottom-0 z-10 -mx-6 flex flex-wrap justify-end gap-2 border-t bg-background/95 px-6 py-3 pb-safe-bottom backdrop-blur supports-[backdrop-filter]:bg-background/90">
               <Button type="button" variant="outline" onClick={onClose} disabled={isFormDisabled}>
                 {t('itemForm.cancel')}
               </Button>
