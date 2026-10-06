@@ -154,8 +154,8 @@ const ImageUploadWithNote: React.FC<ImageUploadWithNoteProps> = ({
   };
 
   return (
-    <Card>
-      <CardContent standalone className="space-y-4">
+    <Card className="min-w-0">
+      <CardContent standalone className="min-w-0 space-y-4">
         <div
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
             dragActive
@@ -204,18 +204,18 @@ const ImageUploadWithNote: React.FC<ImageUploadWithNoteProps> = ({
             <Label className="text-sm font-medium">
               {t('sharedUi.selectedImages', { count: selectedFiles.length })}
             </Label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3">
               {selectedFiles.map((file, index) => {
                 const safePreviewUrl = getPreviewUrl(file);
                 const displayName = sanitizeForDisplay(file.name);
                 return (
-                  <div key={`${displayName}-${index}`} className="relative group">
+                  <div key={`${displayName}-${index}`} className="group relative min-w-0">
                     <div className="aspect-square bg-muted rounded-lg overflow-hidden">
                       {safePreviewUrl ? (
                         <img
                           src={safePreviewUrl}
                           alt={displayName}
-                          className="w-full h-full object-cover"
+                          className="block h-full w-full min-w-0 object-cover"
                           onError={() => console.error('Image preview failed')}
                         />
                       ) : (

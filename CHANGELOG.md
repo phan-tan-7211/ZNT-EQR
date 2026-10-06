@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.40.2] - 2026-10-06
+
+### Fixed
+
+- **Mobile inventory forms** - Inventory item and compatible-equipment dialogs now fit narrow phone screens without clipping fields or action buttons.
+
 ## [3.40.1] - 2026-10-03
 
 ### Fixed

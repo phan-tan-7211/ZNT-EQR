@@ -22,14 +22,14 @@ export function SelectedEquipmentBadgeList({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex min-w-0 max-w-full flex-wrap gap-2">
       {selectedEquipmentIds.map((id) => {
         const equipment = allEquipment.find((eq) => eq.id === id);
         if (!equipment) return null;
 
         return (
-          <Badge key={id} variant="secondary" className="gap-1">
-            {equipment.name}
+          <Badge key={id} variant="secondary" className="min-w-0 max-w-full gap-1">
+            <span className="min-w-0 break-words whitespace-normal">{equipment.name}</span>
             {removeControl === 'button' ? (
               <button
                 type="button"
