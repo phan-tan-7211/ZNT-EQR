@@ -503,5 +503,45 @@ describe('EquipmentService', () => {
       expect(mockQuery.in).toHaveBeenCalledWith('working_hours', [1234]);
       expect(mockQuery.in).toHaveBeenCalledWith('team_id', ['team-1']);
     });
+
+    function buildOrderQuery() {
+      const mockQuery = {
+        select: vi.fn().mockReturnThis(),
+        eq: vi.fn().mockReturnThis(),
+        in: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
+        or: vi.fn().mockReturnThis(),
+        order: vi.fn().mockReturnThis(),
+        range: vi.fn().mockResolvedValue({ data: [], count: 0, error: null }),
+      };
+      (supabase.from as ReturnType<typeof vi.fn>).mockReturnValue(mockQuery);
+      return mockQuery;
+    }
+
+    it('orders by the joined team name instead of a non-existent team_name column', async () => {
+      const mockQuery = buildOrderQuery();
+
+      await EquipmentService.getFilteredList(
+        organizationId,
+        {},
+        { page: 1, pageSize: 10, sortField: 'team_name', sortDirection: 'desc' },
+      );
+
+      expect(mockQuery.order).toHaveBeenNthCalledWith(1, 'team(name)', { ascending: false });
+      expect(mockQuery.order).not.toHaveBeenCalledWith('team_name', expect.anything());
+    });
+
+    it('adds the id as a tie-breaker so pages never repeat or skip rows with equal sort values', async () => {
+      const mockQuery = buildOrderQuery();
+
+      await EquipmentService.getFilteredList(
+        organizationId,
+        {},
+        { page: 2, pageSize: 25, sortField: 'working_hours', sortDirection: 'asc' },
+      );
+
+      expect(mockQuery.order).toHaveBeenNthCalledWith(1, 'working_hours', { ascending: true });
+      expect(mockQuery.order).toHaveBeenNthCalledWith(2, 'id', { ascending: true });
+    });
   });
 });

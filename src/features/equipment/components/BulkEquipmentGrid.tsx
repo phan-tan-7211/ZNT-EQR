@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { Forklift } from 'lucide-react';
 import {
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
   type ColumnDef,
   type SortingState,
+  type Updater,
 } from '@tanstack/react-table';
 import { BulkTanstackTableShell } from '@/components/bulk-edit/BulkTanstackTableShell';
 import { BulkGridSortableHeader } from '@/components/bulk-edit/BulkGridSortableHeader';
@@ -14,9 +16,14 @@ import { useBulkGridClickToSelect } from '@/hooks/useBulkGridClickToSelect';
 import { useBulkGridPendingApply } from '@/hooks/useBulkGridPendingApply';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { EquipmentRecord } from '@/features/equipment/types/equipment';
+import { getEquipmentDisplayImageUrl } from '@/services/imageUploadService';
+import { getEquipmentStatusRailClass } from '@/lib/status-colors';
+import { cn } from '@/lib/utils';
+import { useEquipmentImageHoverPreview } from '@/features/equipment/utils/equipmentImageHover';
 import { useI18n } from '@/i18n';
 
 import { BulkApplyConfirmDialog } from './BulkApplyConfirmDialog';
+import { EquipmentImageHoverPreview } from './EquipmentImageHoverPreview';
 import {
   BulkEditableCell,
   type BulkEditableCellProps,
@@ -40,7 +47,66 @@ export interface BulkEquipmentGridProps {
   onToggleSelected: (id: string) => void;
   onSelectAll: (ids: string[]) => void;
   onClearSelection: () => void;
+  /**
+   * Server-side sort, shared with the Equipment list. The grid only holds one
+   * page of rows, so sorting must happen in the query for every page to follow
+   * the same order. When `onSortChange` is omitted the visible rows sort locally.
+   */
+  sortConfig?: { field: string; direction: 'asc' | 'desc' };
+  onSortChange?: (field: string, direction: 'asc' | 'desc') => void;
 }
+
+const DEFAULT_SORT: SortingState = [{ id: 'name', desc: false }];
+
+/**
+ * Same thumbnail as the status cell of the Equipment table view: the `thumb`
+ * image (or the icon fallback), the status rail on the left, and the larger
+ * `preview` image while hovering.
+ */
+const EquipmentBulkThumbnail: React.FC<{
+  name: string;
+  imageUrl?: string | null;
+  status: string;
+}> = ({ name, imageUrl, status }) => {
+  const src = getEquipmentDisplayImageUrl(imageUrl, 'thumb');
+  const previewSrc = getEquipmentDisplayImageUrl(imageUrl, 'preview') ?? src;
+  const { hover, visible, handlers } = useEquipmentImageHoverPreview(previewSrc, name);
+  const statusRailClass = getEquipmentStatusRailClass(status);
+  return (
+    <>
+      <div
+        className={cn(
+          'relative flex h-12 w-[72px] items-center justify-center overflow-hidden rounded-md bg-muted/30',
+          src && 'cursor-zoom-in',
+        )}
+        data-equipment-thumbnail
+        {...handlers}
+      >
+        {src ? (
+          <img
+            src={src}
+            alt={name}
+            className="absolute inset-0 h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+            onError={(event) => {
+              event.currentTarget.src = '/images/ui/placeholder.svg';
+            }}
+          />
+        ) : (
+          <Forklift className="h-5 w-5 text-muted-foreground/55" aria-hidden="true" />
+        )}
+        {statusRailClass ? (
+          <span
+            className={cn('pointer-events-none absolute inset-y-0 left-0 z-0 w-1', statusRailClass)}
+            aria-hidden="true"
+          />
+        ) : null}
+      </div>
+      <EquipmentImageHoverPreview hover={hover} visible={visible} portal />
+    </>
+  );
+};
 
 export const BulkEquipmentGrid: React.FC<BulkEquipmentGridProps> = ({
   rows,
@@ -51,9 +117,35 @@ export const BulkEquipmentGrid: React.FC<BulkEquipmentGridProps> = ({
   onToggleSelected,
   onSelectAll,
   onClearSelection,
+  sortConfig,
+  onSortChange,
 }) => {
   const { t } = useI18n();
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
+  const [localSorting, setLocalSorting] = useState<SortingState>(DEFAULT_SORT);
+  const isServerSorted = onSortChange !== undefined;
+  const sorting = useMemo<SortingState>(
+    () =>
+      isServerSorted && sortConfig
+        ? [{ id: sortConfig.field, desc: sortConfig.direction === 'desc' }]
+        : localSorting,
+    [isServerSorted, sortConfig, localSorting],
+  );
+  const handleSortingChange = useCallback(
+    (updater: Updater<SortingState>) => {
+      const next = typeof updater === 'function' ? updater(sorting) : updater;
+      if (!onSortChange) {
+        setLocalSorting(next);
+        return;
+      }
+      const [first] = next;
+      if (!first) {
+        onSortChange(DEFAULT_SORT[0].id, 'asc');
+        return;
+      }
+      onSortChange(first.id, first.desc ? 'desc' : 'asc');
+    },
+    [onSortChange, sorting],
+  );
 
   const statusOptions = useMemo<BulkEditableCellSelectOption[]>(() => [
     { value: 'active', label: t('equipmentBulk.active') },
@@ -146,6 +238,18 @@ export const BulkEquipmentGrid: React.FC<BulkEquipmentGridProps> = ({
             onCheckedChange={() => onToggleSelected(row.original.id)}
             aria-label={t('equipmentBulk.selectRow', { name: row.original.name })}
             onClick={(e) => e.stopPropagation()}
+          />
+        ),
+        enableSorting: false,
+      },
+      {
+        id: 'thumbnail',
+        header: () => <span className="sr-only">{t('equipmentBulk.image')}</span>,
+        cell: ({ row }) => (
+          <EquipmentBulkThumbnail
+            name={row.original.name}
+            imageUrl={row.original.image_url}
+            status={getDisplayValue(row.original, 'status') as string}
           />
         ),
         enableSorting: false,
@@ -252,9 +356,10 @@ export const BulkEquipmentGrid: React.FC<BulkEquipmentGridProps> = ({
     data: rows,
     columns,
     state: { sorting },
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
+    manualSorting: isServerSorted,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
+    ...(isServerSorted ? {} : { getSortedRowModel: getSortedRowModel() }),
     getRowId: (row) => row.id,
   });
 

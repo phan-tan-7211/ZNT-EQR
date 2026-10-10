@@ -5,6 +5,7 @@ import {
   batchResolveEquipmentDisplayImageUrls,
   displayableImageSrc,
 } from '@/services/imageUploadService';
+import { getImageHoverPosition } from '@/features/equipment/utils/equipmentImageHover';
 
 export type InventoryEquipmentThumbnailItem = {
   id: string;
@@ -31,24 +32,6 @@ const IMAGE_HOVER_TRANSITION_MS = 140;
 
 function thumbnailCacheKey(equipmentId: string, storedRef: string): string {
   return `${equipmentId}:${storedRef}`;
-}
-
-function getImageHoverPosition(clientX: number, clientY: number): EquipmentImageHover {
-  const margin = 12;
-  const gap = 14;
-  const size = Math.min(
-    360,
-    Math.max(180, window.innerWidth - margin * 2),
-    Math.max(180, window.innerHeight - margin * 2),
-  );
-  let x = clientX + gap;
-  let y = clientY - size - gap;
-
-  if (x + size > window.innerWidth - margin) x = clientX - size - gap;
-  x = Math.max(margin, Math.min(x, window.innerWidth - size - margin));
-  y = Math.max(margin, Math.min(y, window.innerHeight - size - margin));
-
-  return { x, y, size };
 }
 
 async function flushPendingThumbnailResolutions(): Promise<void> {

@@ -40,6 +40,13 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/i18n';
 import { getEquipmentDisplayImageUrl } from '@/services/imageUploadService';
 import { getEquipmentStatusRailClass } from '@/lib/status-colors';
+import { EquipmentImageHoverPreview } from '@/features/equipment/components/EquipmentImageHoverPreview';
+import {
+  IMAGE_HOVER_MEDIA_QUERY,
+  IMAGE_HOVER_TRANSITION_MS,
+  getImageHoverPosition,
+  type EquipmentImageHover,
+} from '@/features/equipment/utils/equipmentImageHover';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -52,27 +59,7 @@ const COLUMN_ORDER_STORAGE_KEY = 'equipqr:equipment-table-column-order:v1';
 const PINNED_COLUMNS_STORAGE_PREFIX = 'equipqr:equipment-table-pinned-columns:';
 const COLUMN_KEYS: Record<EquipmentTableColumnKey, string> = { status:'equipment.status', name:'equipment.name', manufacturer:'equipment.manufacturer', model:'equipment.model', serial_number:'equipment.serialNumber', working_hours:'equipment.hours', location:'equipment.location', team_name:'equipment.team', last_maintenance:'equipment.lastMaintenanceFull', management_responsible_primary:'equipment.managementResponsiblePrimary', management_responsible_secondary:'equipment.managementResponsibleSecondary' };
 const DEFAULT_EQUIPMENT_COLUMN_SIZING = getDefaultEquipmentColumnSizing();
-type EquipmentImageHover = { src: string; alt: string; x: number; y: number; size: number };
-const IMAGE_HOVER_TRANSITION_MS = 140;
 const COLUMN_DRAG_THRESHOLD_PX = 6;
-
-function getImageHoverPosition(clientX: number, clientY: number) {
-  const margin = 12;
-  const gap = 14;
-  const size = Math.min(
-    360,
-    Math.max(180, window.innerWidth - margin * 2),
-    Math.max(180, window.innerHeight - margin * 2),
-  );
-  let x = clientX + gap;
-  let y = clientY - size - gap;
-
-  if (x + size > window.innerWidth - margin) x = clientX - size - gap;
-  x = Math.max(margin, Math.min(x, window.innerWidth - size - margin));
-  y = Math.max(margin, Math.min(y, window.innerHeight - size - margin));
-
-  return { x, y, size };
-}
 export interface EquipmentTableProps { equipment: EquipmentTableRow[]; onShowQRCode: (id:string)=>void; pmStatuses?:Map<string,EquipmentPMStatus>; sortConfig?:SortConfig; onSortChange?:(field:string,direction?:'asc'|'desc')=>void; visibleColumns?:Record<string,boolean>; onToggleColumn?:(key:string)=>void; organizationId?:string; columnFilterOptions?:EquipmentColumnFilterOptions; columnFilters?:EquipmentColumnFilters; onColumnFilterChange?:(key:EquipmentColumnFilterKey,values:string[])=>void; }
 
 function readPinnedColumns(storageKey: string): EquipmentTableColumnKey[] {
@@ -358,11 +345,11 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
       setImageHover(null);
       imageHoverCloseTimer.current = null;
     }, IMAGE_HOVER_TRANSITION_MS);
-  }, [clearImageHoverCloseTimer]);
+  }, []);
 
   const openImageHover = useCallback((thumbnail: HTMLElement, clientX: number, clientY: number) => {
     const src = thumbnail.dataset.equipmentImageSrc;
-    if (!src || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    if (!src || !window.matchMedia(IMAGE_HOVER_MEDIA_QUERY).matches) {
       closeImageHover();
       return;
     }
@@ -521,19 +508,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
     onDragCancel={clearDndDrag}
   >
     <ResizableFixedDataTable table={table} tableWidth={tableWidth} columnDndItems={orderedVisibleColumnKeys} withTooltipProvider stickyHeader scrollClassName="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain [scrollbar-gutter:stable]" cardClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden" contentClassName="flex min-h-0 min-w-0 flex-1 flex-col p-0" getHeaderProps={(header)=>{ const columnId=header.column.id; const isStatusColumn=columnId===STATUS_COLUMN_KEY; const isActionsColumn=columnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY; const meta=isActionsColumn?undefined:getEquipmentTableColumnMeta(columnId as EquipmentTableColumnKey); const pinnedOffset=pinnedLeftOffsets.get(columnId as EquipmentTableColumnKey); const isPinned=pinnedOffset!==undefined; const isDragged=draggedColumnId===columnId; const reorderable=!isActionsColumn; return {className:cn(getDataTableAlignClass(meta?.align),meta?.mono&&'font-mono tabular-nums',isActionsColumn&&'w-14 px-2','relative select-none',reorderable&&'cursor-grab active:cursor-grabbing',isDragged&&'opacity-50',isPinned&&'sticky z-40 isolate bg-card',isPinned&&pinnedOffset===0&&'left-0',isStatusColumn&&'px-2'),style:isPinned?{left:pinnedOffset}:undefined,draggable:false,dataColumnKey:reorderable?columnId:undefined,ariaSort:meta?.sortable&&sortConfig?.field===meta.sortField?(sortConfig.direction==='asc'?'ascending':'descending'):'none',onAutoFit:isActionsColumn?undefined:()=>handleAutoFitColumn(columnId as EquipmentTableColumnKey)};}} getCellClassName={(cell)=>{ const columnId=cell.column.id; const isActionsColumn=columnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY; const meta=isActionsColumn?undefined:getEquipmentTableColumnMeta(columnId as EquipmentTableColumnKey); const isPinned=pinnedLeftOffsets.has(columnId as EquipmentTableColumnKey); return cn(getDataTableAlignClass(meta?.align),meta?.mono&&'font-mono tabular-nums',isPinned&&'sticky z-30 isolate bg-card',isPinned&&pinnedLeftOffsets.get(columnId as EquipmentTableColumnKey)===0&&'left-0',isActionsColumn&&'w-14 px-2','overflow-hidden');}} getCellStyle={(cell)=>{ const pinnedOffset=pinnedLeftOffsets.get(cell.column.id as EquipmentTableColumnKey); return pinnedOffset===undefined?undefined:{left:pinnedOffset}; }} renderHeaderActions={(header)=>{ const rawColumnId=header.column.id; if(rawColumnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY)return null; const columnId=rawColumnId as EquipmentTableColumnKey; return <EquipmentColumnHeaderMenu columnKey={columnId} visibleColumns={effectiveVisibleColumns} pinned={pinnedLeftOffsets.has(columnId)} onToggleColumn={handleToggleColumn} onTogglePin={handleTogglePin} onHideColumn={handleHideColumn} filterOptions={columnFilterOptions?.[columnId]} selectedFilterValues={getColumnFilterValues(columnId as EquipmentColumnFilterKey)} onColumnFilterChange={onColumnFilterChange} />;}} />
-    {imageHover ? (
-      <div
-        className={cn(
-          'equipment-image-hover-preview pointer-events-none fixed z-[9999] box-border overflow-hidden rounded-xl border border-border bg-white p-2 shadow-2xl transition-[opacity,transform] duration-150 ease-out dark:bg-card',
-          imageHoverVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0',
-        )}
-        data-equipment-image-hover-preview
-        aria-hidden="true"
-        style={{ left: imageHover.x, top: imageHover.y, width: imageHover.size, height: imageHover.size }}
-      >
-        <img src={imageHover.src} alt="" className="block h-full w-full rounded-md bg-white object-contain dark:bg-card" />
-      </div>
-    ) : null}
+    <EquipmentImageHoverPreview hover={imageHover} visible={imageHoverVisible} />
     <DragOverlay dropAnimation={null}>
       {activeDndColumnId ? (
         <div className="min-w-36 max-w-64 rounded-lg border border-primary/40 bg-card px-3 py-2 text-sm font-medium text-foreground shadow-2xl">
