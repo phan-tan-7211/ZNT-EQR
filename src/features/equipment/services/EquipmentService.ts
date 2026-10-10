@@ -163,6 +163,8 @@ const MAX_LIST_PAGE_SIZE = 200;
 const EQUIPMENT_LIST_SELECT =
   'id, organization_id, name, manufacturer, model, serial_number, status, team_id, location, image_url, working_hours, last_maintenance, installation_date, warranty_expiration, created_at, updated_at, management_responsible_primary, management_responsible_secondary, team:team_id(id, name)';
 
+// `getFilteredList` starts from this builder and `EquipmentListQuery` is derived
+// from its return type, so the real query and the filter helpers' type cannot drift.
 function equipmentListQueryBuilder() {
   return supabase.from('equipment').select(EQUIPMENT_LIST_SELECT, { count: 'exact' as const });
 }
@@ -263,6 +265,13 @@ function getEquipmentListSort(pagination: EquipmentListPagination) {
     sortDirection: pagination.sortDirection ?? 'asc',
   };
 }
+
+// `team_name` is flattened from the joined team row (`team:team_id(...)`), so it
+// is not a column on `equipment` and `order('team_name')` fails with Postgres
+// 42703. PostgREST orders by a to-one embed as `<alias>(<column>)`.
+const EQUIPMENT_LIST_SORT_COLUMNS: Readonly<Record<string, string>> = {
+  team_name: 'team(name)',
+};
 
 function getEquipmentListRange(page: number, pageSize: number) {
   const from = (page - 1) * pageSize;
@@ -491,10 +500,7 @@ export class EquipmentService {
     try {
       const { page, pageSize } = normalizeEquipmentListPagination(pagination);
 
-      let query = supabase
-        .from('equipment')
-        .select(EQUIPMENT_LIST_SELECT, { count: 'exact' })
-        .eq('organization_id', organizationId);
+      let query = equipmentListQueryBuilder().eq('organization_id', organizationId);
 
       if (hasNoEquipmentListAccess(filters)) {
         return createServiceSuccessResponse({ data: [], count: 0 });
@@ -571,7 +577,14 @@ export class EquipmentService {
       query = applyWarrantyExpiringFilter(query, filters);
 
       const { sortField, sortDirection } = getEquipmentListSort(pagination);
-      query = query.order(sortField, { ascending: sortDirection !== 'desc' });
+      query = query
+        .order(EQUIPMENT_LIST_SORT_COLUMNS[sortField] ?? sortField, {
+          ascending: sortDirection !== 'desc',
+        })
+        // Unique tie-breaker: many rows share a sort value (for example a
+        // working_hours of 0), and without it a row can repeat on, or vanish
+        // between, two pages because each page is a separate range request.
+        .order('id', { ascending: true });
 
       const { from, to } = getEquipmentListRange(page, pageSize);
       query = query.range(from, to);

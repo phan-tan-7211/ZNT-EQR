@@ -13,6 +13,7 @@ import {
   getInventoryItemDisplayImageUrl,
 } from '@/services/imageUploadService';
 import { isDisplayImageV2Ref } from '@/services/displayImageStorageService';
+import { getImageHoverPosition } from '@/features/equipment/utils/equipmentImageHover';
 import { cn } from '@/lib/utils';
 
 type InventoryThumbnailItem = Pick<InventoryItem, 'id' | 'organization_id' | 'image_url'>;
@@ -52,24 +53,6 @@ const V2_THUMBNAIL_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 function thumbnailCacheKey(item: InventoryThumbnailItem): string {
   return `${item.organization_id}:${item.id}:${item.image_url ?? ''}`;
-}
-
-function getImageHoverPosition(clientX: number, clientY: number): ImageHover {
-  const margin = 12;
-  const gap = 14;
-  const size = Math.min(
-    360,
-    Math.max(180, window.innerWidth - margin * 2),
-    Math.max(180, window.innerHeight - margin * 2),
-  );
-  let x = clientX + gap;
-  let y = clientY - size - gap;
-
-  if (x + size > window.innerWidth - margin) x = clientX - size - gap;
-  x = Math.max(margin, Math.min(x, window.innerWidth - size - margin));
-  y = Math.max(margin, Math.min(y, window.innerHeight - size - margin));
-
-  return { x, y, size };
 }
 
 async function flushPendingThumbnailResolutions(): Promise<void> {
