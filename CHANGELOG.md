@@ -11,6 +11,13 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.40.3] - 2026-10-10
+
+### Fixed
+
+- **Bulk edit grid** - The equipment bulk-edit grid now shows equipment thumbnails with hover preview and the status color, and pages through every item (25 per page) instead of stopping at the first page.
+- **Equipment sorting** - Sorting by Team no longer fails, and items with the same value no longer repeat or go missing between pages.
+
 ## [3.40.2] - 2026-10-06
 
 ### Fixed
