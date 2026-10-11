@@ -11,6 +11,20 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.42.2] - 2026-10-11
+
+### Fixed
+
+- **Sketch editing** - Moving, resizing or dimensioning lines drawn as one chain now keeps the shape connected and square instead of snapping back or slanting.
+- **Sketch input** - Clicking the start point closes a shape exactly. Typing a comma as the decimal separator works. Right- or middle-clicking geometry no longer runs the active tool, and Esc during a drag cancels it cleanly.
+- **Sketch offset** - Offset now works on rectangles, and an inward offset that is too large shows a clear message.
+- **Sketch guide** - The guide now matches how the tools behave, opens with ? or F1 anywhere on the Facility Map, and notes that sketch editing needs a computer.
+- **Sketch saving** - When browser storage is full, the sketch shows a "Not saved" message instead of freezing.
+- **Inventory bulk edit** - Typing a space or pressing Enter in a cell no longer toggles the row, and a partial save lists the items that were not saved.
+- **Branding** - The top bar logo loads again, shared links show a ZNTEQR preview image, demo buttons read "Request a demo", and the unused System Status link is gone.
+- **CSV exports** - Equipment links in CSV exports open eqr.zinitek.com.
+- **Preview and local access** - Server functions accept requests from the Cloudflare Pages project address and from 127.0.0.1 during local development.
+
 ## [3.42.1] - 2026-10-11
 
 ### Fixed
