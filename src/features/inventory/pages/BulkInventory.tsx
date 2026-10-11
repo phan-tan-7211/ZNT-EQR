@@ -16,6 +16,7 @@ import { useInventoryItems } from '@/features/inventory/hooks/useInventory';
 import { useIsPartsManager } from '@/features/inventory/hooks/usePartsManagers';
 import { useBulkEditInventory } from '@/features/inventory/hooks/useBulkEditInventory';
 import { InventoryBulkGrid } from '@/features/inventory/components/InventoryBulkGrid';
+import { useInventoryBulkGridView } from '@/features/inventory/hooks/useInventoryBulkGridView';
 
 const BulkInventory: React.FC = () => {
   const { t } = useI18n();
@@ -46,6 +47,10 @@ const BulkInventory: React.FC = () => {
     clearSelection,
     commit,
   } = useBulkEditInventory(inventoryItems, { canCommit: canBulkEdit });
+
+  // Held here so the offline panel (which unmounts only the grid) doesn't
+  // reset the page, page size and sort.
+  const gridView = useInventoryBulkGridView();
 
   // Desktop-only surface — redirect mobile to the standard inventory list.
   // Placed after hook calls to keep React's hook ordering stable.
@@ -122,6 +127,7 @@ const BulkInventory: React.FC = () => {
           onToggleSelected={toggleSelected}
           onSelectAll={selectAll}
           onClearSelection={clearSelection}
+          view={gridView}
         />
 
         <BulkCommitToolbar

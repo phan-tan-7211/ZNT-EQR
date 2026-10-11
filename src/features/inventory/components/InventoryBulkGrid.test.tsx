@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { InventoryBulkGrid } from './InventoryBulkGrid';
+import { useInventoryBulkGridView } from '@/features/inventory/hooks/useInventoryBulkGridView';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
 import type { InventoryRowDelta } from '@/features/inventory/hooks/useBulkEditInventory';
 import { getPrimaryInventoryItemImageRefs } from '@/features/inventory/services/inventoryListThumbnailService';
@@ -369,5 +370,59 @@ describe('InventoryBulkGrid — keyboard handling', () => {
     await user.keyboard(' ');
     expect(onToggleSelected).toHaveBeenCalledTimes(2);
     expect(onToggleSelected).toHaveBeenNthCalledWith(2, 'i-1');
+  });
+});
+
+describe('InventoryBulkGrid — view state owned by the page', () => {
+  const manyRows = Array.from({ length: 30 }, (_, index) =>
+    buildRow(`i-${String(index + 1).padStart(2, '0')}`),
+  );
+
+  // Mirrors BulkInventory: the page owns the view state and the offline panel
+  // unmounts only the grid.
+  function Harness() {
+    const view = useInventoryBulkGridView();
+    const [showGrid, setShowGrid] = React.useState(true);
+    return (
+      <MemoryRouter>
+        <button type="button" onClick={() => setShowGrid((value) => !value)}>
+          toggle grid
+        </button>
+        {showGrid && (
+          <InventoryBulkGrid
+            rows={manyRows}
+            dirtyRows={new Map()}
+            selectedRowIds={new Set()}
+            onSetCellValue={vi.fn()}
+            onSetCellValueOnRows={vi.fn()}
+            onToggleSelected={vi.fn()}
+            onSelectAll={vi.fn()}
+            onClearSelection={vi.fn()}
+            view={view}
+          />
+        )}
+      </MemoryRouter>
+    );
+  }
+
+  it('returns to the same page and sort after the grid unmounts and remounts', () => {
+    render(<Harness />);
+    const nameHeader = screen.getByRole('columnheader', { name: /^name/i });
+    // Sort by name descending: i-30 first, so page 2 holds i-05 … i-01.
+    fireEvent.click(within(nameHeader).getByRole('button'));
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    expect(screen.getByRole('checkbox', { name: /Select Item i-01/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'toggle grid' }));
+    expect(screen.queryByTestId('virtual-list')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'toggle grid' }));
+
+    // Still page 2 of the descending sort: five rows, i-05 down to i-01.
+    const names = within(screen.getByTestId('virtual-list'))
+      .getAllByRole('checkbox')
+      .map((box) => box.getAttribute('aria-label'));
+    expect(names).toHaveLength(5);
+    expect(names[0]).toMatch(/i-05/);
+    expect(names[4]).toMatch(/i-01/);
   });
 });
