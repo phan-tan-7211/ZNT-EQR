@@ -11,7 +11,7 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
-## [3.42.2] - 2026-10-11
+## [3.43.1] - 2026-10-11
 
 ### Fixed
 
@@ -24,6 +24,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 - **Branding** - The top bar logo loads again, shared links show a ZNTEQR preview image, demo buttons read "Request a demo", and the unused System Status link is gone.
 - **CSV exports** - Equipment links in CSV exports open eqr.zinitek.com.
 - **Preview and local access** - Server functions accept requests from the Cloudflare Pages project address and from 127.0.0.1 during local development.
+
+## [3.43.0] - 2026-10-11
+
+### Added
+
+- **Tooling management** - A new Tooling page manages jigs, fixtures, molds and dies as TL equipment with the same management code and QR: approved product / operation / machine compatibility, QR-friendly issue and return with double-checkout protection, cycle-based tool life with warning and hard limits, and inspection-gated return to service linked to work orders. Available in English, Vietnamese and Korean.
 
 ## [3.42.1] - 2026-10-11
 

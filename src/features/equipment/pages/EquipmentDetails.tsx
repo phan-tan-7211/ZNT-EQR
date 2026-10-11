@@ -26,6 +26,7 @@ import MobileEquipmentHeader from '@/features/equipment/components/MobileEquipme
 import MobileEquipmentActionBar from '@/features/equipment/components/MobileEquipmentActionBar';
 import ResponsiveEquipmentTabs from '@/features/equipment/components/ResponsiveEquipmentTabs';
 import { EquipmentDetailsDesktopSummary } from '@/features/equipment/components/EquipmentDetailsDesktopSummary';
+import { ToolingEquipmentBanner } from '@/features/tooling/components/ToolingEquipmentBanner';
 import { EquipmentLocationMapPanel } from '@/components/location/EquipmentLocationMapPanel';
 import { EquipmentDetailsModals } from '@/features/equipment/components/EquipmentDetailsModals';
 import { EquipmentQuickAccessDrawer } from '@/features/equipment/components/EquipmentQuickAccessDrawer';
@@ -307,6 +308,8 @@ const EquipmentDetails = () => {
             />
           </>
         )}
+
+        <ToolingEquipmentBanner equipmentId={equipment.id} />
 
         <ResponsiveEquipmentTabs activeTab={activeTab} onTabChange={setActiveTab} showPartsTab={canViewInventory}>
           <TabsContent value="details"><EquipmentDetailsTab equipment={equipment} assignedTeam={assignedTeam} /></TabsContent>

@@ -43,6 +43,8 @@ vi.mock('@/routes/lazyDashboardPages', () => {
     OperatorCheckInsPage: stub('Operator Check-Ins Route'),
     QuickFormsPage: stub('Quick Forms Route'),
     FacilityFloorPlan: stub('Facility Floor Plan Route'),
+    ToolingListPage: stub('Tooling List Route'),
+    ToolingDetailPage: stub('Tooling Detail Route'),
   };
 });
 

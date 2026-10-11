@@ -12,6 +12,7 @@ export const ROUTE_LABELS: Record<string, string> = {
   '/dashboard/work-orders': 'Work Orders',
   '/dashboard/fleet-map': 'Fleet Map',
   '/dashboard/facility-map': 'Facility Floor Plan',
+  '/dashboard/tooling': 'Tooling Management',
   '/dashboard/inventory': 'Inventory',
   '/dashboard/part-lookup': 'Part Lookup',
   '/dashboard/alternate-groups': 'Part Alternates',
@@ -37,6 +38,7 @@ export const ROUTE_LABEL_KEYS: Record<string, string> = {
   '/dashboard/work-orders': 'breadcrumb.workOrders',
   '/dashboard/fleet-map': 'breadcrumb.fleetMap',
   '/dashboard/facility-map': 'facilityMap.title',
+  '/dashboard/tooling': 'tooling.title',
   '/dashboard/inventory': 'breadcrumb.inventory',
   '/dashboard/part-lookup': 'breadcrumb.partLookup',
   '/dashboard/alternate-groups': 'breadcrumb.partAlternates',
@@ -63,6 +65,7 @@ export const ROUTES_WITH_PAGE_H1 = new Set([
   '/dashboard/inventory',
   '/dashboard/fleet-map',
   '/dashboard/facility-map',
+  '/dashboard/tooling',
   '/dashboard/teams',
   '/dashboard/reports',
   '/dashboard/pm-templates',
@@ -80,6 +83,7 @@ const MOBILE_DETAIL_PREFIXES = [
   '/dashboard/equipment/',
   '/dashboard/work-orders/',
   '/dashboard/inventory/',
+  '/dashboard/tooling/',
 ];
 
 export function shouldSuppressLabelOnMobile(pathname: string): boolean {

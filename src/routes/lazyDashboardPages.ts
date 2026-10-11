@@ -52,3 +52,5 @@ export const QuickFormsPage = lazyWithRetry(
 );
 
 export const FacilityFloorPlan = lazyWithRetry(() => import('@/features/facility-map/pages/FacilityFloorPlan'), 'FacilityFloorPlan');
+export const ToolingListPage = lazyWithRetry(() => import('@/features/tooling/pages/ToolingListPage'), 'ToolingListPage');
+export const ToolingDetailPage = lazyWithRetry(() => import('@/features/tooling/pages/ToolingDetailPage'), 'ToolingDetailPage');

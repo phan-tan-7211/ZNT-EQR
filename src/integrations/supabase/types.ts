@@ -3218,6 +3218,103 @@ export type Database = {
           },
         ]
       }
+      product_parts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          customer_name: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          part_number: string
+          revision: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          part_number: string
+          revision?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          customer_name?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          part_number?: string
+          revision?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_parts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      production_operations: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          operation_type: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          operation_type?: string
+          organization_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          operation_type?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "production_operations_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -4187,6 +4284,628 @@ export type Database = {
         }
         Relationships: []
       }
+      tooling_assignments: {
+        Row: {
+          compatibility_id: string | null
+          condition_at_issue: string
+          condition_at_return: string | null
+          id: string
+          issue_location: string | null
+          issued_at: string
+          issued_by: string
+          issued_by_name: string | null
+          issued_to_name: string | null
+          issued_to_user_id: string
+          machine_equipment_id: string | null
+          notes: string | null
+          operation_id: string | null
+          organization_id: string
+          product_part_id: string | null
+          return_location: string | null
+          return_notes: string | null
+          returned_at: string | null
+          returned_by: string | null
+          returned_by_name: string | null
+          status: string
+          tooling_equipment_id: string
+          usage_at_return: number | null
+        }
+        Insert: {
+          compatibility_id?: string | null
+          condition_at_issue: string
+          condition_at_return?: string | null
+          id?: string
+          issue_location?: string | null
+          issued_at?: string
+          issued_by: string
+          issued_by_name?: string | null
+          issued_to_name?: string | null
+          issued_to_user_id: string
+          machine_equipment_id?: string | null
+          notes?: string | null
+          operation_id?: string | null
+          organization_id: string
+          product_part_id?: string | null
+          return_location?: string | null
+          return_notes?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
+          returned_by_name?: string | null
+          status?: string
+          tooling_equipment_id: string
+          usage_at_return?: number | null
+        }
+        Update: {
+          compatibility_id?: string | null
+          condition_at_issue?: string
+          condition_at_return?: string | null
+          id?: string
+          issue_location?: string | null
+          issued_at?: string
+          issued_by?: string
+          issued_by_name?: string | null
+          issued_to_name?: string | null
+          issued_to_user_id?: string
+          machine_equipment_id?: string | null
+          notes?: string | null
+          operation_id?: string | null
+          organization_id?: string
+          product_part_id?: string | null
+          return_location?: string | null
+          return_notes?: string | null
+          returned_at?: string | null
+          returned_by?: string | null
+          returned_by_name?: string | null
+          status?: string
+          tooling_equipment_id?: string
+          usage_at_return?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_assignments_compatibility_id_fkey"
+            columns: ["compatibility_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_compatibility"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_assignments_machine_equipment_id_fkey"
+            columns: ["machine_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_assignments_operation_fk"
+            columns: ["operation_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "production_operations"
+            referencedColumns: ["id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_assignments_product_fk"
+            columns: ["product_part_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_parts"
+            referencedColumns: ["id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_assignments_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+        ]
+      }
+      tooling_compatibility: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          created_by: string | null
+          drawing_revision: string | null
+          effective_from: string | null
+          effective_to: string | null
+          id: string
+          is_active: boolean
+          machine_equipment_id: string | null
+          notes: string | null
+          operation_id: string | null
+          organization_id: string
+          product_part_id: string
+          tooling_equipment_id: string
+          updated_at: string
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          drawing_revision?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean
+          machine_equipment_id?: string | null
+          notes?: string | null
+          operation_id?: string | null
+          organization_id: string
+          product_part_id: string
+          tooling_equipment_id: string
+          updated_at?: string
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          drawing_revision?: string | null
+          effective_from?: string | null
+          effective_to?: string | null
+          id?: string
+          is_active?: boolean
+          machine_equipment_id?: string | null
+          notes?: string | null
+          operation_id?: string | null
+          organization_id?: string
+          product_part_id?: string
+          tooling_equipment_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_compatibility_machine_equipment_id_fkey"
+            columns: ["machine_equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_compatibility_operation_fk"
+            columns: ["operation_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "production_operations"
+            referencedColumns: ["id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_compatibility_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_compatibility_product_fk"
+            columns: ["product_part_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "product_parts"
+            referencedColumns: ["id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_compatibility_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+        ]
+      }
+      tooling_designs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          current_revision: string | null
+          description: string | null
+          design_code: string
+          drawing_number: string | null
+          id: string
+          is_active: boolean
+          name: string
+          organization_id: string
+          revision_effective_date: string | null
+          tooling_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          current_revision?: string | null
+          description?: string | null
+          design_code: string
+          drawing_number?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          organization_id: string
+          revision_effective_date?: string | null
+          tooling_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          current_revision?: string | null
+          description?: string | null
+          design_code?: string
+          drawing_number?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          organization_id?: string
+          revision_effective_date?: string | null
+          tooling_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_designs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tooling_details: {
+        Row: {
+          approval_status: string
+          approved_at: string | null
+          approved_by: string | null
+          condition: string
+          created_at: string
+          created_by: string | null
+          cumulative_usage: number
+          design_id: string | null
+          drawing_number: string | null
+          drawing_revision: string | null
+          equipment_id: string
+          inspection_interval_days: number | null
+          last_inspection_at: string | null
+          last_maintenance_at: string | null
+          life_limit: number | null
+          maintenance_interval: number | null
+          next_inspection_due: string | null
+          notes: string | null
+          organization_id: string
+          owner_name: string | null
+          ownership_type: string
+          requires_machine: boolean
+          responsible_user_id: string | null
+          revision_effective_date: string | null
+          storage_location: string | null
+          tooling_type: string
+          updated_at: string
+          usability_state: string
+          usage_since_maintenance: number
+          usage_unit: string
+          warning_limit: number | null
+        }
+        Insert: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          condition?: string
+          created_at?: string
+          created_by?: string | null
+          cumulative_usage?: number
+          design_id?: string | null
+          drawing_number?: string | null
+          drawing_revision?: string | null
+          equipment_id: string
+          inspection_interval_days?: number | null
+          last_inspection_at?: string | null
+          last_maintenance_at?: string | null
+          life_limit?: number | null
+          maintenance_interval?: number | null
+          next_inspection_due?: string | null
+          notes?: string | null
+          organization_id: string
+          owner_name?: string | null
+          ownership_type?: string
+          requires_machine?: boolean
+          responsible_user_id?: string | null
+          revision_effective_date?: string | null
+          storage_location?: string | null
+          tooling_type: string
+          updated_at?: string
+          usability_state?: string
+          usage_since_maintenance?: number
+          usage_unit?: string
+          warning_limit?: number | null
+        }
+        Update: {
+          approval_status?: string
+          approved_at?: string | null
+          approved_by?: string | null
+          condition?: string
+          created_at?: string
+          created_by?: string | null
+          cumulative_usage?: number
+          design_id?: string | null
+          drawing_number?: string | null
+          drawing_revision?: string | null
+          equipment_id?: string
+          inspection_interval_days?: number | null
+          last_inspection_at?: string | null
+          last_maintenance_at?: string | null
+          life_limit?: number | null
+          maintenance_interval?: number | null
+          next_inspection_due?: string | null
+          notes?: string | null
+          organization_id?: string
+          owner_name?: string | null
+          ownership_type?: string
+          requires_machine?: boolean
+          responsible_user_id?: string | null
+          revision_effective_date?: string | null
+          storage_location?: string | null
+          tooling_type?: string
+          updated_at?: string
+          usability_state?: string
+          usage_since_maintenance?: number
+          usage_unit?: string
+          warning_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_details_design_fk"
+            columns: ["design_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_designs"
+            referencedColumns: ["id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_details_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_details_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tooling_events: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          assignment_id: string | null
+          created_at: string
+          details: Json
+          event_type: string
+          from_value: string | null
+          id: string
+          organization_id: string
+          reason: string | null
+          to_value: string | null
+          tooling_equipment_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          assignment_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type: string
+          from_value?: string | null
+          id?: string
+          organization_id: string
+          reason?: string | null
+          to_value?: string | null
+          tooling_equipment_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          assignment_id?: string | null
+          created_at?: string
+          details?: Json
+          event_type?: string
+          from_value?: string | null
+          id?: string
+          organization_id?: string
+          reason?: string | null
+          to_value?: string | null
+          tooling_equipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_events_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_events_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+        ]
+      }
+      tooling_usage_logs: {
+        Row: {
+          assignment_id: string | null
+          cumulative_after: number
+          entry_type: string
+          id: string
+          organization_id: string
+          production_quantity: number | null
+          quantity: number
+          reason: string | null
+          recorded_at: string
+          recorded_by: string
+          recorded_by_name: string | null
+          tooling_equipment_id: string
+          usage_unit: string
+        }
+        Insert: {
+          assignment_id?: string | null
+          cumulative_after: number
+          entry_type: string
+          id?: string
+          organization_id: string
+          production_quantity?: number | null
+          quantity: number
+          reason?: string | null
+          recorded_at?: string
+          recorded_by: string
+          recorded_by_name?: string | null
+          tooling_equipment_id: string
+          usage_unit: string
+        }
+        Update: {
+          assignment_id?: string | null
+          cumulative_after?: number
+          entry_type?: string
+          id?: string
+          organization_id?: string
+          production_quantity?: number | null
+          quantity?: number
+          reason?: string | null
+          recorded_at?: string
+          recorded_by?: string
+          recorded_by_name?: string | null
+          tooling_equipment_id?: string
+          usage_unit?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_usage_logs_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_assignments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_usage_logs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_usage_logs_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+        ]
+      }
+      tooling_verifications: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          approved_by_name: string | null
+          cumulative_usage_at: number
+          findings: string | null
+          id: string
+          inspected_at: string
+          inspected_by: string
+          inspected_by_name: string | null
+          maintenance_completed: boolean
+          next_due: string | null
+          organization_id: string
+          result: string
+          returned_to_service: boolean
+          tooling_equipment_id: string
+          usability_after: string
+          usability_before: string
+          verification_type: string
+          work_order_id: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_by_name?: string | null
+          cumulative_usage_at: number
+          findings?: string | null
+          id?: string
+          inspected_at?: string
+          inspected_by: string
+          inspected_by_name?: string | null
+          maintenance_completed?: boolean
+          next_due?: string | null
+          organization_id: string
+          result: string
+          returned_to_service?: boolean
+          tooling_equipment_id: string
+          usability_after: string
+          usability_before: string
+          verification_type: string
+          work_order_id?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          approved_by_name?: string | null
+          cumulative_usage_at?: number
+          findings?: string | null
+          id?: string
+          inspected_at?: string
+          inspected_by?: string
+          inspected_by_name?: string | null
+          maintenance_completed?: boolean
+          next_due?: string | null
+          organization_id?: string
+          result?: string
+          returned_to_service?: boolean
+          tooling_equipment_id?: string
+          usability_after?: string
+          usability_before?: string
+          verification_type?: string
+          work_order_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_verifications_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_verifications_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+          {
+            foreignKeyName: "tooling_verifications_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_dashboard_preferences: {
         Row: {
           active_widgets: string[]
@@ -4904,6 +5623,64 @@ export type Database = {
           },
         ]
       }
+      tooling_overview: {
+        Row: {
+          active_assignment_id: string | null
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          condition: string | null
+          created_at: string | null
+          cumulative_usage: number | null
+          design_code: string | null
+          design_id: string | null
+          design_name: string | null
+          drawing_number: string | null
+          drawing_revision: string | null
+          equipment_status: Database["public"]["Enums"]["equipment_status"] | null
+          id: string | null
+          image_url: string | null
+          inspection_interval_days: number | null
+          inspection_overdue: boolean | null
+          is_issuable: boolean | null
+          is_issued: boolean | null
+          issued_at: string | null
+          issued_machine_id: string | null
+          issued_to_name: string | null
+          issued_to_user_id: string | null
+          last_inspection_at: string | null
+          last_maintenance_at: string | null
+          life_limit: number | null
+          life_limit_reached: boolean | null
+          maintenance_due: boolean | null
+          maintenance_interval: number | null
+          management_code: string | null
+          manufacturer: string | null
+          model: string | null
+          name: string | null
+          next_inspection_due: string | null
+          notes: string | null
+          organization_id: string | null
+          owner_name: string | null
+          ownership_type: string | null
+          remaining_life: number | null
+          requires_machine: boolean | null
+          responsible_name: string | null
+          responsible_user_id: string | null
+          revision_effective_date: string | null
+          serial_number: string | null
+          storage_location: string | null
+          team_id: string | null
+          tooling_type: string | null
+          updated_at: string | null
+          usability_state: string | null
+          usage_since_maintenance: number | null
+          usage_unit: string | null
+          warning_limit: number | null
+          warning_reached: boolean | null
+        }
+        Relationships: []
+      }
       user_entitlements: {
         Row: {
           granted_at: string | null
@@ -4962,6 +5739,13 @@ export type Database = {
       apply_pending_admin_grants_for_user: {
         Args: { p_user_id: string }
         Returns: number
+      }
+      approve_tooling: {
+        Args: {
+          p_note?: string
+          p_tooling_id: string
+        }
+        Returns: undefined
       }
       assert_inventory_read_access: {
         Args: { p_organization_id: string }
@@ -5146,6 +5930,14 @@ export type Database = {
         }
         Returns: Json
       }
+      correct_tooling_usage: {
+        Args: {
+          p_delta: number
+          p_reason: string
+          p_tooling_id: string
+        }
+        Returns: string
+      }
       count_equipment_matching_pm_rules: {
         Args: { p_organization_id: string; p_rules: Json }
         Returns: number
@@ -5320,6 +6112,26 @@ export type Database = {
           nonce: string
           session_token: string
         }[]
+      }
+      create_tooling: {
+        Args: {
+          p_organization_id: string
+          p_payload: Json
+        }
+        Returns: string
+      }
+      create_tooling_compatibility: {
+        Args: {
+          p_drawing_revision?: string
+          p_effective_from?: string
+          p_effective_to?: string
+          p_machine_equipment_id?: string
+          p_notes?: string
+          p_operation_id?: string
+          p_product_part_id: string
+          p_tooling_id: string
+        }
+        Returns: string
       }
       create_work_order_notifications: {
         Args: {
@@ -6038,6 +6850,19 @@ export type Database = {
         Args: { p_user_id: string; p_work_order_id: string }
         Returns: boolean
       }
+      issue_tooling: {
+        Args: {
+          p_condition?: string
+          p_issue_location?: string
+          p_issued_to_user_id: string
+          p_machine_equipment_id?: string
+          p_notes?: string
+          p_operation_id?: string
+          p_product_part_id?: string
+          p_tooling_id: string
+        }
+        Returns: string
+      }
       latest_scans_for_equipment_ids: {
         Args: { p_equipment_ids: string[]; p_organization_id: string }
         Returns: {
@@ -6288,6 +7113,37 @@ export type Database = {
         Args: { p_organization_id: string; p_sync_started_at: string }
         Returns: Json
       }
+      record_tooling_limit_disposition: {
+        Args: {
+          p_disposition: string
+          p_new_life_limit: number
+          p_reason: string
+          p_tooling_id: string
+        }
+        Returns: undefined
+      }
+      record_tooling_usage: {
+        Args: {
+          p_notes?: string
+          p_production_quantity?: number
+          p_quantity: number
+          p_tooling_id: string
+        }
+        Returns: string
+      }
+      record_tooling_verification: {
+        Args: {
+          p_findings?: string
+          p_maintenance_completed?: boolean
+          p_next_due?: string
+          p_result: string
+          p_return_to_service?: boolean
+          p_tooling_id: string
+          p_verification_type: string
+          p_work_order_id?: string
+        }
+        Returns: string
+      }
       refresh_quickbooks_tokens_manual: {
         Args: never
         Returns: {
@@ -6361,6 +7217,16 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      return_tooling: {
+        Args: {
+          p_condition: string
+          p_notes?: string
+          p_return_location?: string
+          p_tooling_id: string
+          p_usage_quantity?: number
+        }
+        Returns: string
       }
       set_team_permission_override: {
         Args: {
@@ -6454,6 +7320,34 @@ export type Database = {
       }
       set_bypass_triggers: { Args: { bypass?: boolean }; Returns: undefined }
       set_rls_context: { Args: { context_name: string }; Returns: undefined }
+      set_tooling_compatibility_status: {
+        Args: {
+          p_action: string
+          p_compatibility_id: string
+          p_note?: string
+        }
+        Returns: undefined
+      }
+      set_tooling_life_limits: {
+        Args: {
+          p_inspection_interval_days: number
+          p_life_limit: number
+          p_maintenance_interval: number
+          p_reason?: string
+          p_tooling_id: string
+          p_usage_unit: string
+          p_warning_limit: number
+        }
+        Returns: undefined
+      }
+      set_tooling_usability: {
+        Args: {
+          p_reason: string
+          p_state: string
+          p_tooling_id: string
+        }
+        Returns: undefined
+      }
       should_notify_user_for_work_order: {
         Args: {
           organization_uuid: string
@@ -6504,6 +7398,14 @@ export type Database = {
           p_status: Database["public"]["Enums"]["work_order_status"]
         }
         Returns: Json
+      }
+      transfer_tooling_location: {
+        Args: {
+          p_reason?: string
+          p_to_location: string
+          p_tooling_id: string
+        }
+        Returns: undefined
       }
       trigger_departure_processing: { Args: never; Returns: Json }
       update_equipment_note: {
@@ -6581,6 +7483,13 @@ export type Database = {
       }
       update_organization_billing_metrics: {
         Args: { org_id: string }
+        Returns: undefined
+      }
+      update_tooling_details: {
+        Args: {
+          p_payload: Json
+          p_tooling_id: string
+        }
         Returns: undefined
       }
       update_work_order_note: {

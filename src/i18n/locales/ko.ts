@@ -33,6 +33,7 @@ const ko = {
       equipment: '설비',
       fleetMap: '설비 지도',
       facilityMap: '공장 배치도',
+      tooling: '치공구',
       inventory: '재고',
       partLookup: '부품 조회',
       partAlternates: '대체 부품',

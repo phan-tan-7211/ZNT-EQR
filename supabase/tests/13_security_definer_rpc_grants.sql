@@ -362,7 +362,21 @@ SELECT is(
           'update_work_order_note',
           'user_is_org_admin',
           'user_is_org_member',
-          'validate_quickbooks_oauth_session'
+          'validate_quickbooks_oauth_session',
+          'approve_tooling',
+          'correct_tooling_usage',
+          'create_tooling',
+          'create_tooling_compatibility',
+          'issue_tooling',
+          'record_tooling_limit_disposition',
+          'record_tooling_usage',
+          'record_tooling_verification',
+          'return_tooling',
+          'set_tooling_compatibility_status',
+          'set_tooling_life_limits',
+          'set_tooling_usability',
+          'transfer_tooling_location',
+          'update_tooling_details'
         ])
       )),
   0,
