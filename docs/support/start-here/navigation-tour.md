@@ -31,7 +31,7 @@ On phones, the bottom nav shows the four most-used destinations for field techni
 
 ![Mobile Work Orders tab](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/start-here/mobile/03-mobile-nav-work-orders.png)
 
-The top bar shows your current organization, notifications, and your user menu. **Help Center** (guides on equipqr.info) and **Support & tickets** (report issues) live under the **user menu (avatar top-right)**.
+The top bar shows your current organization, notifications, and your user menu. **Help Center** (guides on eqrdocs.zinitek.com) and **Support & tickets** (report issues) live under the **user menu (avatar top-right)**.
 
 ## 4. Admin-only surfaces are hidden by default
 

@@ -25,39 +25,34 @@ const ALLOWED_ORIGINS = [
 ];
 
 /**
- * Matches Vercel preview deployment URLs scoped to this project.
+ * Matches Cloudflare Pages preview deployments of this project only:
+ *   - https://<deployment-hash>.<project>.pages.dev   (per-commit / per-PR)
+ *   - https://<branch-alias>.<project>.pages.dev      (per-branch alias)
  *
- * Vercel generates preview URLs in these forms:
- *   - <project>-<hash>-<team>.vercel.app
+ * Only the Cloudflare account that owns the Pages project can publish under
+ * `<project>.pages.dev`, so this does not trust arbitrary third-party sites.
+ * The former Vercel team preview pattern was
+ * removed: that team no longer belongs to this product, so trusting it let
+ * anyone in it host an origin these functions would accept.
  *
- * We anchor to the ZNTEQR Vercel project slug (`equipqr`; legacy `equip-qr` still
- * accepted) so only deployments from this Vercel project are accepted — not
- * arbitrary third-party Vercel sites.
- *
- * The env var VERCEL_PROJECT_SLUG lets operators override the slug without a
- * code change (e.g. if the Vercel project is renamed).
+ * CLOUDFLARE_PAGES_PROJECT lets operators override the project name without
+ * a code change (e.g. if the Pages project is renamed).
  */
-function getVercelPreviewPatterns(): RegExp[] {
-  const override = Deno.env.get("VERCEL_PROJECT_SLUG")?.trim();
-  const slugs = override ? [override] : ["equipqr", "equip-qr"];
-  const team = (Deno.env.get("VERCEL_TEAM_SLUG")?.trim() ||
-    "columbia-cloudworks-llc")
+function getPagesPreviewPattern(): RegExp {
+  const project = (Deno.env.get("CLOUDFLARE_PAGES_PROJECT")?.trim() || "eqr-zinitek")
     .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return slugs.map((slug) => {
-    const escaped = slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`^https://${escaped}-.+-${team}\\.vercel\\.app$`);
-  });
+  return new RegExp(`^https://[a-z0-9-]+\\.${project}\\.pages\\.dev$`);
 }
 
 /**
- * Returns true when `origin` is in the static allowlist **or** matches the
- * project-scoped Vercel preview pattern.
+ * Returns true when `origin` is in the static allowlist **or** is a preview
+ * deployment of this Cloudflare Pages project.
  */
 export function isAllowedOrigin(origin: string): boolean {
   if (ALLOWED_ORIGINS.includes(origin)) {
     return true;
   }
-  return getVercelPreviewPatterns().some((pattern) => pattern.test(origin));
+  return getPagesPreviewPattern().test(origin);
 }
 
 /** The default production origin used as a safe fallback. */

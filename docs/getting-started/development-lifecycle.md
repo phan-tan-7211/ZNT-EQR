@@ -40,7 +40,7 @@ git push -u origin HEAD
 ```
 
 - Vercel creates a Preview deployment for the branch.
-- Open the deployment URL from the PR or Vercel dashboard (`equipqr-<hash>-columbia-cloudworks-llc.vercel.app`).
+- Open the deployment URL from the PR or Vercel dashboard (`<hash>.eqr-zinitek.pages.dev`).
 - After merge to git **`preview`**, **`equip-qr-*.vercel.app`** updates via that branch’s Vercel deploy.
 
 ### 4) PR to preview

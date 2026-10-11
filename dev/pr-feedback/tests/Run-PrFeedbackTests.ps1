@@ -81,7 +81,7 @@ $fixerSample = @'
 
 🍒 Ready to be cherry-picked — ✅ Merged (0) · ☑ Fixed (2)
 
-🔗 Fix PR: [#1230](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/pull/1230)
+🔗 Fix PR: #1230 (legacy tracker)
 
 <details><summary>Process — 2 fixed</summary>
 

@@ -107,7 +107,7 @@ Deno.test("validateOAuthStateTimestamp rejects expired state", () => {
 
 Deno.test({
   name: "isValidRedirectUrl allows relative paths and production host",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
   withEnv({ PUBLIC_SITE_URL: "https://eqr.zinitek.com", PRODUCTION_URL: undefined }, () => {
     const productionUrl = "https://eqr.zinitek.com";
@@ -120,10 +120,10 @@ Deno.test({
 
 Deno.test({
   name: "isValidRedirectUrl rejects loopback and broad Vercel hosts in deployed contexts",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
-  withEnv({ PUBLIC_SITE_URL: "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app", PRODUCTION_URL: undefined }, () => {
-    const productionUrl = "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app";
+  withEnv({ PUBLIC_SITE_URL: "https://preview.eqr-zinitek.pages.dev", PRODUCTION_URL: undefined }, () => {
+    const productionUrl = "https://preview.eqr-zinitek.pages.dev";
     assertEquals(isValidRedirectUrl("http://localhost:8080/dashboard", productionUrl), false);
     assertEquals(isValidRedirectUrl("http://127.0.0.1:8080/dashboard", productionUrl), false);
     assertEquals(isValidRedirectUrl("https://equip-qr-evil.vercel.app/dashboard", productionUrl), false);
@@ -132,7 +132,7 @@ Deno.test({
 
 Deno.test({
   name: "isValidRedirectUrl allows loopback only when public site URL is local",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
   withEnv({ PUBLIC_SITE_URL: "http://localhost:8080", PRODUCTION_URL: undefined }, () => {
     assertEquals(isValidRedirectUrl("http://localhost:8080/dashboard", "https://eqr.zinitek.com"), true);
@@ -141,12 +141,12 @@ Deno.test({
 });
 
 Deno.test({
-  name: "isValidRedirectUrl allows equip-qr-*.vercel.app when PUBLIC_SITE_URL is production",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  name: "isValidRedirectUrl allows Cloudflare Pages previews (*.eqr-zinitek.pages.dev) when PUBLIC_SITE_URL is production",
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
   withEnv({ PUBLIC_SITE_URL: "https://eqr.zinitek.com", PRODUCTION_URL: undefined }, () => {
     assertEquals(
-      isValidRedirectUrl("https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/dashboard/organization", "https://eqr.zinitek.com"),
+      isValidRedirectUrl("https://preview.eqr-zinitek.pages.dev/dashboard/organization", "https://eqr.zinitek.com"),
       true,
     );
   });
@@ -154,25 +154,25 @@ Deno.test({
 
 Deno.test({
   name: "buildSuccessRedirectUrl returns preview origin when shared prod edge uses production PUBLIC_SITE_URL",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
   withEnv({ PUBLIC_SITE_URL: "https://eqr.zinitek.com", PRODUCTION_URL: undefined }, () => {
     const url = buildSuccessRedirectUrl({
       productionUrl: "https://eqr.zinitek.com",
-      originUrl: "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app",
+      originUrl: "https://preview.eqr-zinitek.pages.dev",
       redirectUrl: "/dashboard/organization/integrations",
       realmId: "realm-preview-1",
     });
     assertEquals(
       url,
-      "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/dashboard/organization/integrations?qb_connected=true&realm_id=realm-preview-1",
+      "https://preview.eqr-zinitek.pages.dev/dashboard/organization/integrations?qb_connected=true&realm_id=realm-preview-1",
     );
   });
 });
 
 Deno.test({
   name: "buildSuccessRedirectUrl uses default org path when redirect is invalid",
-  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "VERCEL_PROJECT_SLUG", "VERCEL_TEAM_SLUG"] },
+  permissions: { env: ["PUBLIC_SITE_URL", "PRODUCTION_URL", "CLOUDFLARE_PAGES_PROJECT"] },
 }, () => {
   withEnv({ PUBLIC_SITE_URL: "https://eqr.zinitek.com", PRODUCTION_URL: undefined }, () => {
     const url = buildSuccessRedirectUrl({

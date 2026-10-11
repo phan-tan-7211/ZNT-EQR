@@ -164,7 +164,7 @@ if ($shots.Count -gt 0) {
     }
 }
 
-$lines += '_Uploaded to Supabase `docs-media` for equipqr.info documentation._'
+$lines += '_Uploaded to Supabase `docs-media` for eqrdocs.zinitek.com documentation._'
 
 $markdown = ($lines -join [Environment]::NewLine)
 

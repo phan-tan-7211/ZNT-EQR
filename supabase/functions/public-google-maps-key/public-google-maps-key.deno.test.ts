@@ -32,7 +32,7 @@ import { __testables } from "./index.ts";
  */
 
 const FAKE_CORRELATION_ID = "00000000-0000-4000-8000-000000000001";
-const PREVIEW_ORIGIN = "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app";
+const PREVIEW_ORIGIN = "https://preview.eqr-zinitek.pages.dev";
 const PRODUCTION_ORIGIN = "https://eqr.zinitek.com";
 const JSON_HEADERS = { "Content-Type": "application/json" } as const;
 

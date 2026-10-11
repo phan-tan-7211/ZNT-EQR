@@ -4,7 +4,7 @@
 
 This document records the #1033 migration away from a persistent Supabase preview branch (`olsdirk`), then the #1282 restoration of git `preview` as the integration train.
 
-Related: [GitHub #1033](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/1033) (Linear COL-310); [GitHub #1282](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/1282).
+Related: GitHub #1033 (legacy tracker) (Linear COL-310); GitHub #1282 (legacy tracker).
 
 ---
 
@@ -104,7 +104,7 @@ Everything that currently assumes `equip-qr-*.vercel.app` and/or `olsdirkvvfegvc
 
 ### E2E and agent docs
 
-- `docs/ops/playwright-real-auth-integrations.md` — target `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`
+- `docs/ops/playwright-real-auth-integrations.md` — target `https://preview.eqr-zinitek.pages.dev`
 - `e2e/user/shared/real-auth-config.ts` — default base URL `equip-qr-*.vercel.app`
 - `AGENTS.md` — preview GW/QB testing on ZNT org
 
@@ -112,7 +112,7 @@ Everything that currently assumes `equip-qr-*.vercel.app` and/or `olsdirkvvfegvc
 
 - **Google Cloud OAuth** — redirect URIs include `https://olsdirkvvfegvclbpgrg.supabase.co/functions/v1/google-workspace-oauth-callback`
 - **Intuit Developer Portal** — Development app redirect URIs for **olsdirk** QB callback
-- **Google Maps HTTP referrer allowlist** — `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/*`, `https://eqr.zinitek.com/*`
+- **Google Maps HTTP referrer allowlist** — `https://preview.eqr-zinitek.pages.dev/*`, `https://eqr.zinitek.com/*`
 
 ### Production (must not regress)
 
@@ -209,7 +209,7 @@ Inventory, cost model, architecture proposal. **Stop here for maintainer sign-of
 2. ✅ Align preview GW/QB client IDs with prod edge (`app-env-preview-public` ↔ `edge-env-prod-secrets`).
 3. ✅ Update docs, OAuth redirect maps, smoke/export workflows, `config.toml` comments.
 4. ✅ Validate GW + QB on `equip-qr-*.vercel.app` (2026-06-15); edge callbacks accept preview origin via `isAllowedOrigin`.
-5. ✅ Remove `configure-supabase-auth.yml`; simplify `secrets-fanout.yml`; prod Auth allowlist includes `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/**`.
+5. ✅ Remove `configure-supabase-auth.yml`; simplify `secrets-fanout.yml`; prod Auth allowlist includes `https://preview.eqr-zinitek.pages.dev/**`.
 6. ✅ Repoint `PREVIEW_DATABASE_URL` GitHub secret → production pooler (`wgynakhoppqkrutnslmv`).
 7. ✅ Vendor console cleanup (remove **olsdirk** redirect URIs).
 8. ✅ Decommission Supabase branch `olsdirkvvfegvclbpgrg`; remove `[remotes.staging]` from `config.toml`.

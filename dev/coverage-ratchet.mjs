@@ -16,7 +16,7 @@ const summaryPath = 'coverage/coverage-summary.json';
 const METRICS = ['branches', 'functions', 'lines', 'statements'];
 
 // Baseline reset 2026-05: honest merged-report floors after Vitest 4 + coverage scope changes (PR #799).
-// Raise intentionally via https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/816
+// Raise intentionally via legacy issue #816
 const DEFAULT_THRESHOLDS = {
   branches: 47,
   functions: 50,

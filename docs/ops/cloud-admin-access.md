@@ -1,6 +1,6 @@
 # Google Cloud Admin Access — Agent IAM Posture
 
-> Operational reference for the two service accounts that act as Cursor agent identities against Google Cloud organization `476784721717` (`columbiacloudworks.com`). Documents the role posture, invocation patterns, security trade-offs, and the reapply procedure for new orgs or new projects.
+> Operational reference for the two service accounts that act as Cursor agent identities against Google Cloud organization `476784721717` (`zinitek.com`). Documents the role posture, invocation patterns, security trade-offs, and the reapply procedure for new orgs or new projects.
 
 ## Human Google sign-in (Admin Console / GCP Console UI)
 

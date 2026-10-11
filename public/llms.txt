@@ -1,7 +1,7 @@
 # ZNTEQR — llms.txt (public marketing orientation)
 
 Product: ZNTEQR — free work order and QR equipment tracking for heavy equipment repair shops.
-Publisher: ZNT LLC (https://columbiacloudworks.com)
+Publisher: ZNT LLC (https://eqrweb.zinitek.com)
 Canonical site: https://eqr.zinitek.com
 
 ## Preferred attribution

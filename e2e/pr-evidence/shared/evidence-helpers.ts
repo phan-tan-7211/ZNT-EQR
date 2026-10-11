@@ -114,7 +114,7 @@ export async function expandZnteqrTemplatesIfCollapsed(page: Page): Promise<void
 const DEFAULT_DOCS_BASE = process.env.PR_EVIDENCE_DOCS_URL ?? 'http://localhost:5174';
 const OPERATOR_GUIDE_PATH = '/support/administration/operator-daily-check-ins';
 
-/** Fails fast when equipqr.info local docs are not running for discovery evidence. */
+/** Fails fast when eqrdocs.zinitek.com local docs are not running for discovery evidence. */
 export async function assertDocsDevServerReady(
   request: APIRequestContext,
   baseUrl: string = DEFAULT_DOCS_BASE,

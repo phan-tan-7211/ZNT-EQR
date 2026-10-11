@@ -10,14 +10,14 @@
   ZNTEQR product E2E automation still uses ZNTEQR Agents item google-login.
 #>
 
-$script:ColumbiaCloudworksAgentsVaultId = 'mrviyowmjwrxv7syobdlhnmawa'
-$script:ColumbiaCloudworksAgentsVaultName = 'ZNT Agents'
+$script:ZntAgentsVaultId = 'mrviyowmjwrxv7syobdlhnmawa'
+$script:ZntAgentsVaultName = 'ZNT Agents'
 
 # op:// paths must use item IDs when titles contain ( ) characters.
 $script:GoogleBusinessItemId = 'ukvy6bzwb2ikq5cfeambgcq5u4'   # Google (Business)
 $script:GoogleTestUserItemId = 'hlp7llqbvfm7mmic2z2e43ftem'   # Google (Test User)
 
-function Get-ColumbiaCloudworksOpUri {
+function Get-ZntAgentsOpUri {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ItemId,
@@ -26,10 +26,10 @@ function Get-ColumbiaCloudworksOpUri {
         [string]$Field
     )
 
-    return "op://$($script:ColumbiaCloudworksAgentsVaultId)/$ItemId/$Field"
+    return "op://$($script:ZntAgentsVaultId)/$ItemId/$Field"
 }
 
-function Read-ColumbiaCloudworksOpField {
+function Read-ZntAgentsOpField {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ItemId,
@@ -45,5 +45,5 @@ function Read-ColumbiaCloudworksOpField {
         throw 'OP_SERVICE_ACCOUNT_TOKEN is required.'
     }
 
-    return (op read (Get-ColumbiaCloudworksOpUri -ItemId $ItemId -Field $Field)).Trim()
+    return (op read (Get-ZntAgentsOpUri -ItemId $ItemId -Field $Field)).Trim()
 }

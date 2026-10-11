@@ -12,7 +12,7 @@ describe('resolveDocumentationUrl', () => {
   });
 
   it('uses the production docs site outside local dev', () => {
-    expect(resolveDocumentationUrl({ DEV: false })).toBe('https://equipqr.info');
+    expect(resolveDocumentationUrl({ DEV: false })).toBe('https://eqrdocs.zinitek.com');
   });
 
   it('allows an explicit documentation URL override', () => {
@@ -27,7 +27,7 @@ describe('resolveDocumentationUrl', () => {
 
 describe('resolveSupportDocsUrl', () => {
   it('appends /support to the documentation base URL', () => {
-    expect(resolveSupportDocsUrl({ DEV: false })).toBe('https://equipqr.info/support');
+    expect(resolveSupportDocsUrl({ DEV: false })).toBe('https://eqrdocs.zinitek.com/support');
   });
 
   it('respects a configured documentation URL override', () => {
@@ -49,7 +49,7 @@ describe('resolveOperatorDailyCheckInsDocsUrl', () => {
 
   it('appends the operator daily check-ins guide path in production', () => {
     expect(resolveOperatorDailyCheckInsDocsUrl({ DEV: false })).toBe(
-      `https://equipqr.info${OPERATOR_DAILY_CHECK_INS_DOCS_PATH}`,
+      `https://eqrdocs.zinitek.com${OPERATOR_DAILY_CHECK_INS_DOCS_PATH}`,
     );
   });
 

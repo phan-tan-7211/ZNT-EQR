@@ -45,8 +45,8 @@ Important constraints locked by Product:
 |---------|----------|-------|
 | `equip-qr-*.vercel.app` backend | Create a **new persistent Supabase Database Branch** on the production project | Do **not** reuse retired branch `olsdirkvvfegvclbpgrg` as-is. |
 | Branch data | Create with **`with_data: false`** | Never clone production rows. Never seed production. |
-| Vercel Preview env for git `preview` | Point `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at the persistent branch | The stable hostname remains `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`. |
-| Edge Function secrets | Restore `edge-env-preview-secrets` onto the persistent branch | Set `PUBLIC_SITE_URL=https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` on that branch. |
+| Vercel Preview env for git `preview` | Point `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at the persistent branch | The stable hostname remains `https://preview.eqr-zinitek.pages.dev`. |
+| Edge Function secrets | Restore `edge-env-preview-secrets` onto the persistent branch | Set `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev` on that branch. |
 | Preview Auth | Seed preview-only Quick Login and email/password personas through the **Auth Admin API** | Branch `service_role` is allowed for this seed on the persistent branch only. |
 | Production Auth | No change | Production never shows the Quick Login picker and never accepts preview-only passwords. |
 | PR schema validation | Keep existing ephemeral PR branches for `supabase/**` | This decision does **not** replace the GitHub Integration branching path. |
@@ -110,10 +110,10 @@ this checklist:
 2. Verify the new branch ref is **not** `wgynakhoppqkrutnslmv` and **not**
    `olsdirkvvfegvclbpgrg`.
 3. Restore `edge-env-preview-secrets` onto the new branch and confirm
-   `PUBLIC_SITE_URL=https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`.
+   `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev`.
 4. Point the Vercel **Preview** env for git `preview` at the branch
    `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
-5. Configure branch Auth so `site_url=https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` and the
+5. Configure branch Auth so `site_url=https://preview.eqr-zinitek.pages.dev` and the
    required redirect URLs stay aligned with that preview hostname.
 6. Seed preview-only Quick Login and email/password personas through the Auth
    Admin API using the branch `service_role` only. Never seed production.
@@ -123,7 +123,7 @@ this checklist:
 8. Confirm a second seeded org exists and cannot read the first org's work
    orders.
 9. Reconfirm that the Google Maps browser-key HTTP referrer allowlist already
-   includes `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/*`; no new preview hostname means no
+   includes `https://preview.eqr-zinitek.pages.dev/*`; no new preview hostname means no
    Maps referrer change is expected for this cutover.
 10. Verify the active preview backend ref is no longer
     `wgynakhoppqkrutnslmv` anywhere the ops runbook checks it.

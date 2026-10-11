@@ -57,7 +57,7 @@ function LegalFooterView({ canManageDsr }: LegalFooterViewProps): JSX.Element {
             className="flex shrink-0 flex-nowrap items-center gap-x-2 whitespace-nowrap"
           >
             <ExternalLink
-              href="https://equipqr.info/support"
+              href="https://eqrdocs.zinitek.com/support"
               className={linkClassName}
               showIcon={false}
             >
