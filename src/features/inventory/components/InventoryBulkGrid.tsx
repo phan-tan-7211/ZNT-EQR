@@ -24,9 +24,12 @@ import { handleKeyboardActivation } from '@/components/a11y/keyboard';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
 import { InventoryItemThumbnail } from '@/features/inventory/components/InventoryItemThumbnail';
 import ListPaginationFooter from '@/components/common/ListPaginationFooter';
+import {
+  useInventoryBulkGridView,
+  type InventoryBulkGridView,
+} from '@/features/inventory/hooks/useInventoryBulkGridView';
 import { clampListPage, paginateListItems } from '@/utils/listPagination';
 import {
-  DEFAULT_INVENTORY_DESKTOP_PAGE_SIZE,
   INVENTORY_DESKTOP_PAGE_SIZE_OPTIONS,
 } from '@/features/inventory/utils/inventoryListPagination';
 
@@ -194,6 +197,8 @@ function InventoryBulkListRow({
 // ============================================
 
 export interface InventoryBulkGridProps {
+  /** Sort/paging state owned by the parent; the grid keeps its own if omitted. */
+  view?: InventoryBulkGridView;
   rows: InventoryItem[];
   dirtyRows: Map<string, InventoryRowDelta>;
   selectedRowIds: Set<string>;
@@ -225,8 +230,12 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
   onToggleSelected,
   onSelectAll,
   onClearSelection,
+  view: parentView,
 }) => {
   const { t } = useI18n();
+  const localView = useInventoryBulkGridView();
+  const { page, setPage, pageSize, setPageSize, sorting: viewSorting, setSorting: setViewSorting } =
+    parentView ?? localView;
   const fieldLabels = useMemo<Partial<Record<BulkEditableField, string>>>(() => ({
     name: t('inventoryBulk.name'),
     sku: t('inventoryBulk.sku'),
@@ -252,6 +261,8 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
     onSetCellValue,
     onSetCellValueOnRows,
     onToggleSelected,
+    sorting: viewSorting,
+    onSortingChange: setViewSorting,
   });
 
   // Container width measurement for react-window
@@ -325,9 +336,6 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
   // Pending edits live in `dirtyRows` keyed by id, so they survive paging;
   // the selection is cleared on page/sort changes so a bulk apply never
   // reaches rows the user can no longer see.
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState<number>(DEFAULT_INVENTORY_DESKTOP_PAGE_SIZE);
-
   const table = useReactTable({
     data: rows,
     columns,
@@ -358,7 +366,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
   // commit refetch), so it doesn't jump back if the list grows again.
   useEffect(() => {
     if (page !== safePage) setPage(safePage);
-  }, [page, safePage]);
+  }, [page, safePage, setPage]);
 
   // Selection must only ever contain rows on the current page. A commit
   // refetch or a background refresh can re-sort or shift rows onto another

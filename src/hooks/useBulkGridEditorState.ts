@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from 'react';
 import type { SortingState } from '@tanstack/react-table';
 import { useBulkGridWorkspace } from '@/hooks/useBulkGridWorkspace';
 
@@ -8,6 +9,8 @@ type BulkGridEditorHandlers<TField extends string, TValue> = {
   onSetCellValueOnRows?: (rowIds: string[], field: TField, value: TValue) => void;
   onToggleSelected: (rowId: string) => void;
   defaultSort?: SortingState;
+  sorting?: SortingState;
+  onSortingChange?: Dispatch<SetStateAction<SortingState>>;
 };
 
 /** Typed wrapper around `useBulkGridWorkspace` for bulk-edit grids. */
@@ -18,6 +21,8 @@ export function useBulkGridEditorState<TField extends string, TValue>({
   onSetCellValueOnRows,
   onToggleSelected,
   defaultSort,
+  sorting,
+  onSortingChange,
 }: BulkGridEditorHandlers<TField, TValue>) {
   return useBulkGridWorkspace<TField>({
     selectedRowIds,
@@ -28,5 +33,7 @@ export function useBulkGridEditorState<TField extends string, TValue>({
       : undefined,
     onToggleSelected,
     defaultSort,
+    sorting,
+    onSortingChange,
   });
 }

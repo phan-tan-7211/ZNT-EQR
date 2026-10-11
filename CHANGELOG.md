@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.1] - 2026-10-11
+
+### Fixed
+
+- **Inventory bulk edit** - Losing and regaining the connection now returns you to the same page, page size and sort in the bulk-edit grid instead of the first page.
+
 ## [3.44.0] - 2026-10-11
 
 ### Added
