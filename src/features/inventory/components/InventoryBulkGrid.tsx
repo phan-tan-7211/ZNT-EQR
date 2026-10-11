@@ -108,7 +108,14 @@ function InventoryBulkListRow({
         'cursor-pointer hover:bg-muted/20'
       )}
       onClick={(e) => handleRowClick(row.id, e)}
-      onKeyDown={(e) => handleKeyboardActivation(e, () => onToggleSelected(row.id))}
+      onKeyDown={(e) => {
+        // Only react to keys pressed while the row itself has focus. Keys from
+        // the checkbox, a static cell or an open cell editor bubble up here;
+        // handling them would swallow a typed space, toggle the row when Enter
+        // commits an edit, and double-toggle on a cell's own Space shortcut.
+        if (e.target !== e.currentTarget) return;
+        handleKeyboardActivation(e, () => onToggleSelected(row.id));
+      }}
     >
       <div
         style={{ width: COL.select, flexShrink: 0 }}
@@ -336,7 +343,11 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
     getRowId: (row) => row.id,
   });
 
-  const sortedRows = table.getRowModel().rows.map((r) => r.original);
+  // TanStack memoizes the row model, so its `rows` array is stable until the
+  // data or sorting change. Memoize the mapped list on it so `pageRows`, the
+  // row props and the selection-pruning effect do not churn on every render.
+  const modelRows = table.getRowModel().rows;
+  const sortedRows = useMemo(() => modelRows.map((r) => r.original), [modelRows]);
   const safePage = clampListPage(page, sortedRows.length, pageSize);
   const pageRows = useMemo(
     () => paginateListItems(sortedRows, safePage, pageSize),
@@ -506,7 +517,9 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
             className="flex items-center justify-center h-[38px] px-1 text-xs font-medium text-muted-foreground"
             role="columnheader"
           >
-            {t('inventoryBulk.image')}
+            {/* Thumbnail column: no visible title (matches the Equipment bulk
+                grid), but keep an accessible name for screen readers. */}
+            <span className="sr-only">{t('inventoryBulk.image')}</span>
           </div>
 
           {/* Column headers from TanStack table */}
@@ -564,6 +577,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
       {sortedRows.length > 0 && (
         <ListPaginationFooter
           testId="inventory-bulk-pagination-footer"
+          density="compact"
           totalItems={sortedRows.length}
           page={safePage}
           pageSize={pageSize}

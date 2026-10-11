@@ -220,9 +220,35 @@ describe('useBulkEditInventory', () => {
       await act(async () => { await result.current.commit(); });
 
       await waitFor(() => {
-        expect(toast.warning).toHaveBeenCalled();
+        expect(toast.warning).toHaveBeenCalledWith('Updated 1 of 2; 1 failed', {
+          description: 'Not saved: Item item-2',
+        });
         // item-1 committed, item-2 still dirty
         expect(result.current.dirtyRows.has('item-2')).toBe(true);
+      });
+    });
+
+    it('lists the first three failed item names and counts the rest', async () => {
+      const failedIds = ['item-2', 'item-3', 'item-4', 'item-5', 'item-6'];
+      mockBatchUpdate.mockResolvedValue({
+        succeeded: ['item-1'],
+        failed: failedIds.map((id) => ({ id, error: 'RLS denied' })),
+      });
+
+      const rows = ['item-1', ...failedIds].map((id) => mockRow(id));
+      const { result } = renderHook(() => useBulkEditInventory(rows), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        for (const row of rows) result.current.setCellValue(row.id, 'location', 'Moved');
+      });
+      await act(async () => { await result.current.commit(); });
+
+      await waitFor(() => {
+        expect(toast.warning).toHaveBeenCalledWith('Updated 1 of 6; 5 failed', {
+          description: 'Not saved: Item item-2, Item item-3, Item item-4 and 2 more',
+        });
       });
     });
 

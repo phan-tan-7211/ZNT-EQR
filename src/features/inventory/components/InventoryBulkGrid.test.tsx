@@ -1,11 +1,30 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { act, render, screen, fireEvent, within } from '@testing-library/react';
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import { InventoryBulkGrid } from './InventoryBulkGrid';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
 import type { InventoryRowDelta } from '@/features/inventory/hooks/useBulkEditInventory';
+import { getPrimaryInventoryItemImageRefs } from '@/features/inventory/services/inventoryListThumbnailService';
+import { batchResolveInventoryItemImageDisplayUrls } from '@/services/imageUploadService';
+
+// The row thumbnail resolves its image through these two calls. Stub them so
+// no test reaches the network, and so a test can hand back a real URL.
+vi.mock('@/features/inventory/services/inventoryListThumbnailService', async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import('@/features/inventory/services/inventoryListThumbnailService')
+  >()),
+  getPrimaryInventoryItemImageRefs: vi.fn(async () => ({})),
+}));
+
+vi.mock('@/services/imageUploadService', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/services/imageUploadService')>()),
+  batchResolveInventoryItemImageDisplayUrls: vi.fn(
+    async (storedRefs: (string | null | undefined)[]) => storedRefs.map(() => null),
+  ),
+}));
 
 // react-window requires measurements not available in jsdom; stub it to render
 // all items synchronously so tests can inspect rendered rows.
@@ -106,6 +125,15 @@ function renderGrid(
   return { ...utils, onToggleSelected, rows };
 }
 
+function getRowFor(id: string): HTMLElement {
+  const checkbox = screen.getByRole('checkbox', {
+    name: new RegExp(`Select Item ${id}`, 'i'),
+  });
+  const row = checkbox.closest('[role="row"]');
+  if (!row) throw new Error(`Could not find row for ${id}`);
+  return row as HTMLElement;
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe('InventoryBulkGrid — row selection', () => {
@@ -116,15 +144,6 @@ describe('InventoryBulkGrid — row selection', () => {
   afterEach(() => {
     vi.useRealTimers();
   });
-
-  function getRowFor(id: string): HTMLElement {
-    const checkbox = screen.getByRole('checkbox', {
-      name: new RegExp(`Select Item ${id}`, 'i'),
-    });
-    const row = checkbox.closest('[role="row"]');
-    if (!row) throw new Error(`Could not find row for ${id}`);
-    return row as HTMLElement;
-  }
 
   it('row click toggles selection after the 250ms debounce window', () => {
     const onToggleSelected = vi.fn();
@@ -248,11 +267,34 @@ describe('InventoryBulkGrid — pagination and thumbnails', () => {
     expect(onSelectAll.mock.calls[0][0]).toHaveLength(25);
   });
 
-  it('renders an image column with a thumbnail per row', () => {
-    renderGrid({ rows: manyRows.slice(0, 3) });
-    expect(screen.getByRole('columnheader', { name: 'Image' })).toBeInTheDocument();
-    const firstRow = screen.getByRole('checkbox', { name: /Select Item i-01/i }).closest('[role="row"]')!;
-    expect(firstRow.querySelectorAll('[role="gridcell"]')[1].childElementCount).toBeGreaterThan(0);
+  it('renders an image column that shows the resolved image for rows that have one', async () => {
+    const storedRef = 'org-1/i-img/photo.jpg';
+    const signedUrl = 'https://signed.example.com/i-img.jpg';
+    vi.mocked(getPrimaryInventoryItemImageRefs).mockResolvedValue({});
+    vi.mocked(batchResolveInventoryItemImageDisplayUrls).mockImplementation(async (storedRefs) =>
+      storedRefs.map((ref) => (ref === storedRef ? signedUrl : null)),
+    );
+
+    renderGrid({ rows: [buildRow('i-img', { image_url: storedRef }), buildRow('i-plain')] });
+
+    // The thumbnail column has no visible title but keeps an accessible name.
+    const imageHeader = screen.getByRole('columnheader', { name: 'Image' });
+    expect(within(imageHeader).getByText('Image')).toHaveClass('sr-only');
+    const imageRow = getRowFor('i-img');
+    await waitFor(() => {
+      expect(imageRow.querySelector('[data-inventory-item-thumbnail] img')).toHaveAttribute(
+        'src',
+        signedUrl,
+      );
+    });
+    expect(batchResolveInventoryItemImageDisplayUrls).toHaveBeenCalledWith(
+      expect.arrayContaining([storedRef]),
+      { variant: 'thumb' },
+    );
+    // A row without an image keeps the placeholder and never gets an <img>.
+    const plainRow = getRowFor('i-plain');
+    expect(plainRow.querySelector('[data-inventory-item-thumbnail]')).not.toBeNull();
+    expect(plainRow.querySelector('[data-inventory-item-thumbnail] img')).toBeNull();
   });
 
   it('drops selected rows that are not on the current page (e.g. moved by a refetch)', () => {
@@ -270,5 +312,62 @@ describe('InventoryBulkGrid — pagination and thumbnails', () => {
   it('hides the footer when there is nothing to edit', () => {
     renderGrid({ rows: [] });
     expect(screen.queryByTestId('inventory-bulk-pagination-footer')).not.toBeInTheDocument();
+  });
+});
+
+describe('InventoryBulkGrid — keyboard handling', () => {
+  it('keeps spaces typed into a cell editor and never toggles the row', async () => {
+    const user = userEvent.setup();
+    const onToggleSelected = vi.fn();
+    const onSetCellValue = vi.fn();
+    renderGrid({ onToggleSelected, onSetCellValue });
+
+    const row = getRowFor('i-1');
+    await user.dblClick(within(row).getByRole('button', { name: /^name:/i }));
+    const input = within(row).getByRole('textbox', { name: /edit name/i });
+    expect(input).toHaveFocus();
+
+    await user.clear(input);
+    await user.keyboard('a b');
+    expect(input).toHaveValue('a b');
+
+    // Enter commits the edit; it must not also toggle the row.
+    await user.keyboard('{Enter}');
+    expect(onSetCellValue).toHaveBeenCalledWith('i-1', 'name', 'a b');
+    expect(onToggleSelected).not.toHaveBeenCalled();
+  });
+
+  it('lets a focused cell handle its own keys: Space toggles once, Enter opens the editor', async () => {
+    const user = userEvent.setup();
+    const onToggleSelected = vi.fn();
+    renderGrid({ onToggleSelected });
+
+    const row = getRowFor('i-1');
+    within(row).getByRole('button', { name: /^name:/i }).focus();
+
+    await user.keyboard(' ');
+    expect(onToggleSelected).toHaveBeenCalledTimes(1);
+    expect(onToggleSelected).toHaveBeenCalledWith('i-1');
+
+    await user.keyboard('{Enter}');
+    expect(within(row).getByRole('textbox', { name: /edit name/i })).toBeInTheDocument();
+    expect(onToggleSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it('still toggles the row on Enter and Space when the row itself has focus', async () => {
+    const user = userEvent.setup();
+    const onToggleSelected = vi.fn();
+    renderGrid({ onToggleSelected });
+
+    const row = getRowFor('i-1');
+    row.focus();
+    expect(row).toHaveFocus();
+
+    await user.keyboard('{Enter}');
+    expect(onToggleSelected).toHaveBeenCalledTimes(1);
+
+    await user.keyboard(' ');
+    expect(onToggleSelected).toHaveBeenCalledTimes(2);
+    expect(onToggleSelected).toHaveBeenNthCalledWith(2, 'i-1');
   });
 });
