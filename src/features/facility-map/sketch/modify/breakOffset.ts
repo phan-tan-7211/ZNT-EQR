@@ -10,6 +10,7 @@ import type {
   CircleEntity,
   LineEntity,
   PolylineEntity,
+  RectEntity,
   SketchEntity,
   SketchPoint,
 } from '../core/types';
@@ -266,6 +267,28 @@ export const offsetCircle = (
   const nextRadius = outward ? circle.r + distance : circle.r - distance;
   if (nextRadius <= 0) return null;
   return { ...circle, id, r: nextRadius };
+};
+
+// A rectangle offsets as a whole, like a circle: a click inside shrinks it
+// by the distance on every side, a click on or outside the border grows it.
+export const offsetRect = (
+  rect: RectEntity,
+  distance: number,
+  click: SketchPoint,
+  id: string,
+): RectEntity | null => {
+  if (!Number.isFinite(distance) || distance <= 0) return null;
+  const left = Math.min(rect.x, rect.x + rect.w);
+  const top = Math.min(rect.y, rect.y + rect.h);
+  const width = Math.abs(rect.w);
+  const height = Math.abs(rect.h);
+  const inside =
+    click.x > left && click.x < left + width && click.y > top && click.y < top + height;
+  const delta = inside ? -distance : distance;
+  const nextWidth = width + 2 * delta;
+  const nextHeight = height + 2 * delta;
+  if (nextWidth <= 0 || nextHeight <= 0) return null;
+  return { ...rect, id, x: left - delta, y: top - delta, w: nextWidth, h: nextHeight };
 };
 
 export const offsetArc = (
@@ -564,6 +587,9 @@ export const createOffsetEntity = (
   }
   if (entity.type === 'arc') {
     return offsetArc(entity, distance, click, id);
+  }
+  if (entity.type === 'rect') {
+    return offsetRect(entity, distance, click, id);
   }
   return null;
 };

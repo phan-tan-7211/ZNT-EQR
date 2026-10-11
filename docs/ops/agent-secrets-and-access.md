@@ -86,11 +86,24 @@ Interactive maintainer terminals (`PS D:\ZNTEQR>`) can run `op` directly; agents
 | Script | Source | Target |
 |---|---|---|
 | `dev-start.bat` / `dev-start.ps1` | `app-env-local-dev`, `edge-env-local-dev` | `.env`, `supabase/functions/.env` |
-| `dev/sync-vercel-from-1password.ps1` | `app-env-*-public` | Vercel env (production / preview) |
+| Manual (no script) | `app-env-*-public` | Cloudflare Pages project `eqr-zinitek` → **Settings → Environment variables** (Production / Preview). The former `dev/sync-vercel-from-1password.ps1` was removed with Vercel. |
 | `dev/sync-supabase-secrets-from-1password.ps1` | `edge-env-*-secrets` | Supabase Edge secrets |
 | `dev/render-mcp-config.ps1` | `dev/mcp.template.json` + `op inject` | `~/.cursor/mcp.json` |
 
 Verify MCP wiring: `.\dev\op-mcp-doctor.ps1` (expect 13/13 green on maintainer machine).
+
+### Edge origin allowlist (`CLOUDFLARE_PAGES_PROJECT`)
+
+Edge Functions decide which browser origins to trust — CORS (`getCorsHeaders`), Stripe return URLs, and QuickBooks / Google Workspace OAuth redirect validation — in `supabase/functions/_shared/origin-validation.ts`. Besides the static allowlist (`https://eqr.zinitek.com` plus local dev ports), they trust Cloudflare Pages deployments of **this** Pages project only:
+
+- `https://<label>.<project>.pages.dev` — one `[a-z0-9-]` label in front, which covers per-deployment hashes and branch aliases such as `https://preview.eqr-zinitek.pages.dev`
+- `https://<project>.pages.dev` — the project root
+
+`<project>` is read from the edge secret `CLOUDFLARE_PAGES_PROJECT` (trimmed) and defaults to `eqr-zinitek` when unset. It is configuration, not a credential, but it is a trust boundary: a wrong value breaks preview CORS/OAuth, and a value naming someone else's Pages project would trust their deployments.
+
+- Set `CLOUDFLARE_PAGES_PROJECT` explicitly on **both** `edge-env-prod-secrets` and `edge-env-preview-secrets` to the real Cloudflare Pages project name (the `<project>` part of the `*.pages.dev` hostname in Cloudflare → Workers & Pages); do not rely on the code default.
+- Write it with the detached helper (`.\dev\op-item-mutate.ps1 -Action Edit -Item "edge-env-prod-secrets" -Assignment "CLOUDFLARE_PAGES_PROJECT[text]=<pages-project>" -DryRun`, then without `-DryRun`), repeat for `edge-env-preview-secrets`, and apply with `sync-supabase-secrets-from-1password.ps1`.
+- If the Pages project is renamed, update both items in the same change, sync, and re-test preview OAuth on the new `*.pages.dev` host.
 
 ### Preview OAuth alignment checklist
 
@@ -101,8 +114,8 @@ Google Workspace OAuth requires **matching client ID** in:
 
 After vault edit:
 
-1. `.\dev\sync-vercel-from-1password.ps1 -Environment preview`
-2. Redeploy the latest Vercel Preview deployment for git **`preview`** (or merge/push to `preview` so `equip-qr-*.vercel.app` rebuilds)
+1. Copy the changed `VITE_*` value into the Cloudflare Pages **Preview** environment variables (project `eqr-zinitek`)
+2. Retry the latest Cloudflare Pages deployment for git **`preview`** (or merge/push to `preview`) so `https://preview.eqr-zinitek.pages.dev` rebuilds with the new value
 3. Confirm edge secrets via `sync-supabase-secrets-from-1password.ps1 -Check -OpItem edge-env-prod-secrets`
 
 ### Rotate-and-verify playbook (preview + production)
@@ -114,9 +127,10 @@ Use this end-to-end loop after any secret rotation in 1Password. Never paste sec
 ```powershell
 $env:OP_SERVICE_ACCOUNT_TOKEN = [Environment]::GetEnvironmentVariable('OP_SERVICE_ACCOUNT_TOKEN','User')
 .\dev\sync-supabase-secrets-from-1password.ps1 -Check -OpItem edge-env-prod-secrets
-.\dev\sync-vercel-from-1password.ps1 -Check -Environment preview
-.\dev\sync-vercel-from-1password.ps1 -Check -Environment production
+.\dev\sync-supabase-secrets-from-1password.ps1 -Check -OpItem edge-env-preview-secrets
 ```
+
+Cloudflare Pages build variables have no `-Check` script; compare them by hand in the Pages dashboard against `app-env-preview-public` / `app-env-prod-public`.
 
 **2. Rotate in 1Password** (detached writes only)
 
@@ -132,17 +146,15 @@ For `TOKEN_ENCRYPTION_KEY` on production: generate a **new** key; do not copy th
 **3. Apply to targets**
 
 ```powershell
-# Production edge (serves equip-qr-*.vercel.app and eqr.zinitek.com) — apply only when maintainer authorizes
+# Production edge (serves the Cloudflare Pages preview and eqr.zinitek.com) — apply only when maintainer authorizes
 .\dev\sync-supabase-secrets-from-1password.ps1 -OpItem edge-env-prod-secrets
-
-# Vercel public env
-.\dev\sync-vercel-from-1password.ps1 -Environment preview
-.\dev\sync-vercel-from-1password.ps1 -Environment production
 ```
+
+For public `VITE_*` values, update the Cloudflare Pages **Preview** and **Production** environment variables in the dashboard (no sync script).
 
 **4. Redeploy affected surfaces**
 
-- Vercel: trigger redeploy of `preview` branch (or production promotion) so baked `VITE_*` values refresh.
+- Cloudflare Pages: retry the latest deployment for git `preview` (and for `main` when production variables changed) so baked `VITE_*` values refresh.
 - Supabase Edge: secrets apply immediately; invoke a smoke edge function if unsure (`edge-functions-smoke-test.yml` or local `dev-start.bat` + integration path).
 
 **5. Smoke verify**
@@ -154,7 +166,7 @@ For `TOKEN_ENCRYPTION_KEY` on production: generate a **new** key; do not copy th
 | Production GW/QB | Repeat on `eqr.zinitek.com` after prod apply only |
 | Drift CI | `secrets-drift-check.yml` daily run green on both edge items |
 
-**6. Re-run `-Check`** — all four commands must exit 0 before closing a rotation task.
+**6. Re-run `-Check`** — both edge `-Check` commands must exit 0, and the Cloudflare Pages variables must match the vault, before closing a rotation task.
 
 See also `docs/ops/preview-architecture-migration.md` (#1033) for consolidating cloud preview on `edge-env-prod-secrets`.
 

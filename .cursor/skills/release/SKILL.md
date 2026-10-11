@@ -4,7 +4,8 @@ description: >-
   Cut a production release via preview → main: align with origin/preview, run
   changelog-version-curator (bump only on promote), push release metadata onto
   preview, open preview→main PR, babysit until CI and Supabase are green
-  (or skipped). Merge triggers Production Release Readiness and vercel promote.
+  (or skipped). Merge triggers Production Release Readiness; Cloudflare Pages
+  deploys the frontend from main.
   Use when the user runs /release or asks to release, bump version, or ship to
   production.
 disable-model-invocation: true
@@ -16,7 +17,7 @@ End-to-end workflow to cut a **production release** on the feat → preview → 
 
 Feature work merges to **`preview`** during normal development and accumulates CHANGELOG `[Unreleased]` **without** bumping `package.json`. `/release` is the **preview → main** promote that empties Unreleased, adds a versioned CHANGELOG section, and bumps package metadata.
 
-**Opening the release PR is not handoff.** Merge to `main` triggers **Production Release Readiness** (migrations, schema drift, **`vercel promote`**).
+**Opening the release PR is not handoff.** Merge to `main` triggers **Production Release Readiness** (migrations, schema drift, Edge Functions deploy); Cloudflare Pages deploys the frontend to `eqr.zinitek.com` through its Git integration.
 
 ## Mandatory Rules
 
@@ -165,7 +166,7 @@ Report only when Step 8 passes:
 | Release PR | URL — merge-ready (`preview` → `main`) |
 | CI / Supabase | green / green or skipped |
 
-Remind: merge to `main` triggers **Production Release Readiness** and automatic **`vercel promote`**.
+Remind: merge to `main` triggers **Production Release Readiness** (Supabase) and the Cloudflare Pages production deploy (frontend).
 
 ---
 

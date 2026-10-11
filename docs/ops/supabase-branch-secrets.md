@@ -1,6 +1,6 @@
 # Supabase Branch Secrets Configuration
 
-> **Current live vs target:** `equip-qr-*.vercel.app` still uses the **production**
+> **Current live vs target:** `preview.eqr-zinitek.pages.dev` still uses the **production**
 > Supabase project (`wgynakhoppqkrutnslmv.supabase.co`) today. The approved target is a
 > **new persistent preview branch** with secrets restored from
 > `edge-env-preview-secrets`; see `docs/ops/preview-persistent-branch.md`.
@@ -196,7 +196,7 @@ OAuth callback URIs are derived from `SUPABASE_URL` — do **not** set `QB_OAUTH
 
 ### Google Picker Configuration (Client-Side, Not Supabase Secrets)
 
-Google Picker values are browser/client configuration and should be stored as client env vars (for example in Vercel and local `.env` files):
+Google Picker values are browser/client configuration and should be stored as client env vars (for example in the Cloudflare Pages environment variables and local `.env` files):
 
 - `VITE_GOOGLE_WORKSPACE_CLIENT_ID` (shared OAuth web client used by Workspace callback flow and browser Picker token flow)
 - `VITE_GOOGLE_PICKER_API_KEY`
@@ -211,7 +211,7 @@ Do **not** add Picker values to Supabase Edge Function secrets.
 
 1. Open Supabase Dashboard
 2. Use the branch dropdown in the top navigation
-3. Select the new persistent preview branch created for `equip-qr-*.vercel.app`
+3. Select the new persistent preview branch created for `preview.eqr-zinitek.pages.dev`
    (not production `wgynakhoppqkrutnslmv`, and not retired
    `olsdirkvvfegvclbpgrg`)
 
@@ -314,7 +314,7 @@ Secrets are **not automatically synced** between branches. If you add a new secr
 
 ## Google Maps API key — HTTP referrer allowlist
 
-The `GOOGLE_MAPS_BROWSER_KEY` Supabase secret only **delivers** the Google Cloud API key value to the browser. The key itself is then validated by Google's CDN against the **HTTP referrer allowlist** configured on the Google Cloud project — and that allowlist is **not** stored in Supabase, **not** synchronized between Supabase branches, and **not** rotated by `dev/sync-supabase-secrets-from-1password.ps1`. Whenever a new Vercel domain alias, custom domain, or Supabase preview branch is added, the upstream Google Cloud allowlist must be widened by hand.
+The `GOOGLE_MAPS_BROWSER_KEY` Supabase secret only **delivers** the Google Cloud API key value to the browser. The key itself is then validated by Google's CDN against the **HTTP referrer allowlist** configured on the Google Cloud project — and that allowlist is **not** stored in Supabase, **not** synchronized between Supabase branches, and **not** rotated by `dev/sync-supabase-secrets-from-1password.ps1`. Whenever a new Cloudflare Pages hostname, custom domain, or Supabase preview branch is added, the upstream Google Cloud allowlist must be widened by hand.
 
 ### Symptom when missing
 
@@ -332,7 +332,7 @@ Set the same allowlist on every Google Cloud API key referenced as `GOOGLE_MAPS_
 
 - `http://localhost:8080/*` (local dev)
 - `https://eqr.zinitek.com/*` (Production)
-- `https://eqr.zinitek.com/*` (covers `equip-qr-*.vercel.app` and any future custom subdomain alias)
+- `https://*.eqr-zinitek.pages.dev/*` (Cloudflare Pages previews — covers `preview.eqr-zinitek.pages.dev` and per-deployment hashes)
 - `https://preview.eqr-zinitek.pages.dev/*` (explicit Preview entry — keep alongside the wildcard for clarity)
 
 ### Operator steps
@@ -350,7 +350,7 @@ The HTTP-referrer restriction is a property of the Google Cloud API key itself, 
 
 - Is **shared** across every Supabase project / environment that resolves to the same physical Google Cloud key.
 - Cannot be rotated by `dev/sync-supabase-secrets-from-1password.ps1` (which only touches Supabase secret values).
-- Must be re-checked whenever a new domain is brought online (custom domain, Vercel alias, additional preview branch URL).
+- Must be re-checked whenever a new domain is brought online (custom domain, Cloudflare Pages hostname, additional preview branch URL).
 
 ## Related Documentation
 

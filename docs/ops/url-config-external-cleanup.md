@@ -4,7 +4,7 @@ After the URL simplification code ships, clean up environment secrets and vendor
 
 ## Canonical inputs per environment
 
-| Concept | Browser (Vercel) | Edge Functions (Supabase) |
+| Concept | Browser (Cloudflare Pages) | Edge Functions (Supabase) |
 |---------|------------------|---------------------------|
 | Supabase / API base | `VITE_SUPABASE_URL` | `SUPABASE_URL` (auto-injected) |
 | Public app origin | n/a (browser uses `window.location.origin` at runtime) | `PUBLIC_SITE_URL` |
@@ -21,13 +21,15 @@ Register these exact URIs in Intuit and Google Cloud consoles:
 | Preview (cloud) | `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` | `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/google-workspace-oauth-callback` |
 | Production | `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` | `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/google-workspace-oauth-callback` |
 
-## Vercel (preview + production)
+## Cloudflare Pages (preview + production)
+
+In the Cloudflare Pages project (`eqr-zinitek`) → **Settings → Environment variables** (Preview and Production):
 
 1. Confirm `VITE_SUPABASE_URL` matches the target Supabase project URL.
 2. **Remove** if present:
    - `VITE_QB_OAUTH_REDIRECT_BASE_URL`
    - `VITE_GW_OAUTH_REDIRECT_BASE_URL`
-3. No replacement Vercel public vars are required for OAuth callbacks.
+3. No replacement public build vars are required for OAuth callbacks.
 
 ## Supabase Edge secrets (preview + production branches)
 
@@ -55,10 +57,9 @@ Update ZNTEQR Agents vault items so future syncs do not restore retired knobs:
 | `app-env-preview-public` / `app-env-prod-public` | Remove `VITE_QB_OAUTH_REDIRECT_BASE_URL`, `VITE_GW_OAUTH_REDIRECT_BASE_URL` fields |
 | `edge-env-preview-secrets` / `edge-env-prod-secrets` | Add `PUBLIC_SITE_URL`; remove `QB_OAUTH_REDIRECT_BASE_URL`, `GW_OAUTH_REDIRECT_BASE_URL`; keep `PRODUCTION_URL` only until migration complete |
 
-Re-run:
+Then mirror the `app-env-*-public` changes into the Cloudflare Pages build variables (there is no sync script for Pages) and re-run the edge sync:
 
 ```powershell
-.\dev\sync-vercel-from-1password.ps1
 .\dev\sync-supabase-secrets-from-1password.ps1 -OpItem edge-env-preview-secrets
 ```
 
@@ -66,17 +67,19 @@ Re-run:
 
 1. Open the ZNTEQR app → **Keys & OAuth**.
 2. Ensure redirect URIs include the derived preview and production callback URLs above.
-3. Remove any redirect URI using the retired host `wgynakhoppqkrutnslmv.supabase.co`.
+3. Remove any redirect URI using the retired hosts `supabase.equipqr.app` or `supabase.preview.equipqr.app`.
+4. **Keep** the live project callbacks on `https://wgynakhoppqkrutnslmv.supabase.co` — they serve production and cloud preview.
 
 ## Google Cloud Console
 
 1. Open the shared OAuth web client used by ZNTEQR.
 2. Under **Authorized redirect URIs**, ensure the derived preview and production Google Workspace callback URLs above are listed.
-3. Remove any redirect URI using `wgynakhoppqkrutnslmv.supabase.co`.
+3. Remove any redirect URI using the retired hosts `supabase.equipqr.app` or `supabase.preview.equipqr.app`.
+4. **Keep** the live project callbacks on `https://wgynakhoppqkrutnslmv.supabase.co` — they serve production and cloud preview.
 
 ## Validation
 
-1. Deploy to `preview` and wait for `equip-qr-*.vercel.app` to serve the new build.
+1. Deploy to `preview` and wait for the GitHub **Cloudflare Pages** check to pass and `https://preview.eqr-zinitek.pages.dev` to serve the new build.
 2. Sign in and open `/dashboard/organization/integrations`.
 3. Verify Google Workspace remains connected.
 4. Attempt QuickBooks **Connect** and confirm `quickbooks_credentials` metadata is stored.

@@ -174,7 +174,6 @@ export const PageSEO: FC<PageSEOProps> = ({
 
       const twitterPairs: Array<[string, string]> = [
         ['twitter:card', 'summary_large_image'],
-        ['twitter:site', '@equipqr'],
         ['twitter:title', fullTitle],
         ['twitter:description', description],
         ['twitter:image', ogImage],

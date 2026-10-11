@@ -11,21 +11,30 @@
  */
 
 /**
+ * Local dev server ports: Vite dev (8080), Vite default dev (5173), local
+ * `vite preview` servers (4173, 4174) and a generic local server (3000). Each
+ * is trusted on both `localhost` and `127.0.0.1`, since the browser sends
+ * whichever host the developer or Playwright opened.
+ */
+const LOCAL_DEV_PORTS = [8080, 5173, 4173, 4174, 3000];
+
+/**
  * Static allowlist of trusted origins.
  *
- * Production and preview custom domains are listed explicitly.
+ * The production custom domain is listed explicitly.
  * Local dev servers are included for development convenience.
  */
 const ALLOWED_ORIGINS = [
   "https://eqr.zinitek.com",
-  "http://localhost:5173",
-  "http://localhost:4174",
-  "http://localhost:8080",
-  "http://localhost:3000",
+  ...LOCAL_DEV_PORTS.flatMap((port) => [
+    `http://localhost:${port}`,
+    `http://127.0.0.1:${port}`,
+  ]),
 ];
 
 /**
- * Matches Cloudflare Pages preview deployments of this project only:
+ * Matches Cloudflare Pages deployments of this project only:
+ *   - https://<project>.pages.dev                     (project root / production branch)
  *   - https://<deployment-hash>.<project>.pages.dev   (per-commit / per-PR)
  *   - https://<branch-alias>.<project>.pages.dev      (per-branch alias)
  *
@@ -41,7 +50,7 @@ const ALLOWED_ORIGINS = [
 function getPagesPreviewPattern(): RegExp {
   const project = (Deno.env.get("CLOUDFLARE_PAGES_PROJECT")?.trim() || "eqr-zinitek")
     .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`^https://[a-z0-9-]+\\.${project}\\.pages\\.dev$`);
+  return new RegExp(`^https://(?:[a-z0-9-]+\\.)?${project}\\.pages\\.dev$`);
 }
 
 /**
@@ -57,22 +66,3 @@ export function isAllowedOrigin(origin: string): boolean {
 
 /** The default production origin used as a safe fallback. */
 export const PRODUCTION_ORIGIN = "https://eqr.zinitek.com";
-
-/**
- * Returns the request's Origin header if it matches an allowed origin,
- * otherwise falls back to the PRODUCTION_URL env var or the production domain.
- */
-function getValidatedOrigin(req: Request): string {
-  const origin = req.headers.get("origin");
-
-  if (origin && isAllowedOrigin(origin)) {
-    return origin;
-  }
-
-  const publicSiteUrl = Deno.env.get("PUBLIC_SITE_URL")?.trim();
-  if (publicSiteUrl) {
-    return publicSiteUrl;
-  }
-
-  return Deno.env.get("PRODUCTION_URL") || PRODUCTION_ORIGIN;
-}

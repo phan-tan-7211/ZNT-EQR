@@ -29,7 +29,7 @@ test.describe('PR evidence unknown public routes @pr-evidence', () => {
     await expect(page.getByRole('link', { name: 'Return home' })).toHaveAttribute('href', '/');
     await expect(page.getByRole('link', { name: 'View releases' })).toHaveAttribute('href', '/releases');
     await expect(
-      page.getByRole('link', { name: /view release notes for equipqr version/i }),
+      page.getByRole('link', { name: /view release notes for znteqr version/i }),
     ).toHaveAttribute('href', '/releases');
     await evidencePause(page, 300);
     await assertEvidenceFrameReady(page, heading);
@@ -43,7 +43,7 @@ test.describe('PR evidence unknown public routes @pr-evidence', () => {
     const heading = page.getByRole('heading', { name: 'Releases', level: 1 });
     await expect(heading).toBeVisible({ timeout: 20_000 });
     await expect(
-      page.getByText(/customer-facing changes in each published equipqr release/i),
+      page.getByText(/customer-facing changes in each published znteqr release/i),
     ).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Page not found', level: 1 })).toHaveCount(0);
     await evidencePause(page, 300);

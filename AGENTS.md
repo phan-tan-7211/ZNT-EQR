@@ -19,7 +19,7 @@ All agent-facing credentials live in the **ZNTEQR Agents** 1Password vault. Do n
 | `app-env-local-dev` | Local Vite `.env` (via `.\dev\dev-start.bat`) |
 | `edge-env-local-dev` | Local edge `supabase/functions/.env` |
 | `app-env-preview-public` / `app-env-prod-public` | Public `VITE_*` frontend build variables |
-| `edge-env-preview-secrets` / `edge-env-prod-secrets` | Supabase Edge Function secrets |
+| `edge-env-preview-secrets` / `edge-env-prod-secrets` | Supabase Edge Function secrets (set `CLOUDFLARE_PAGES_PROJECT` explicitly — it scopes trusted `*.pages.dev` origins; see `docs/ops/agent-secrets-and-access.md`) |
 | `github-read` / `github-write` | GitHub MCP tiers |
 | `gcp-read` / editor impersonation | GCP viewer + `gcloud-write` MCP |
 | `supabase-write` | Supabase CLI write token |

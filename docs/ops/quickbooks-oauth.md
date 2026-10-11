@@ -34,7 +34,7 @@ Configure these secrets in Supabase Dashboard → Edge Functions → Secrets:
 
 **Why both Development keys and `QBO_USE_SANDBOX`?** Intuit OAuth with Development credentials authorizes **sandbox** companies. The API host flag ensures token refresh and invoice export hit `sandbox-quickbooks.api.intuit.com` instead of the production API (mixing them yields 403s).
 
-After switching preview to sandbox, **disconnect and reconnect** QuickBooks on equip-qr-*.vercel.app so stored tokens match the sandbox realm.
+After switching preview to sandbox, **disconnect and reconnect** QuickBooks on the Cloudflare Pages preview (`https://preview.eqr-zinitek.pages.dev`) so stored tokens match the sandbox realm.
 
 Client-side: align `VITE_INTUIT_CLIENT_ID` in `app-env-preview-public` with `INTUIT_CLIENT_ID` in `edge-env-preview-secrets` (same Development client ID).
 
@@ -53,7 +53,7 @@ Register the derived callback URI in the Intuit Developer Portal:
 | Preview | `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` |
 | Local | `http://localhost:54321/functions/v1/quickbooks-oauth-callback` |
 
-Legacy `VITE_QB_OAUTH_REDIRECT_BASE_URL` / `QB_OAUTH_REDIRECT_BASE_URL` overrides are deprecated. Remove them from Vercel and Supabase secrets if still present; OAuth callbacks are derived from the Supabase URL as described above.
+Legacy `VITE_QB_OAUTH_REDIRECT_BASE_URL` / `QB_OAUTH_REDIRECT_BASE_URL` overrides are deprecated. Remove them from the Cloudflare Pages environment variables and Supabase secrets if still present; OAuth callbacks are derived from the Supabase URL as described above.
 
 ### Vault secrets (token refresh scheduler)
 

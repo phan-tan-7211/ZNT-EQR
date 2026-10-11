@@ -48,6 +48,11 @@ import { toast } from '@/hooks/use-toast';
 import InventorSketchOverlay from '@/features/facility-map/components/InventorSketchOverlay';
 import SketchGuideDialog from '@/features/facility-map/components/SketchGuideDialog';
 import {
+  isQuotaExceeded,
+  reportSaveFailure,
+  setSaveFailureNotifier,
+} from '@/features/facility-map/sketch/persistence/saveFailure';
+import {
   cloneSketchDocument,
   createSketchDocument,
   createSketchId,
@@ -233,10 +238,6 @@ const readHistory = (): PlanHistoryEntry[] => {
 
 const SKETCH_GUIDE_SEEN_KEY = 'znteqr.facilityMap.sketchGuideSeen';
 
-const isQuotaExceeded = (error: unknown): boolean =>
-  error instanceof DOMException &&
-  (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED');
-
 /**
  * A plan (or a plan-image-bearing history entry) can be a multi-hundred-KB
  * data URL, and localStorage's ~5-10MB-per-origin quota doesn't grow with
@@ -259,23 +260,6 @@ const safeSetLocalStorage = (
     if (notifyOnFailure) reportSaveFailure();
     return false;
   }
-};
-
-// Swallowing the quota error keeps the page alive, but a save that silently
-// didn't happen means work lost on the next reload. The mounted page
-// registers a notifier (it owns `t`); writes happen inside state updaters,
-// so the toast is deferred out of render and throttled so one burst of
-// failing writes shows a single notice.
-let saveFailureNotifier: (() => void) | null = null;
-let lastSaveFailureNoticeAt = 0;
-const SAVE_FAILURE_NOTICE_INTERVAL_MS = 5000;
-
-const reportSaveFailure = () => {
-  const now = Date.now();
-  if (!saveFailureNotifier || now - lastSaveFailureNoticeAt < SAVE_FAILURE_NOTICE_INTERVAL_MS) return;
-  lastSaveFailureNoticeAt = now;
-  const notify = saveFailureNotifier;
-  setTimeout(notify, 0);
 };
 
 /**
@@ -583,14 +567,15 @@ export default function FacilityFloorPlan() {
   const { t } = useI18n();
 
   useEffect(() => {
-    saveFailureNotifier = () =>
+    setSaveFailureNotifier(() => {
       toast({
         variant: 'destructive',
         title: t('facilityMap.saveFailedTitle'),
         description: t('facilityMap.saveFailedDescription'),
       });
+    });
     return () => {
-      saveFailureNotifier = null;
+      setSaveFailureNotifier(null);
     };
   }, [t]);
 
@@ -2086,14 +2071,23 @@ export default function FacilityFloorPlan() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
+      const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
-      if (target?.closest('[role="dialog"]')) return;
+      if (target?.closest('[role="dialog"]')) {
+        // Keep the browser's own help page from opening over a dialog.
+        if (event.key === 'F1') event.preventDefault();
+        return;
+      }
       // In Sketch mode the overlay owns the keyboard (Esc, Ctrl+Z/Y, Delete,
-      // tool letters). Handling them here too ran plan-level undo on top of
-      // sketch undo, and plan undo re-seeds the sketch session — wiping the
-      // in-progress sketch and its redo stack. Only fit-view stays global.
+      // tool letters, ? / F1). Handling them here too ran plan-level undo on
+      // top of sketch undo, and plan undo re-seeds the sketch session — wiping
+      // the in-progress sketch and its redo stack. Only fit-view stays global.
       if (sketchMode && (event.key.toLowerCase() !== 'f' || event.ctrlKey || event.metaKey)) return;
+      if (event.key === 'F1' || (event.key === '?' && !event.ctrlKey && !event.metaKey)) {
+        event.preventDefault();
+        openGuide();
+        return;
+      }
       if (event.key === 'Escape') {
         setSelectedEquipmentId('');
         setSelectedMarkerId('');

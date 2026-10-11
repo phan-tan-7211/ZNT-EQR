@@ -90,15 +90,6 @@ function LegalFooterView({ canManageDsr }: LegalFooterViewProps): JSX.Element {
                 ) : null}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            <span aria-hidden="true" className="text-muted-foreground/40">·</span>
-            <ExternalLink
-              href="https://eqr.zinitek.com/support/"
-              className={linkClassName}
-              showIcon={false}
-            >
-              {t('publicChrome.legalFooter.status')}
-            </ExternalLink>
           </nav>
         </div>
       </div>

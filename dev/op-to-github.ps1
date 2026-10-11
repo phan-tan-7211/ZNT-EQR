@@ -9,7 +9,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$repo = 'phan-tan-7211/Equipment-Management'
+$repo = 'phan-tan-7211/ZNT-EQR'
 $manifestPath = Join-Path $PSScriptRoot '..\.github\secrets-map.yml'
 $vaultUuid = 'tgo2m6qbct5otqeqirjocn3joa'
 

@@ -2,9 +2,6 @@ export const supportPrivacyResources = {
   en: { support: {
       "getHelp": "Get Help",
       "emailHelp": "Email us. We answer within 24 hours.",
-      "checkOur": "Check our",
-      "statusPage": "system status page",
-      "statusPageHelp": "to see if the app is up",
       "emailSupport": "Email support",
       "responseTime": "Response time: Within 24 hours",
       "reportHelp": "Something broken? Report it. Session diagnostics attach automatically. No personal data in the dump.",
@@ -80,9 +77,6 @@ export const supportPrivacyResources = {
   vi: { support: {
       "getHelp": "Nhận hỗ trợ",
       "emailHelp": "Gửi email cho chúng tôi. Chúng tôi phản hồi trong vòng 24 giờ.",
-      "checkOur": "Kiểm tra",
-      "statusPage": "trang trạng thái hệ thống",
-      "statusPageHelp": "để xem ứng dụng có đang hoạt động hay không",
       "emailSupport": "Email hỗ trợ",
       "responseTime": "Thời gian phản hồi: Trong vòng 24 giờ",
       "reportHelp": "Có lỗi xảy ra? Hãy báo cáo. Thông tin chẩn đoán phiên sẽ tự động được đính kèm, không bao gồm dữ liệu cá nhân.",
@@ -158,9 +152,6 @@ export const supportPrivacyResources = {
   ko: { support: {
       "getHelp": "도움받기",
       "emailHelp": "이메일을 보내주세요. 24시간 이내에 답변드립니다.",
-      "checkOur": "확인하세요:",
-      "statusPage": "시스템 상태 페이지",
-      "statusPageHelp": "에서 앱 운영 상태를 확인할 수 있습니다",
       "emailSupport": "지원팀 이메일",
       "responseTime": "응답 시간: 24시간 이내",
       "reportHelp": "문제가 있나요? 신고해 주세요. 개인 정보가 없는 세션 진단 정보가 자동으로 첨부됩니다.",

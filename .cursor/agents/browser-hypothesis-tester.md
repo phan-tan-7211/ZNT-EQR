@@ -23,7 +23,7 @@ Each case is one object in `CASES` with `id`, `hypothesis`, `strategy`, `passIf`
 
 ## Rules of engagement
 
-- Local app only: `http://localhost:8080`. Never production or `equip-qr-*.vercel.app`.
+- Local app only: `http://localhost:8080`. Never production (`eqr.zinitek.com`) or Cloudflare Pages previews (`*.eqr-zinitek.pages.dev`).
 - Seeded fixtures only. IDs from `e2e/user/shared/seed-data.ts` and `supabase/seeds/`. Never real customer data.
 - Browser: **cursor-ide-browser MCP only** (maintainer preference). Do not use IronBee or other browser agents.
 - Defensive checks: navigate, snapshot, ordinary forms. No exploit kits, payload packs, password spraying, or attack scripts.

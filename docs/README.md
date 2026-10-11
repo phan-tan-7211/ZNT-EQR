@@ -58,7 +58,7 @@ Operational runbooks for deployment and maintenance live under `docs/ops/` in th
 They are **not** published on **`https://eqrdocs.zinitek.com`** (see [Public vs internal content](#public-vs-internal-content)).
 Browse them on GitHub or in your local checkout:
 
-- **[CI/CD Pipeline](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/ci-cd-pipeline.md)** - Complete CI/CD pipeline documentation including GitHub Actions, Vercel, and Supabase integrations
+- **[CI/CD Pipeline](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/ci-cd-pipeline.md)** - Complete CI/CD pipeline documentation including GitHub Actions, Cloudflare Pages, and Supabase integrations
 - **[Deployment](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/deployment.md)** - Complete deployment guide including build, hosting, runners, and versioning
 - **[Migrations](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/migrations.md)** - Database migration guide with critical rules
 - **[Migration Rules Quick Reference](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/migration-rules-quick-reference.md)** - Quick reference for migration best practices
@@ -134,7 +134,7 @@ Browse them on GitHub or in your local checkout:
 - [Architecture - Component Patterns](./technical/architecture.md#component-design-patterns)
 
 #### Deployment & DevOps
-- [CI/CD Pipeline](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/ci-cd-pipeline.md) - GitHub Actions, Vercel, Supabase integrations
+- [CI/CD Pipeline](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/ci-cd-pipeline.md) - GitHub Actions, Cloudflare Pages, Supabase integrations
 - [Deployment Guide](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/deployment.md) - Platform-specific deployment
 - [Migrations](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/migrations.md) - Database migrations
 - [Local Supabase Development](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/local-supabase-development.md) - Local development setup and edge function workflow

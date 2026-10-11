@@ -2,30 +2,32 @@
 
 **Authoritative workflow today:** **`docs/ops/git-and-deploy.md`** (feat → preview → main after #1282).
 
+> **Historical record — host names are as they were at the time.** Vercel was retired on 2026-09-28; the frontend now deploys through Cloudflare Pages (`https://eqr.zinitek.com` in production, `https://preview.eqr-zinitek.pages.dev` for git `preview`). The hosts below — `equipqr.app`, `preview.equipqr.app`, `supabase.equipqr.app`, `*.vercel.app` — are retired. The production Supabase API is `https://wgynakhoppqkrutnslmv.supabase.co`. Do not use this page as current configuration.
+
 This document records the #1033 migration away from a persistent Supabase preview branch (`olsdirk`), then the #1282 restoration of git `preview` as the integration train.
 
 Related: GitHub #1033 (legacy tracker) (Linear COL-310); GitHub #1282 (legacy tracker).
 
 ---
 
-## Reverse migration (#1282) — current live state
+## Reverse migration (#1282) — live state until the Cloudflare Pages move
 
 **Restored (2026-07):** day-to-day work is again **feat → preview → main**.
-Git `preview` is the integration branch; `equip-qr-*.vercel.app` tracks normal
+Git `preview` is the integration branch; `preview.equipqr.app` tracks normal
 Vercel deploys of that branch. **`preview-domain-alias.yml` is removed** (no
 fast-forward of `preview` from `main`).
 
 | Layer | Pre-production | Production |
 |-------|----------------|------------|
 | Git | Work branches → PR **`preview`** | Controlled **`preview` → `main`** (or `/release`) |
-| Frontend | **`equip-qr-*.vercel.app`** (Vercel Preview on git `preview`) + per-PR `*.vercel.app` | **`eqr.zinitek.com`** (after `vercel promote`) |
-| Supabase | Production project for cloud QA **today**; target replacement is a new persistent dataless preview branch per [preview-persistent-branch.md](./preview-persistent-branch.md); ephemeral PR branches for `supabase/**` stay in place | `wgynakhoppqkrutnslmv.supabase.co` |
+| Frontend | **`preview.equipqr.app`** (Vercel Preview on git `preview`) + per-PR `*.vercel.app` | **`equipqr.app`** (after `vercel promote`) |
+| Supabase | Production project for cloud QA **today**; target replacement is a new persistent dataless preview branch per [preview-persistent-branch.md](./preview-persistent-branch.md); ephemeral PR branches for `supabase/**` stay in place | `supabase.equipqr.app` |
 
 Still retired from #1033 (unchanged by #1282): persistent Supabase branch **`olsdirkvvfegvclbpgrg`**, Vercel custom **`staging`**, duplicate preview edge project as a long-lived DB.
 
 **Next target (approved, not yet live):**
 [preview-persistent-branch.md](./preview-persistent-branch.md) records the
-follow-up decision to move `equip-qr-*.vercel.app` off production Supabase again,
+follow-up decision to move `preview.equipqr.app` off production Supabase again,
 but onto a **new** persistent dataless branch rather than reviving `olsdirk`.
 
 ---
@@ -35,8 +37,8 @@ but onto a **new** persistent dataless branch rather than reviving `olsdirk`.
 | Layer | Pre-production | Production |
 |-------|----------------|------------|
 | Git | Work branches → PR **`main`** | **`main`** |
-| Frontend | **`equip-qr-*.vercel.app`** via domain-anchor / FF workflow | **`eqr.zinitek.com`** (after `vercel promote`) |
-| Supabase | Production project + ephemeral PR branches | `wgynakhoppqkrutnslmv.supabase.co` |
+| Frontend | **`preview.equipqr.app`** via domain-anchor / FF workflow | **`equipqr.app`** (after `vercel promote`) |
+| Supabase | Production project + ephemeral PR branches | `supabase.equipqr.app` |
 
 ---
 
@@ -45,8 +47,8 @@ but onto a **new** persistent dataless branch rather than reviving `olsdirk`.
 | Layer | Persistent preview today | Production |
 |-------|--------------------------|------------|
 | Git integration branch | `preview` | `main` |
-| Frontend | `equip-qr-*.vercel.app` (Vercel alias on `preview` pushes) | `eqr.zinitek.com` |
-| Supabase | Persistent branch `olsdirkvvfegvclbpgrg` | Project `wgynakhoppqkrutnslmv` / API `wgynakhoppqkrutnslmv.supabase.co` |
+| Frontend | `preview.equipqr.app` (Vercel alias on `preview` pushes) | `equipqr.app` |
+| Supabase | Persistent branch `olsdirkvvfegvclbpgrg` | Project `wgynakhoppqkrutnslmv` / API `supabase.equipqr.app` |
 | Ephemeral DB branches | Per-PR on prod project (`wgynakhoppqkrutnslmv`) when `supabase/**` changes | — |
 | 1Password edge items | `edge-env-preview-secrets` → `olsdirk` | `edge-env-prod-secrets` → `wgynakhoppqkrutnslmv` |
 | 1Password app items | `app-env-preview-public` → Vercel preview env | `app-env-prod-public` → Vercel production env |
@@ -66,57 +68,57 @@ but onto a **new** persistent dataless branch rather than reviving `olsdirk`.
 
 ## Dependency inventory
 
-Everything that currently assumes `equip-qr-*.vercel.app` and/or `olsdirkvvfegvclbpgrg`:
+Everything that currently assumes `preview.equipqr.app` and/or `olsdirkvvfegvclbpgrg`:
 
 ### Vercel and public env
 
 - `app-env-preview-public` → Vercel **preview** env (`VITE_SUPABASE_URL` currently points at `olsdirk`)
 - `.github/secrets-map.yml` defaults: `supabase_project_ref: olsdirkvvfegvclbpgrg`
-- `vercel.json` / branch alias: `preview` → `equip-qr-*.vercel.app`
+- `vercel.json` / branch alias: `preview` → `preview.equipqr.app`
 
 ### CI / GitHub Actions
 
 | Workflow | Dependency |
 |----------|------------|
-| `configure-supabase-auth.yml` | Patches **olsdirk** auth `site_url` → `equip-qr-*.vercel.app` after Vercel deploy |
+| `configure-supabase-auth.yml` | Patches **olsdirk** auth `site_url` → `preview.equipqr.app` after Vercel deploy |
 | `secrets-fanout.yml` | Applies `edge-env-preview-secrets` to **olsdirk** (6 h schedule + push check) |
 | `secrets-drift-check.yml` | Digest check on preview + prod edge items |
 | `export-schema.yml` | `PREVIEW_DATABASE_URL` → **olsdirk** pooler (exports `supabase/schema.sql`) |
 | `edge-functions-smoke-test.yml` | Hardcoded preview ref `olsdirk` |
-| `deploy.yml` | Logs `equip-qr-*.vercel.app` URL |
+| `deploy.yml` | Logs `preview.equipqr.app` URL |
 
 ### Scripts
 
 - `dev/sync-supabase-secrets-from-1password.ps1` — `edge-env-preview-secrets` locked to `olsdirk`
-- `dev/configure-supabase-auth.mjs` — preview environment = `olsdirk` + `equip-qr-*.vercel.app`
+- `dev/configure-supabase-auth.mjs` — preview environment = `olsdirk` + `preview.equipqr.app`
 - `dev/export-schema-baseline.{sh,ps1}` — links/exports from **olsdirk**
 - `dev/bootstrap-local-google-auth.ps1` — reads preview auth config from **olsdirk** API
 
 ### Supabase config
 
-- `supabase/config.toml` — `[remotes.staging] project_id = "olsdirkvvfegvclbpgrg"`; auth `additional_redirect_urls` includes `equip-qr-*.vercel.app`
+- `supabase/config.toml` — `[remotes.staging] project_id = "olsdirkvvfegvclbpgrg"`; auth `additional_redirect_urls` includes `preview.equipqr.app`
 
 ### Edge / OAuth code
 
-- `supabase/functions/_shared/oauth-redirect-base.ts` — maps retired hosts → `olsdirk`; prod `ymxkz` → `wgynakhoppqkrutnslmv.supabase.co`
-- `supabase/functions/_shared/public-site-url.ts` — preview `PUBLIC_SITE_URL` = `equip-qr-*.vercel.app`
+- `supabase/functions/_shared/oauth-redirect-base.ts` — maps retired hosts → `olsdirk`; prod `ymxkz` → `supabase.equipqr.app`
+- `supabase/functions/_shared/public-site-url.ts` — preview `PUBLIC_SITE_URL` = `preview.equipqr.app`
 - Vendor callback URIs documented in `docs/ops/url-config-external-cleanup.md` (preview = **olsdirk** Supabase URL)
 
 ### E2E and agent docs
 
-- `docs/ops/playwright-real-auth-integrations.md` — target `https://preview.eqr-zinitek.pages.dev`
-- `e2e/user/shared/real-auth-config.ts` — default base URL `equip-qr-*.vercel.app`
+- `docs/ops/playwright-real-auth-integrations.md` — target `https://preview.equipqr.app`
+- `e2e/user/shared/real-auth-config.ts` — default base URL `preview.equipqr.app`
 - `AGENTS.md` — preview GW/QB testing on ZNT org
 
 ### External vendor consoles
 
 - **Google Cloud OAuth** — redirect URIs include `https://olsdirkvvfegvclbpgrg.supabase.co/functions/v1/google-workspace-oauth-callback`
 - **Intuit Developer Portal** — Development app redirect URIs for **olsdirk** QB callback
-- **Google Maps HTTP referrer allowlist** — `https://preview.eqr-zinitek.pages.dev/*`, `https://eqr.zinitek.com/*`
+- **Google Maps HTTP referrer allowlist** — `https://preview.equipqr.app/*`, `https://*.equipqr.app/*`
 
 ### Production (must not regress)
 
-- `eqr.zinitek.com` + `wgynakhoppqkrutnslmv.supabase.co` OAuth (recent hardening in `oauth-redirect-base.ts`, commit `90d1eed1`)
+- `equipqr.app` + `supabase.equipqr.app` OAuth (recent hardening in `oauth-redirect-base.ts`, commit `90d1eed1`)
 - Production Intuit **Production** keys (no `QBO_USE_SANDBOX`)
 
 ---
@@ -130,13 +132,13 @@ Maintainer decision: **solo developer, one feature at a time, no persistent git 
 | Question | Decision | Rationale |
 |----------|----------|-----------|
 | Git integration branch | **`main` only** | Solo workflow; no queue of features merging through `preview` |
-| Git branch **`preview`** | **Keep (domain anchor)** | Vercel requires a branch to bind **`equip-qr-*.vercel.app`**; not used for feature PRs |
+| Git branch **`preview`** | **Keep (domain anchor)** | Vercel requires a branch to bind **`preview.equipqr.app`**; not used for feature PRs |
 | Feature workflow | `feat/*` → PR → **`main`** | Validate on commit-specific **`*.vercel.app`** Preview URL per push |
 | Supabase schema validation | **Ephemeral PR branches** (existing) | Created when PR touches `supabase/**`; auto-deleted on merge/close (~$0.32/PR) |
 | Persistent git `preview` **integration** branch | **Retired** | No feat → preview → main train |
-| `equip-qr-*.vercel.app` | **Keep on Vercel Preview** | Vercel UI: custom domain bound to git branch **`preview`** (optional QA hostname) |
+| `preview.equipqr.app` | **Keep on Vercel Preview** | Vercel UI: custom domain bound to git branch **`preview`** (optional QA hostname) |
 | Decommission `olsdirk`? | **Yes, after cutover** | Duplicate Supabase project; ~$10/mo + duplicate secret ops |
-| Production Supabase | **`wgynakhoppqkrutnslmv` / `wgynakhoppqkrutnslmv.supabase.co`** | Single backend for production and PR previews that need live backend |
+| Production Supabase | **`wgynakhoppqkrutnslmv` / `supabase.equipqr.app`** | Single backend for production and PR previews that need live backend |
 | `configure-supabase-auth.yml` | **Remove** | Tied to `preview` branch + olsdirk; obsolete under main-centric flow |
 | `secrets-fanout.yml` (olsdirk apply) | **Remove / simplify** | Single prod edge secret surface via `edge-env-prod-secrets` |
 | Schema export (`schema.sql`) | **Repoint to production** pooler | Export from `wgynakhoppqkrutnslmv` |
@@ -144,7 +146,7 @@ Maintainer decision: **solo developer, one feature at a time, no persistent git 
 
 ### Solo workflow (target)
 
-    main (eqr.zinitek.com + wgynakhoppqkrutnslmv.supabase.co)
+    main (equipqr.app + supabase.equipqr.app)
       ^
       |  PR merge (one feature at a time)
       |
@@ -155,13 +157,13 @@ Maintainer decision: **solo developer, one feature at a time, no persistent git 
 
 ### OAuth model (single production project)
 
-All vendor OAuth callbacks use **`https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/...`**. PR preview frontends use the same Supabase project (production) unless wired to an ephemeral branch URL for migration-only testing.
+All vendor OAuth callbacks use **`https://supabase.equipqr.app/functions/v1/...`**. PR preview frontends use the same Supabase project (production) unless wired to an ephemeral branch URL for migration-only testing.
 
 - **Google Workspace / QuickBooks on production:** Production OAuth clients; no `QBO_USE_SANDBOX`.
 - **Local dev:** Development/sandbox keys via `edge-env-local-dev` + `QBO_USE_SANDBOX=true`.
 - **PR preview UI:** Same prod Supabase API; integrations tested locally before merge.
 
-`PUBLIC_SITE_URL` on production edge: `https://eqr.zinitek.com`. Per-PR previews rely on `window.location.origin` at runtime for return URLs where applicable.
+`PUBLIC_SITE_URL` on production edge: `https://equipqr.app`. Per-PR previews rely on `window.location.origin` at runtime for return URLs where applicable.
 
 ### Secrets model (target)
 
@@ -170,15 +172,15 @@ All vendor OAuth callbacks use **`https://wgynakhoppqkrutnslmv.supabase.co/funct
 | `edge-env-prod-secrets` | **Only** Supabase edge secret source (`wgynakhoppqkrutnslmv`) |
 | `edge-env-preview-secrets` | **Retire** after olsdirk decommission |
 | `app-env-prod-public` | Vercel **production** env |
-| `app-env-preview-public` | Vercel **preview** env (PR deployments) — `VITE_SUPABASE_URL` = `https://wgynakhoppqkrutnslmv.supabase.co` |
+| `app-env-preview-public` | Vercel **preview** env (PR deployments) — `VITE_SUPABASE_URL` = `https://supabase.equipqr.app` |
 | CI drift | Check-only on prod edge item; drop olsdirk preview fan-out |
 
 ### Vercel staging custom environment — removed (2026-06-15)
 
 - Deleted Vercel custom environment **`staging`** (slug `staging`, branch matcher `preview`).
-- Reattached **`equip-qr-*.vercel.app`** to the standard Preview deployment (not custom staging).
-- Added `.github/workflows/preview-domain-alias.yml` + `dev/vercel/Set-PreviewDomainAlias.ps1` to point **`equip-qr-*.vercel.app`** at deployments from git branch **`preview`** only (domain anchor, not every feat/* Preview build).
-- Synced Vercel **Preview** env vars from `app-env-preview-public` → **`https://wgynakhoppqkrutnslmv.supabase.co`** (production Supabase API).
+- Reattached **`preview.equipqr.app`** to the standard Preview deployment (not custom staging).
+- Added `.github/workflows/preview-domain-alias.yml` + `dev/vercel/Set-PreviewDomainAlias.ps1` to point **`preview.equipqr.app`** at deployments from git branch **`preview`** only (domain anchor, not every feat/* Preview build).
+- Synced Vercel **Preview** env vars from `app-env-preview-public` → **`https://supabase.equipqr.app`** (production Supabase API).
 - GitHub **`staging`** environment removed from `.github/secrets-map.yml` (use **Preview** only).
 
 ---
@@ -186,7 +188,7 @@ All vendor OAuth callbacks use **`https://wgynakhoppqkrutnslmv.supabase.co/funct
 - `.cursor/rules/branching.mdc` — `main`-centric default; deprecate `preview` integration branch
 - `.github/workflows/ci.yml` — triggers on `main` PRs (may already include)
 - Remove or rewrite workflows keyed on `push: preview`
-- `docs/ops/playwright-real-auth-integrations.md` — local-first, not `equip-qr-*.vercel.app`
+- `docs/ops/playwright-real-auth-integrations.md` — local-first, not `preview.equipqr.app`
 
 ---
 
@@ -208,8 +210,8 @@ Inventory, cost model, architecture proposal. **Stop here for maintainer sign-of
 1. ✅ Update Vercel preview env + `app-env-preview-public` → prod Supabase URL/anon key.
 2. ✅ Align preview GW/QB client IDs with prod edge (`app-env-preview-public` ↔ `edge-env-prod-secrets`).
 3. ✅ Update docs, OAuth redirect maps, smoke/export workflows, `config.toml` comments.
-4. ✅ Validate GW + QB on `equip-qr-*.vercel.app` (2026-06-15); edge callbacks accept preview origin via `isAllowedOrigin`.
-5. ✅ Remove `configure-supabase-auth.yml`; simplify `secrets-fanout.yml`; prod Auth allowlist includes `https://preview.eqr-zinitek.pages.dev/**`.
+4. ✅ Validate GW + QB on `preview.equipqr.app` (2026-06-15); edge callbacks accept preview origin via `isAllowedOrigin`.
+5. ✅ Remove `configure-supabase-auth.yml`; simplify `secrets-fanout.yml`; prod Auth allowlist includes `https://preview.equipqr.app/**`.
 6. ✅ Repoint `PREVIEW_DATABASE_URL` GitHub secret → production pooler (`wgynakhoppqkrutnslmv`).
 7. ✅ Vendor console cleanup (remove **olsdirk** redirect URIs).
 8. ✅ Decommission Supabase branch `olsdirkvvfegvclbpgrg`; remove `[remotes.staging]` from `config.toml`.

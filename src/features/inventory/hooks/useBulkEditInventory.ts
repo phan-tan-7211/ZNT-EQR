@@ -59,6 +59,20 @@ const createBulkEditSchema = (t: (key: string) => string) => z.object({
 
 type BulkEditSchemaInput = z.infer<ReturnType<typeof createBulkEditSchema>>;
 
+/** How many failed item names the partial-failure toast lists before "and N more". */
+const MAX_FAILED_NAMES_IN_TOAST = 3;
+
+const formatFailedItemNames = (
+  names: string[],
+  t: (key: string, params?: Record<string, string | number>) => string
+): string => {
+  const shown = names.slice(0, MAX_FAILED_NAMES_IN_TOAST).join(', ');
+  const remaining = names.length - MAX_FAILED_NAMES_IN_TOAST;
+  return remaining > 0
+    ? t('inventoryBulk.failedItemsMore', { names: shown, count: remaining })
+    : shown;
+};
+
 // ============================================
 // Hook
 // ============================================
@@ -228,6 +242,7 @@ export const useBulkEditInventory = (
       return {
         succeeded,
         failed,
+        failedNames: failed.map(({ id }) => initialById.get(id)?.name ?? id),
         attempted: dirtyRows.size,
         submittedMetaById,
         submittedQtyById,
@@ -235,7 +250,8 @@ export const useBulkEditInventory = (
     },
 
     onSuccess: (summary) => {
-      const { succeeded, failed, attempted, submittedMetaById, submittedQtyById } = summary;
+      const { succeeded, failed, failedNames, attempted, submittedMetaById, submittedQtyById } =
+        summary;
 
       if (failed.length === 0) {
         toast.success(t('inventoryMutation.bulkUpdated', { count: succeeded.length }));
@@ -243,7 +259,12 @@ export const useBulkEditInventory = (
         toast.error(t('inventoryMutation.bulkFailed', { failed: failed.length, attempted }));
       } else {
         toast.warning(
-          t('inventoryMutation.bulkPartial', { succeeded: succeeded.length, attempted, failed: failed.length })
+          t('inventoryMutation.bulkPartial', { succeeded: succeeded.length, attempted, failed: failed.length }),
+          {
+            description: t('inventoryBulk.failedItems', {
+              names: formatFailedItemNames(failedNames, t),
+            }),
+          }
         );
       }
 

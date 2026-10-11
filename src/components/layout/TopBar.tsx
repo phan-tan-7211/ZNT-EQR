@@ -30,7 +30,7 @@ const TopBar: React.FC = () => {
           className="-ml-1 h-8 w-8 p-1 shrink-0 sm:hidden"
         >
           <img
-            src="/images/brand/icons/ZNTEQR-Icon-Purple-Small.png"
+            src="/images/brand/icons/ZNTEQR-Icon-512.png"
             alt="ZNTEQR"
             className="h-6 w-6"
           />

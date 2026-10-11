@@ -11,6 +11,17 @@ describe('csp', () => {
     expect(cloudflareCsp).toBe(buildCsp());
   });
 
+  it('docs Cloudflare Pages _headers exposes the static docs CSP read by the docs evidence server', () => {
+    const headersPath = join(process.cwd(), 'docs', 'public', '_headers');
+    const docsCsp = extractCspFromCloudflareHeaders(readFileSync(headersPath, 'utf-8'));
+    expect(docsCsp).toBeDefined();
+    const scriptSrc = docsCsp
+      ?.split(';')
+      .map((directive) => directive.trim())
+      .find((directive) => directive.startsWith('script-src '));
+    expect(scriptSrc).toBe("script-src 'self'");
+  });
+
   it('buildCsp({ dev: true }) adds localhost allowances for the Vite dev server', () => {
     const devCsp = buildCsp({ dev: true });
 

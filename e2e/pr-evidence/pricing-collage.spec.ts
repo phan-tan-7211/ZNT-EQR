@@ -28,7 +28,7 @@ async function openPricingSection(page: Page): Promise<void> {
     page.getByRole('heading', { level: 2, name: /unlimited seats\. 5 gb of photos\./i }),
   ).toBeVisible();
   await expect(section.getByRole('link', { name: /get started free/i })).toBeVisible();
-  await expect(section.getByRole('link', { name: /schedule a demo/i })).toBeVisible();
+  await expect(section.getByRole('link', { name: /request a demo/i })).toBeVisible();
 
   await expect
     .poll(async () => {

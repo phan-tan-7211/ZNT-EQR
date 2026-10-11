@@ -36,7 +36,7 @@ const viTranslations: ReleaseTranslationVersions = {
     changed: [{ title: 'Hoàn tất bản địa hóa VI/EN/KO', body: 'Các phản hồi dành cho người dùng về lệnh công việc, PM, ghi chú, hình ảnh, trạng thái tải, khả năng tiếp cận, chấp thuận cookie và thiết bị giờ đây tuân theo ngôn ngữ đã chọn mà không thay đổi dữ liệu nghiệp vụ đã lưu.' }],
   },
   '3.34.0': {
-    changed: [{ title: 'Nhất quán thương hiệu ZNTEQR', body: 'Nội dung sản phẩm, tài liệu, bài kiểm thử, thông báo PWA, metadata SEO và mã định danh nội bộ giờ đây sử dụng thương hiệu ZNTEQR. Các URL eqr.zinitek.com hiện có và khóa trình duyệt đã lưu vẫn tương thích.' }],
+    changed: [{ title: 'Nhất quán thương hiệu ZNTEQR', body: 'Nội dung sản phẩm, tài liệu, bài kiểm thử, thông báo PWA, metadata SEO và mã định danh nội bộ giờ đây sử dụng thương hiệu ZNTEQR. Các URL equipqr.app hiện có và khóa trình duyệt đã lưu vẫn tương thích.' }],
   },
   '3.33.0': {
     changed: [
@@ -117,7 +117,7 @@ const koTranslations: ReleaseTranslationVersions = {
     changed: [{ title: 'VI/EN/KO 현지화 완료', body: '작업 지시, PM, 메모, 이미지, 로딩, 접근성, 쿠키 동의 및 장비에 관한 나머지 사용자 표시 피드백이 저장된 업무 데이터를 변경하지 않고 선택한 언어를 따릅니다.' }],
   },
   '3.34.0': {
-    changed: [{ title: 'ZNTEQR 브랜드 일관성', body: '제품 문구, 문서, 테스트, PWA 알림, SEO 메타데이터 및 내부 식별자가 이제 ZNTEQR 브랜드를 사용합니다. 기존 eqr.zinitek.com URL과 저장된 브라우저 키는 계속 호환됩니다.' }],
+    changed: [{ title: 'ZNTEQR 브랜드 일관성', body: '제품 문구, 문서, 테스트, PWA 알림, SEO 메타데이터 및 내부 식별자가 이제 ZNTEQR 브랜드를 사용합니다. 기존 equipqr.app URL과 저장된 브라우저 키는 계속 호환됩니다.' }],
   },
   '3.33.0': {
     changed: [

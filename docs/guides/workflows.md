@@ -158,8 +158,9 @@ technical contract for developers is:
   the device steady.
 
 For user-facing troubleshooting that the support team can send to customers,
-point them to the [Help Center](https://eqrdocs.zinitek.com/support/) or the status
-page (`eqr.zinitek.com/support`). Signed-in users can report issues at
+point them to the [Help Center](https://eqrdocs.zinitek.com/support/) or the public
+Support page (`https://eqr.zinitek.com/support`, contact email and response time;
+ZNTEQR has no status page). Signed-in users can report issues at
 `https://eqr.zinitek.com/dashboard/support`.
 
 ## Related documentation

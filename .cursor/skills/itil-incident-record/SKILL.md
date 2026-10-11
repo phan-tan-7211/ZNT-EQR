@@ -17,7 +17,7 @@ Turn one bug report or observed symptom into a clear, actionable incident summar
    - `explore` for broad codebase discovery.
    - `docs-researcher` for current vendor or API docs.
    - `ci-investigator` only when the symptom is a failing PR check.
-4. Use available MCPs opportunistically, not by checklist. For production evidence, prefer the MCPs currently enabled in the workspace, such as Supabase, Vercel, Datadog, Grafana, and GitHub CLI.
+4. Use available MCPs opportunistically, not by checklist. For production evidence, prefer the MCPs currently enabled in the workspace, such as Supabase, Datadog, Grafana, and GitHub CLI (frontend hosting is Cloudflare Pages; Vercel is retired).
 5. Do not modify product code from this skill. If the user authorizes a fix, hand off to `itil-issue-resolver`.
 
 ## Workflow
@@ -37,7 +37,7 @@ gh issue view <number> --json number,title,body,labels,state,comments,url
 Choose the evidence path that matches the symptom:
 
 - UI behavior: use the browser MCP when available, capture one screenshot or snapshot of the failing state, and record console/network failures if relevant.
-- Data/auth/API behavior: inspect the relevant Supabase/Vercel logs or code paths.
+- Data/auth/API behavior: inspect the relevant Supabase logs, the Cloudflare Pages deployment check, or code paths.
 - Build/CI behavior: inspect the failing check and recent commits.
 - Code-only regression: use `rg`, `Glob`, `ReadFile`, or the `explore` subagent to locate the affected code.
 
