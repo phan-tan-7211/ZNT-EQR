@@ -1503,6 +1503,30 @@ export default function InventorSketchOverlay({
 
   if (!visible) return null;
 
+  // One heads-up value box. Slot `a` (length / width / radius) is the box
+  // typed digits jump into; slot `b` is the second box Tab moves to. Typing
+  // in a box locks that value so the mouse no longer drives it.
+  const renderDynamicField = (
+    slot: keyof DynamicLocks,
+    label: string,
+    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void,
+  ) => (
+    <label>
+      <span className="mb-1 block text-slate-400">{label}</span>
+      <input
+        ref={slot === 'a' ? dynamicInputRef : undefined}
+        value={slot === 'a' ? dynamicA : dynamicB}
+        onFocus={() => setDynamicLocks((value) => ({ ...value, [slot]: true }))}
+        onChange={(event) => {
+          setDynamicLocks((value) => ({ ...value, [slot]: true }));
+          (slot === 'a' ? setDynamicA : setDynamicB)(normalizeDecimalInput(event.target.value));
+        }}
+        onKeyDown={onKeyDown}
+        className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
+      />
+    </label>
+  );
+
   return (
     <div className="pointer-events-none absolute inset-0 z-[10]" data-facility-layer="sketch">
       <svg
@@ -1898,67 +1922,18 @@ export default function InventorSketchOverlay({
             >
               {draft.type === 'line' && (
                 <div className="grid grid-cols-2 gap-1.5">
-                  <label>
-                    <span className="mb-1 block text-slate-400">{t('facilityMap.sketchLength')} ({store.displayUnit})</span>
-                    <input
-                      ref={dynamicInputRef}
-                      value={dynamicA}
-                      onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
-                      onKeyDown={handleLineInputKeyDown}
-                      className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
-                    />
-                  </label>
-                  <label>
-                    <span className="mb-1 block text-slate-400">{t('facilityMap.sketchAngle')}</span>
-                    <input
-                      value={dynamicB}
-                      onFocus={() => setDynamicLocks((value) => ({ ...value, b: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(normalizeDecimalInput(event.target.value)); }}
-                      onKeyDown={handleLineInputKeyDown}
-                      className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
-                    />
-                  </label>
+                  {renderDynamicField('a', `${t('facilityMap.sketchLength')} (${store.displayUnit})`, handleLineInputKeyDown)}
+                  {renderDynamicField('b', t('facilityMap.sketchAngle'), handleLineInputKeyDown)}
                 </div>
               )}
               {draft.type === 'rect' && (
                 <div className="grid grid-cols-2 gap-1.5">
-                  <label>
-                    <span className="mb-1 block text-slate-400">{t('facilityMap.sketchWidth')} ({store.displayUnit})</span>
-                    <input
-                      ref={dynamicInputRef}
-                      value={dynamicA}
-                      onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
-                      onKeyDown={handleShapeInputKeyDown}
-                      className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
-                    />
-                  </label>
-                  <label>
-                    <span className="mb-1 block text-slate-400">{t('facilityMap.sketchHeight')} ({store.displayUnit})</span>
-                    <input
-                      value={dynamicB}
-                      onFocus={() => setDynamicLocks((value) => ({ ...value, b: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(normalizeDecimalInput(event.target.value)); }}
-                      onKeyDown={handleShapeInputKeyDown}
-                      className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
-                    />
-                  </label>
+                  {renderDynamicField('a', `${t('facilityMap.sketchWidth')} (${store.displayUnit})`, handleShapeInputKeyDown)}
+                  {renderDynamicField('b', `${t('facilityMap.sketchHeight')} (${store.displayUnit})`, handleShapeInputKeyDown)}
                 </div>
               )}
-              {draft.type === 'circle' && (
-                <label>
-                  <span className="mb-1 block text-slate-400">{t('facilityMap.sketchRadius')} ({store.displayUnit})</span>
-                  <input
-                    ref={dynamicInputRef}
-                    value={dynamicA}
-                    onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                    onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
-                    onKeyDown={handleShapeInputKeyDown}
-                    className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
-                  />
-                </label>
-              )}
+              {draft.type === 'circle' &&
+                renderDynamicField('a', `${t('facilityMap.sketchRadius')} (${store.displayUnit})`, handleShapeInputKeyDown)}
               <div className="mt-1 text-[9px] text-slate-500">{t('facilityMap.sketchDynamicHint')}</div>
             </div>
           </foreignObject>

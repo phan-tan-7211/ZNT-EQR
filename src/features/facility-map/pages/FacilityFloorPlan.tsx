@@ -2071,14 +2071,23 @@ export default function FacilityFloorPlan() {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
+      const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
-      if (target?.closest('[role="dialog"]')) return;
+      if (target?.closest('[role="dialog"]')) {
+        // Keep the browser's own help page from opening over a dialog.
+        if (event.key === 'F1') event.preventDefault();
+        return;
+      }
       // In Sketch mode the overlay owns the keyboard (Esc, Ctrl+Z/Y, Delete,
-      // tool letters). Handling them here too ran plan-level undo on top of
-      // sketch undo, and plan undo re-seeds the sketch session — wiping the
-      // in-progress sketch and its redo stack. Only fit-view stays global.
+      // tool letters, ? / F1). Handling them here too ran plan-level undo on
+      // top of sketch undo, and plan undo re-seeds the sketch session — wiping
+      // the in-progress sketch and its redo stack. Only fit-view stays global.
       if (sketchMode && (event.key.toLowerCase() !== 'f' || event.ctrlKey || event.metaKey)) return;
+      if (event.key === 'F1' || (event.key === '?' && !event.ctrlKey && !event.metaKey)) {
+        event.preventDefault();
+        openGuide();
+        return;
+      }
       if (event.key === 'Escape') {
         setSelectedEquipmentId('');
         setSelectedMarkerId('');

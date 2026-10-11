@@ -29,7 +29,9 @@ describe('SketchGuideDialog', () => {
     for (const tab of tabs) {
       fireEvent.mouseDown(tab);
       fireEvent.click(tab);
-      expect(dialog.textContent).not.toMatch(/facilityMap\.guide\./);
+      // The guide also uses tool names from outside the guide namespace, so
+      // any unresolved facilityMap key counts, not only guide keys.
+      expect(dialog.textContent).not.toMatch(/facilityMap\.\w/);
     }
   });
 
