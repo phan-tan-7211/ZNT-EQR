@@ -12,7 +12,7 @@ export const publicChromeResources = {
       help: 'Help Center', legalLinks: 'Legal links', legal: 'Legal',
       releases: 'Releases', terms: 'Terms of Service', security: 'Security',
       repair: 'Right to Repair', privacy: 'Privacy Policy',
-      doNotSell: 'Do Not Sell or Share', dsr: 'DSR Cockpit', status: 'System Status',
+      doNotSell: 'Do Not Sell or Share', dsr: 'DSR Cockpit',
     },
     header: {
       features: 'Features', about: 'About', customers: 'Customers', pricing: 'Pricing',
@@ -31,7 +31,7 @@ export const publicChromeResources = {
       partsInventory: 'Parts inventory', pricing: 'Pricing', company: 'Company',
       about: 'About', contact: 'Contact', legal: 'Legal', terms: 'Terms',
       privacy: 'Privacy', doNotSell: 'Do Not Sell or Share', rightToRepair: 'Right to Repair',
-      connect: 'Connect', demo: 'Schedule a Demo',
+      connect: 'Connect', demo: 'Request a Demo',
     },
     notFound: {
       seoTitle: 'Page not found', seoDescription: 'The requested ZNTEQR page could not be found.',
@@ -78,7 +78,7 @@ export const publicChromeResources = {
       help: 'Trung tâm trợ giúp', legalLinks: 'Liên kết pháp lý', legal: 'Pháp lý',
       releases: 'Bản phát hành', terms: 'Điều khoản dịch vụ', security: 'Bảo mật',
       repair: 'Quyền sửa chữa', privacy: 'Chính sách quyền riêng tư',
-      doNotSell: 'Không bán hoặc chia sẻ', dsr: 'Bảng điều khiển DSR', status: 'Trạng thái hệ thống',
+      doNotSell: 'Không bán hoặc chia sẻ', dsr: 'Bảng điều khiển DSR',
     },
     header: {
       features: 'Tính năng', about: 'Giới thiệu', customers: 'Khách hàng', pricing: 'Bảng giá',
@@ -97,7 +97,7 @@ export const publicChromeResources = {
       partsInventory: 'Kho phụ tùng', pricing: 'Bảng giá', company: 'Công ty',
       about: 'Giới thiệu', contact: 'Liên hệ', legal: 'Pháp lý', terms: 'Điều khoản',
       privacy: 'Quyền riêng tư', doNotSell: 'Không bán hoặc chia sẻ', rightToRepair: 'Quyền sửa chữa',
-      connect: 'Kết nối', demo: 'Đặt lịch xem demo',
+      connect: 'Kết nối', demo: 'Yêu cầu bản demo',
     },
     notFound: {
       seoTitle: 'Không tìm thấy trang', seoDescription: 'Không tìm thấy trang ZNTEQR bạn yêu cầu.',
@@ -144,7 +144,7 @@ export const publicChromeResources = {
       help: '도움말 센터', legalLinks: '법적 고지 링크', legal: '법적 고지',
       releases: '릴리스', terms: '서비스 약관', security: '보안',
       repair: '수리할 권리', privacy: '개인정보 처리방침',
-      doNotSell: '판매 또는 공유 거부', dsr: 'DSR 관리 화면', status: '시스템 상태',
+      doNotSell: '판매 또는 공유 거부', dsr: 'DSR 관리 화면',
     },
     header: {
       features: '기능', about: '소개', customers: '고객', pricing: '요금',
@@ -163,7 +163,7 @@ export const publicChromeResources = {
       partsInventory: '부품 재고', pricing: '요금', company: '회사',
       about: '소개', contact: '문의', legal: '법적 고지', terms: '이용약관',
       privacy: '개인정보 보호', doNotSell: '판매 또는 공유 거부', rightToRepair: '수리할 권리',
-      connect: '연결', demo: '데모 예약',
+      connect: '연결', demo: '데모 요청',
     },
     notFound: {
       seoTitle: '페이지를 찾을 수 없음', seoDescription: '요청한 ZNTEQR 페이지를 찾을 수 없습니다.',

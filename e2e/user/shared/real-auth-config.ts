@@ -60,10 +60,17 @@ export function resolveRealAuthStorageState(): string | null {
   return fs.existsSync(resolved) ? resolved : null;
 }
 
-/** Base URL for real-auth runs. Defaults to the live app (previews share its Supabase project); set E2E_REAL_AUTH_BASE_URL to target a PR preview. */
+/** Cloudflare Pages alias for the `preview` branch. */
+const DEFAULT_REAL_AUTH_BASE_URL = 'https://preview.eqr-zinitek.pages.dev';
+
+/**
+ * Base URL for real-auth runs (defaults to the Cloudflare Pages preview).
+ * Never defaults to production: production uses live QuickBooks keys. Set
+ * E2E_REAL_AUTH_BASE_URL to target a specific PR preview deployment.
+ */
 export function resolveRealAuthBaseUrl(): string {
   const raw = process.env.E2E_REAL_AUTH_BASE_URL?.trim();
-  return raw ? raw.replace(/\/+$/, '') : 'https://eqr.zinitek.com';
+  return raw ? raw.replace(/\/+$/, '') : DEFAULT_REAL_AUTH_BASE_URL;
 }
 
 export function resolveVercelAutomationBypassHeaders(): Record<string, string> | undefined {

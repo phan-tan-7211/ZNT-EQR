@@ -28,7 +28,7 @@ test.describe('PR evidence public image layout @pr-evidence', () => {
     await expectPublicImageOk(page, '/images/equipment/excavator-svgrepo-com.svg');
     await expectPublicImageOk(page, '/favicon.ico');
 
-    const headerBrand = page.getByRole('banner').getByRole('link', { name: /equipqr/i }).first();
+    const headerBrand = page.getByRole('banner').getByRole('link', { name: /znteqr/i }).first();
     await expect(headerBrand).toBeVisible({ timeout: 15_000 });
     await evidencePause(page, 300);
     await evidenceScreenshot(page, '01-landing-header-brand', { target: headerBrand });

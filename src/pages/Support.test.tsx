@@ -55,6 +55,9 @@ describe("Support Page", () => {
         "href",
         "mailto:phantan7211@gmail.com",
       );
+      expect(
+        screen.queryByRole("link", { name: /status page/i }),
+      ).not.toBeInTheDocument();
     });
 
     it("renders the Report an Issue CTA and triggers the ticket dialog", () => {

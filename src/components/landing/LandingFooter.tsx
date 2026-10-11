@@ -76,7 +76,7 @@ const footerSections: FooterSection[] = [
         labelKey: 'demo',
         type: 'route',
       },
-      { href: ZNTEQR_APP_URL, label: 'ZNTEQR™.app', type: 'external' },
+      { href: ZNTEQR_APP_URL, label: 'eqr.zinitek.com', type: 'external' },
       {
         href: GITHUB_REPO_URL,
         label: 'GitHub',

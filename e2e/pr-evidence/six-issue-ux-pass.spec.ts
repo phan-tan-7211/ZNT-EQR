@@ -72,7 +72,7 @@ test.describe('Six-issue UX pass — desktop @pr-evidence', () => {
     ).toBeVisible();
 
     await evidencePause(page, 600);
-    await evidenceScreenshot(page, '03-equipqr-templates-section');
+    await evidenceScreenshot(page, '03-znteqr-templates-section');
 
     await page.getByRole('button', { name: /apply to equipment/i }).first().click();
     await expect(page.getByText(/^Apply /).first()).toBeVisible({ timeout: 15_000 });

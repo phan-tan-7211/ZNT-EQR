@@ -52,7 +52,6 @@ function seedStaticShellSeo(): void {
 
   const twitterPairs: Array<[string, string]> = [
     ['twitter:card', 'summary_large_image'],
-    ['twitter:site', '@equipqr'],
     ['twitter:title', 'Static Twitter title'],
     ['twitter:description', 'Static Twitter description'],
     ['twitter:image', 'https://eqr.zinitek.com/og-static.png'],
@@ -135,11 +134,8 @@ describe('PageSEO', () => {
         .querySelector('meta[name="twitter:card"][data-znteqr-page-seo]')
         ?.getAttribute('content')
     ).toBe('summary_large_image');
-    expect(
-      document
-        .querySelector('meta[name="twitter:site"][data-znteqr-page-seo]')
-        ?.getAttribute('content')
-    ).toBe('@equipqr');
+    // No ZNT social handle exists, so twitter:site is intentionally omitted.
+    expect(document.querySelector('meta[name="twitter:site"]')).toBeNull();
 
     expect(managedCount()).toBeGreaterThan(0);
   });

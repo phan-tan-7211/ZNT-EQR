@@ -21,6 +21,14 @@ describe('LegalFooter', () => {
     );
   });
 
+  it('does not advertise a system status page (none exists)', () => {
+    vi.mocked(useSimpleOrganizationSafe).mockReturnValue(null);
+
+    render(<LegalFooter />);
+
+    expect(screen.queryByRole('link', { name: /system status/i })).not.toBeInTheDocument();
+  });
+
   it('links the visible app version to the public releases page', () => {
     vi.mocked(useSimpleOrganizationSafe).mockReturnValue(null);
 

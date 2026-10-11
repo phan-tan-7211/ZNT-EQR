@@ -4,7 +4,7 @@
  */
 
 export const MAPS_REFERRER_RUNBOOK_URL =
-  'https://github.com/phan-tan-7211/Equipment-Management/blob/main/docs/ops/supabase-branch-secrets.md#google-maps-api-key--http-referrer-allowlist';
+  'https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/supabase-branch-secrets.md#google-maps-api-key--http-referrer-allowlist';
 
 export interface MapsAuthFailure {
   /** Full page URL (origin + pathname) — matches Google's own console error. */

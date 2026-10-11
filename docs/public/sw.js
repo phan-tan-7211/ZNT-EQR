@@ -1,13 +1,13 @@
 // fallow-ignore-file unused-file
 /**
- * Kill-switch service worker for eqrdocs.zinitek.com
+ * Kill-switch service worker for the Help Center docs site (eqrdocs.zinitek.com).
  *
- * eqrdocs.zinitek.com briefly served the ZNTEQR SPA (May 2026) and registered a
- * Workbox PWA worker at scope /. After the domain moved to the VitePress docs
- * project, returning visitors kept the stranded worker and its precached app
- * shell. This script replaces that registration on the next update check:
- * clear every Cache Storage bucket, reload open tabs onto a known-good docs
- * URL, then unregister.
+ * The docs host at the time, equipqr.info (now retired), briefly served the
+ * ZNTEQR SPA (May 2026) and registered a Workbox PWA worker at scope /. After
+ * the domain moved to the VitePress docs project, returning visitors kept the
+ * stranded worker and its precached app shell. This script replaces that
+ * registration on the next update check: clear every Cache Storage bucket,
+ * reload open tabs onto a known-good docs URL, then unregister.
  */
 
 var SAFE_PATH_PREFIXES = [
