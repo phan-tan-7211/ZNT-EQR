@@ -11,6 +11,18 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.42.1] - 2026-10-11
+
+### Fixed
+
+- **Help and website links** - Help Center links now open eqrdocs.zinitek.com, and company links point to eqrweb.zinitek.com instead of retired sites.
+- **Book a demo** - Demo buttons on the landing page now open the Support page.
+- **Legal contact** - The Terms of Service legal contact is now legal@zinitek.com.
+
+### Security
+
+- **Trusted origins** - Server functions no longer accept requests from a retired third-party preview host.
+
 ## [3.42.0] - 2026-10-11
 
 ### Added
