@@ -7,7 +7,7 @@
  * Scope: work order create, update, and status-change operations.
  * Images / binary data are explicitly excluded (see containsBinaryData guard).
  *
- * @see https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/536
+ * @see legacy issue #536
  */
 
 import { logger } from '@/utils/logger';

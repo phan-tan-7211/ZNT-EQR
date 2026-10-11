@@ -11,7 +11,7 @@
  * Supports: work orders, equipment create/update, working hours, equipment notes,
  * work order notes (text only — no images).
  *
- * @see https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/536
+ * @see legacy issue #536
  */
 
 import { supabase } from '@/integrations/supabase/client';

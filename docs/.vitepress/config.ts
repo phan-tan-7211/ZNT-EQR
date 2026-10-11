@@ -205,7 +205,7 @@ export default defineConfig({
     "README.md",
   ],
   sitemap: {
-    hostname: "https://equipqr.info",
+    hostname: "https://eqrdocs.zinitek.com",
   },
   vite: {
     css: {

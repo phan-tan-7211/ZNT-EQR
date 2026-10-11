@@ -107,8 +107,8 @@ Deno.test("formatOperatorCheckinSubmittedAt returns space-separated timestamp", 
 
 Deno.test("buildEquipmentUrl uses provided site base", () => {
   assertEquals(
-    __equipmentCsvTestables.buildEquipmentUrl("abc-123", "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app"),
-    "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/dashboard/equipment/abc-123",
+    __equipmentCsvTestables.buildEquipmentUrl("abc-123", "https://preview.eqr-zinitek.pages.dev"),
+    "https://preview.eqr-zinitek.pages.dev/dashboard/equipment/abc-123",
   );
 });
 

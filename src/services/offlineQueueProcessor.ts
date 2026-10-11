@@ -12,7 +12,7 @@
  * - Server-wins strategy for status transitions
  * - Sequential FIFO processing to preserve causality
  *
- * @see https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/536
+ * @see legacy issue #536
  */
 
 import type { QueryClient } from '@tanstack/react-query';

@@ -595,7 +595,7 @@ function Publish-PrEvidenceSupabaseVideo {
 function Publish-PrEvidenceGitHubVideo {
     param(
         [Parameter(Mandatory)][string]$Mp4Path,
-        [string]$Repo = 'Columbia-Cloudworks-LLC/ZNTEQR'
+        [string]$Repo = 'phan-tan-7211/ZNT-EQR'
     )
 
     Assert-PrEvidenceCommandExists 'npx'

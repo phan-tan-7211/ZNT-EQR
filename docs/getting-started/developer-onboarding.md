@@ -1,6 +1,6 @@
 # Developer Onboarding Guide
 
-Published documentation for this guide also lives at **`https://equipqr.info/getting-started/developer-onboarding`**.
+Published documentation for this guide also lives at **`https://eqrdocs.zinitek.com/getting-started/developer-onboarding`**.
 
 ## Welcome to ZNTEQR™ Development!
 

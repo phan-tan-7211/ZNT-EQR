@@ -69,7 +69,7 @@ Evidence must show **production-ready layout**, not merely "the selector matched
 
 ## Touched user-visible behavior standard
 
-When a PR touches **any user-visible behavior** — including indirect changes to an existing feature, contextual help links, or equipqr.info documentation tied to app surfaces — evidence must prove the **real workflow still works end-to-end** from discovery through completion, not just that a page renders.
+When a PR touches **any user-visible behavior** — including indirect changes to an existing feature, contextual help links, or eqrdocs.zinitek.com documentation tied to app surfaces — evidence must prove the **real workflow still works end-to-end** from discovery through completion, not just that a page renders.
 
 Minimum bar for feature-adjacent changes:
 

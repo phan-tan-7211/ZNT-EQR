@@ -42,11 +42,11 @@ This pipeline captures screenshots and an MP4 demo from the local dev stack. Cur
 | `Complete-PrEvidenceVisualReview.ps1` | Record agent PNG review approval (`visual-review.json`) |
 | `Publish-PrEvidence.ps1` | Upload screenshots to Supabase + demo MP4 to GitHub, emit markdown |
 | `Invoke-PrEvidence.ps1` | End-to-end orchestrator (+ optional `gh pr comment`); gates publish on visual review |
-| `Publish-DocsMedia.ps1` | Upload capture artifacts to public `docs-media` for equipqr.info articles |
+| `Publish-DocsMedia.ps1` | Upload capture artifacts to public `docs-media` for eqrdocs.zinitek.com articles |
 
 ## Documentation media bucket
 
-For equipqr.info (not PR comments), publish capture manifests to **`docs-media`**:
+For eqrdocs.zinitek.com (not PR comments), publish capture manifests to **`docs-media`**:
 
 ```powershell
 .\dev\docs-media\Publish-DocsMedia.ps1 `

@@ -7,7 +7,7 @@ export function PrivacyIntroductionSection() {
     <LegalPolicySection title="1. Introduction">
       <p>
         ZNTEQR™ (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), developed and operated by{' '}
-        <ExternalLink href="https://columbiacloudworks.com" className="hover:text-foreground">
+        <ExternalLink href="https://eqrweb.zinitek.com" className="hover:text-foreground">
           ZNT LLC
         </ExternalLink>
         , is committed to protecting the privacy of every person and organization that uses our fleet

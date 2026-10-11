@@ -45,7 +45,7 @@ This document provides a comprehensive overview of ZNTEQR's entire CI/CD pipelin
 | Environment | Git trigger | Frontend URL | Supabase API |
 |-------------|-------------|--------------|--------------|
 | **Production** | Push to `main` (auto-promote via Production Release Readiness) | `<https://eqr.zinitek.com>` | `https://wgynakhoppqkrutnslmv.supabase.co` (`wgynakhoppqkrutnslmv`) |
-| **Integration preview** | Push/merge to git **`preview`** | `<https://equip-qr-preview-columbia-cloudworks-llc.vercel.app>` | **Current live:** production API (`wgynakhoppqkrutnslmv.supabase.co`). **Approved target:** persistent dataless branch per `docs/ops/preview-persistent-branch.md` |
+| **Integration preview** | Push/merge to git **`preview`** | `<https://preview.eqr-zinitek.pages.dev>` | **Current live:** production API (`wgynakhoppqkrutnslmv.supabase.co`). **Approved target:** persistent dataless branch per `docs/ops/preview-persistent-branch.md` |
 | **PR Preview** | Feature PRs / work-branch pushes | Commit-specific `*.vercel.app` | Prod API by default; ephemeral Supabase when `supabase/**` changes |
 
 > **Train (#1282):** feat → preview → main. Authoritative loop: **`docs/ops/git-and-deploy.md`**. Retired: `preview-domain-alias.yml`, Vercel custom **`staging`**, persistent Supabase **`olsdirkvvfegvclbpgrg`**. History: `docs/ops/preview-architecture-migration.md`.
@@ -109,7 +109,7 @@ This document provides a comprehensive overview of ZNTEQR's entire CI/CD pipelin
 
 **Trigger:** `deployment_status` events
 
-**Purpose:** Log deployment success/failure from the **SPA** Vercel project (`equipqr` / `eqr.zinitek.com`). Events whose environment name contains `equipqr-docs` are ignored so the separate docs project (`equipqr.info`, main-only deploys) does not fail preview PR checks.
+**Purpose:** Log deployment success/failure from the **SPA** Vercel project (`equipqr` / `eqr.zinitek.com`). Events whose environment name contains `equipqr-docs` are ignored so the separate docs project (`eqrdocs.zinitek.com`, main-only deploys) does not fail preview PR checks.
 
 ### 6. Export Database Schema (`export-schema.yml`)
 
@@ -172,24 +172,24 @@ This document provides a comprehensive overview of ZNTEQR's entire CI/CD pipelin
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
 - `VITE_APP_VERSION` - Set automatically during build
 
-#### Public documentation site (`equipqr.info`)
+#### Public documentation site (`eqrdocs.zinitek.com`)
 
-Technical documentation is deployed as a **second Vercel project** (same GitHub repo, different **Root Directory**), so `eqr.zinitek.com` stays the product SPA and `equipqr.info` serves static docs.
+Technical documentation is deployed as a **second Vercel project** (same GitHub repo, different **Root Directory**), so `eqr.zinitek.com` stays the product SPA and `eqrdocs.zinitek.com` serves static docs.
 
 | Item | Value |
 |------|--------|
-| Repository | `Columbia-Cloudworks-LLC/ZNTEQR` |
+| Repository | `phan-tan-7211/ZNT-EQR` |
 | Vercel project | `equipqr-docs` (`prj_6QicTVywixyyAYc7sxCRDLnqwbM9`) |
 | Root Directory | `docs` |
 | Install Command | `npm ci` |
 | Build Command | `npm run docs:build` |
 | Output Directory | `.vitepress/dist` |
 | Config | [`docs/vercel.json`](../vercel.json) |
-| Production hostname | `https://equipqr.info` (apex). `www.equipqr.info` should redirect to apex. |
+| Production hostname | `https://eqrdocs.zinitek.com` (apex). `eqrdocs.zinitek.com` should redirect to apex. |
 
 **Deployment cadence:** Git-connected Production builds run when **`main`** receives commits that touch **`docs/`** (scoped Root Directory). Non-`main` branches are skipped via `ignoreCommand` in [`docs/vercel.json`](../vercel.json). App-only merges do **not** redeploy the docs bundle unless `docs/` changes — intentional for static documentation.
 
-**Setup (dashboard):** Vercel → **Add New Project** → import the repo → set **Root Directory** to `docs` → confirm build settings above → deploy. Then attach **`equipqr.info`** and **`www.equipqr.info`** to this docs project (move from the app project if they were previously assigned there), and configure **`www` → apex** redirect. DNS must follow Vercel’s instructions at the domain registrar.
+**Setup (dashboard):** Vercel → **Add New Project** → import the repo → set **Root Directory** to `docs` → confirm build settings above → deploy. Then attach **`eqrdocs.zinitek.com`** and **`eqrdocs.zinitek.com`** to this docs project (move from the app project if they were previously assigned there), and configure **`www` → apex** redirect. DNS must follow Vercel’s instructions at the domain registrar.
 
 Local preview: from repo root, `npm run docs:dev` or `npm run docs:preview` after `npm run docs:build`.
 
@@ -211,13 +211,13 @@ Local preview: from repo root, `npm run docs:dev` or `npm run docs:preview` afte
 Current live preview uses the **same** Supabase project as production, so
 production Auth `site_url` and redirect URIs should include:
 
-- `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/**`
+- `https://preview.eqr-zinitek.pages.dev/**`
 - `https://eqr.zinitek.com/**`
 - Local dev URLs (`http://localhost:8080/**`, etc.)
 
 The approved target is different: once the persistent preview branch cutover in
 `preview-persistent-branch.md` lands, branch Auth should carry
-`site_url=https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` and the preview-specific redirect
+`site_url=https://preview.eqr-zinitek.pages.dev` and the preview-specific redirect
 allowlist, while production Auth remains unchanged.
 
 ---
@@ -319,7 +319,7 @@ See [Deployment Guide - Self-Hosted Runner Setup](./deployment.md#self-hosted-ru
 2. Confirm the Vercel Preview env matches the currently active design:
    - **Today:** `VITE_SUPABASE_URL=https://wgynakhoppqkrutnslmv.supabase.co`
    - **After the approved cutover:** the persistent preview branch URL from `preview-persistent-branch.md`
-3. Confirm Supabase Auth redirect URIs include `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/**` on the backend currently serving preview:
+3. Confirm Supabase Auth redirect URIs include `https://preview.eqr-zinitek.pages.dev/**` on the backend currently serving preview:
    - **Today:** production project `wgynakhoppqkrutnslmv`
    - **After the approved cutover:** the persistent preview branch Auth config
 

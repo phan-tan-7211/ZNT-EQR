@@ -1,6 +1,6 @@
 # Support library screenshot assets
 
-This directory is served under `/support/*` on the ZNTEQR Help Center (`equipqr.info`).
+This directory is served under `/support/*` on the ZNTEQR Help Center (`eqrdocs.zinitek.com`).
 
 ## Preferred workflow (2026+)
 
@@ -8,7 +8,7 @@ Documentation screenshots and demo videos are **not committed as PNGs/MP4s** in 
 
 1. Capture deterministic states from the local dev stack with Playwright PR evidence specs under `e2e/pr-evidence/`.
 2. Upload artifacts to the public Supabase **`docs-media`** bucket via `.\dev\docs-media\Publish-DocsMedia.ps1`.
-3. Reference the returned public URLs in equipqr.info markdown articles.
+3. Reference the returned public URLs in eqrdocs.zinitek.com markdown articles.
 
 Stable storage paths follow:
 

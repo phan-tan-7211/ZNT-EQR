@@ -60,10 +60,10 @@ export function resolveRealAuthStorageState(): string | null {
   return fs.existsSync(resolved) ? resolved : null;
 }
 
-/** Base URL for real-auth runs (defaults to preview). */
+/** Base URL for real-auth runs. Defaults to the live app (previews share its Supabase project); set E2E_REAL_AUTH_BASE_URL to target a PR preview. */
 export function resolveRealAuthBaseUrl(): string {
   const raw = process.env.E2E_REAL_AUTH_BASE_URL?.trim();
-  return raw ? raw.replace(/\/+$/, '') : 'https://equip-qr-preview-columbia-cloudworks-llc.vercel.app';
+  return raw ? raw.replace(/\/+$/, '') : 'https://eqr.zinitek.com';
 }
 
 export function resolveVercelAutomationBypassHeaders(): Record<string, string> | undefined {

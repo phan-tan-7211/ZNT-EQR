@@ -66,11 +66,11 @@ export function isProductionEnvironment(): boolean {
 
 /**
  * Checks if this is a preview/staging environment (not production).
- * Preview environments allow additional trusted domains like Vercel preview URLs.
+ * Preview environments are Cloudflare Pages preview deployments.
  */
 export function isPreviewEnvironment(): boolean {
   const hostname = resolveHostname(resolvePublicSiteUrl());
-  return hostname?.endsWith(".vercel.app") ?? false;
+  return hostname?.endsWith(".pages.dev") ?? false;
 }
 
 function resolveHostname(urlString: string): string | null {

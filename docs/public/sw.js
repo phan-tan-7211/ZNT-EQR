@@ -1,8 +1,8 @@
 // fallow-ignore-file unused-file
 /**
- * Kill-switch service worker for equipqr.info
+ * Kill-switch service worker for eqrdocs.zinitek.com
  *
- * equipqr.info briefly served the ZNTEQR SPA (May 2026) and registered a
+ * eqrdocs.zinitek.com briefly served the ZNTEQR SPA (May 2026) and registered a
  * Workbox PWA worker at scope /. After the domain moved to the VitePress docs
  * project, returning visitors kept the stranded worker and its precached app
  * shell. This script replaces that registration on the next update check:
