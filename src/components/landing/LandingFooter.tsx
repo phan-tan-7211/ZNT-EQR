@@ -12,7 +12,7 @@ import {
 const CONTACT_EMAIL = 'mailto:phantan7211@gmail.com';
 const GITHUB_REPO_URL = 'https://github.com/phan-tan-7211/ZNT-EQR';
 const ZNTEQR_APP_URL = 'https://eqr.zinitek.com';
-const ZINITEK_WEB_URL = 'https://eqrweb.zinitek.com';
+const ZNT_WEB_URL = 'https://eqrweb.zinitek.com';
 
 interface FooterLinkItem {
   href: string;
@@ -52,7 +52,7 @@ const footerSections: FooterSection[] = [
     links: [
       { href: '#about', labelKey: 'about', type: 'hash' },
       {
-        href: ZINITEK_WEB_URL,
+        href: ZNT_WEB_URL,
         label: 'ZNT',
         type: 'external',
       },
@@ -176,7 +176,7 @@ const LandingFooter = () => {
         <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-muted-foreground">
           <span>© {currentYear} ZNTEQR™</span>
           <ExternalLink
-            href={ZINITEK_WEB_URL}
+            href={ZNT_WEB_URL}
             className={footerLinkDecorationClassName}
             showIcon={false}
           >
