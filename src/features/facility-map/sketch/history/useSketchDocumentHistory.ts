@@ -34,9 +34,10 @@ type SketchDocumentHistoryOptions = {
    * (live drag), or transaction-finalized. This is the single choke point
    * all sketch edits pass through, so it's where constraint solving is
    * wired in: entities always reflect the solved geometry rather than the
-   * raw, possibly constraint-violating edit.
+   * raw, possibly constraint-violating edit. `previous` is the document the
+   * edit started from, so the solver can tell what the user just changed.
    */
-  postProcess?: (document: SketchDocument) => SketchDocument;
+  postProcess?: (document: SketchDocument, previous?: SketchDocument) => SketchDocument;
 };
 
 export function useSketchDocumentHistory(
@@ -45,8 +46,8 @@ export function useSketchDocumentHistory(
 ) {
   const { initialDocument, sessionKey, onChange, postProcess } = options;
   const applyPostProcess = useCallback(
-    (document: SketchDocument): SketchDocument =>
-      postProcess ? postProcess(document) : document,
+    (document: SketchDocument, previous?: SketchDocument): SketchDocument =>
+      postProcess ? postProcess(document, previous) : document,
     [postProcess],
   );
   const resolveInitialDocument = useCallback(
@@ -79,7 +80,7 @@ export function useSketchDocumentHistory(
   const commit = useCallback((updater: DocumentUpdater) => {
     setHistory((current) => {
       const next = touchSketchDocument(
-        applyPostProcess(resolveUpdater(current.present, updater)),
+        applyPostProcess(resolveUpdater(current.present, updater), current.present),
       );
       return commitSketchHistory(current, next, cloneSketchDocument);
     });
@@ -93,7 +94,7 @@ export function useSketchDocumentHistory(
 
   const updateTransient = useCallback((updater: DocumentUpdater) => {
     setHistory((current) => {
-      const next = applyPostProcess(resolveUpdater(current.present, updater));
+      const next = applyPostProcess(resolveUpdater(current.present, updater), current.present);
       return updateSketchHistoryTransient(current, next, cloneSketchDocument);
     });
   }, [applyPostProcess]);
@@ -103,7 +104,7 @@ export function useSketchDocumentHistory(
       commitSketchHistoryTransaction(
         {
           ...current,
-          present: touchSketchDocument(applyPostProcess(current.present)),
+          present: touchSketchDocument(applyPostProcess(current.present, current.present)),
         },
         cloneSketchDocument,
       ),

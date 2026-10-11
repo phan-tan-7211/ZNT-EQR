@@ -252,11 +252,15 @@ const CONSTRAINT_STATUS_LABEL_KEYS: Record<string, string> = {
   conflict: 'facilityMap.sketchStatusConflict',
 };
 
-const applySketchConstraintSolve = (input: SketchDocument): SketchDocument => {
+const applySketchConstraintSolve = (input: SketchDocument, previous?: SketchDocument): SketchDocument => {
   const liveConstraints = pruneOrphanConstraints(input.entities, input.constraints);
   const document = liveConstraints === input.constraints ? input : { ...input, constraints: liveConstraints };
   if (!document.constraints.length) return document;
-  const solved = solveSketchConstraints(document.entities, document.constraints);
+  // Passing the pre-edit entities lets the solver keep what the user just
+  // dragged or dimensioned and move the connected geometry to follow it.
+  const solved = solveSketchConstraints(document.entities, document.constraints, {
+    previousEntities: previous?.entities,
+  });
   if (solved.status === 'conflict') {
     // Don't let a conflicting constraint pair silently rewrite geometry —
     // keep the entities as edited and only refresh the conflict flags so
@@ -268,6 +272,9 @@ const applySketchConstraintSolve = (input: SketchDocument): SketchDocument => {
 
 const isCreateSketchTool = (tool: SketchTool): boolean =>
   tool === 'line' || tool === 'polyline' || tool === 'rect' || tool === 'circle' || tool === 'arc';
+
+// Accept a comma decimal separator ("2,5") in the heads-up value fields.
+const normalizeDecimalInput = (value: string) => value.replace(/,/g, '.');
 
 const blurActiveInput = () => {
   const active = document.activeElement;
@@ -417,6 +424,15 @@ export default function InventorSketchOverlay({
   // First field of the heads-up value box, so typing a digit while
   // drawing jumps straight into it (Inventor's dynamic input).
   const dynamicInputRef = useRef<HTMLInputElement | null>(null);
+  // Kind of the snap the last pointer position resolved to, read
+  // synchronously by H/V inference (activeSnap state lags a render behind).
+  const lastSnapKindRef = useRef<SnapCandidate['kind'] | null>(null);
+  // First point of the current line chain: clicking it again closes the
+  // profile and ends the chain.
+  const chainStartRef = useRef<Point | null>(null);
+  // macOS turns Ctrl+click into a context-menu event; remember the last
+  // Ctrl/⌘ commit so that synthetic right-click doesn't end the chain.
+  const modifierClickAtRef = useRef(0);
   // Live rendered width of the SVG in CSS pixels, kept in sync via
   // ResizeObserver so entity hit-areas stay a constant on-screen size
   // (ENTITY_HIT_TARGET_PX) across zoom levels and window resizes — mirrors
@@ -575,11 +591,17 @@ export default function InventorSketchOverlay({
     ]);
 
     setActiveSnap(best);
+    lastSnapKindRef.current = best?.kind ?? null;
     return best?.point ?? point;
   }, [canvasWidth, store.entities, snapToGrid, gridStep]);
 
   const inferLineEnd = useCallback((start: Point, raw: Point) => {
     const snapped = endpointSnap(raw);
+    // An explicit geometric snap (endpoint, intersection, midpoint, center)
+    // wins over H/V inference: closing a profile on its start point must land
+    // exactly there, not a few units off along a near-horizontal axis.
+    const kind = lastSnapKindRef.current;
+    if (kind && kind !== 'grid' && kind !== 'nearest') return snapped;
     if (isHorizontalInferenceCandidate(start, snapped)) {
       return applyHorizontalInference(start, snapped);
     }
@@ -622,6 +644,7 @@ export default function InventorSketchOverlay({
   };
 
   const finishCreateInteraction = () => {
+    chainStartRef.current = null;
     setDraft(null);
     setCommandState((current) => endSketchInteraction(current));
     resetDynamic();
@@ -682,6 +705,13 @@ export default function InventorSketchOverlay({
         constraints: inferred.length ? [...current.constraints, ...inferred] : current.constraints,
       };
     });
+    // Clicking the chain's first point again closes the profile: the closing
+    // segment gets its coincident constraint above, and the chain ends.
+    const chainStart = chainStartRef.current;
+    if (chainStart && distance(chainStart, end) <= 1e-6) {
+      finishCreateInteraction();
+      return;
+    }
     resetDynamic();
     blurActiveInput();
     setDraft(startLineDraft(end));
@@ -760,6 +790,11 @@ export default function InventorSketchOverlay({
       // Same rule as the line: only typed (locked) values override the pointer.
       const width = dynamicLocks.a ? resolveRectangleWidth(dynamicA, fallbackW, store) : fallbackW;
       const height = dynamicLocks.b ? resolveRectangleHeight(dynamicB, fallbackH, store) : fallbackH;
+      if (width <= 1e-9 || height <= 1e-9) {
+        // Second click on the first corner: no rectangle, just drop the draft.
+        cancelDraft();
+        return;
+      }
       const rect = createRectangleEntity({
         draft,
         current: currentPoint,
@@ -774,6 +809,10 @@ export default function InventorSketchOverlay({
     } else {
       const fallbackRadius = distance(draft.start, currentPoint);
       const radius = dynamicLocks.a ? resolveCircleRadius(dynamicA, fallbackRadius, store) : fallbackRadius;
+      if (radius <= 1e-9) {
+        cancelDraft();
+        return;
+      }
       const circle = createCircleEntity({
         draft,
         radius,
@@ -801,11 +840,13 @@ export default function InventorSketchOverlay({
     if (tool === 'line') {
       event.stopPropagation();
       if (!draft) {
+        chainStartRef.current = point;
         setDraft(startLineDraft(point));
         setCommandState((current) => beginSketchInteraction(current, 'creating'));
         resetDynamic();
         return;
       }
+      if (event.ctrlKey || event.metaKey) modifierClickAtRef.current = event.timeStamp;
       commitLine(point, { suppressInference: event.ctrlKey || event.metaKey });
       return;
     }
@@ -968,6 +1009,10 @@ export default function InventorSketchOverlay({
     // nothing and the only workaround was drawing beside it and dragging it
     // into place afterward.
     if (isCreateSketchTool(tool)) return;
+    // Only the primary button runs a tool on geometry. Middle-drag must reach
+    // the floor plan to pan, and right-click must reach onContextMenu (finish /
+    // leave tool) instead of trimming, breaking or offsetting what's under it.
+    if (event.button !== 0) return;
 
     const point = pointFromEvent(event);
     if (!point) return;
@@ -975,8 +1020,9 @@ export default function InventorSketchOverlay({
 
     if (tool === 'dimension') {
       // Inventor's D: pick geometry, type its size. Edits the entity's main
-      // dimension (length / radius / diameter), never its angle first.
-      const dimension = pickPrimaryDimension(viewDimensions, entity.id);
+      // dimension (length / radius / diameter), never its angle first — even
+      // when that label is currently hidden (editing it shows it again).
+      const dimension = pickPrimaryDimension(getSketchViewDimensions(store.entities), entity.id);
       if (!dimension) return;
       setShowDimensions(true);
       editDimension(dimension);
@@ -1319,6 +1365,19 @@ export default function InventorSketchOverlay({
         return;
       }
 
+      if (draggingId || activeGrip) {
+        // Mid-drag, Esc abandons the drag (geometry snaps back, nothing is
+        // recorded); every other key waits until the mouse is released so a
+        // tool switch can't strand the drag outside its transaction.
+        if (event.key !== 'Escape') return;
+        sketchHistory.cancelTransaction();
+        setDraggingId('');
+        dragRef.current = null;
+        setActiveGrip(null);
+        gripRef.current = null;
+        setCommandState((current) => endSketchInteraction(current));
+        return;
+      }
       if (event.key === 'Escape') {
         // Inventor-style two-stage Esc: first ends the shape/chain being
         // drawn, the next one leaves the tool, then clears the selection.
@@ -1342,12 +1401,16 @@ export default function InventorSketchOverlay({
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
         event.preventDefault();
+        // Undo while drawing would leave the rubber band anchored to a
+        // segment that no longer exists; end the shape in progress first.
+        if (draft) cancelDraft();
         if (event.shiftKey) sketchHistory.redo();
         else sketchHistory.undo();
         return;
       }
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
         event.preventDefault();
+        if (draft) cancelDraft();
         sketchHistory.redo();
         return;
       }
@@ -1460,6 +1523,9 @@ export default function InventorSketchOverlay({
           // Right-click finishes the current shape (Inventor's "OK"), or
           // leaves the tool when nothing is being drawn.
           event.preventDefault();
+          // macOS reports Ctrl+click as a context-menu click; when it is the
+          // tail of a Ctrl/⌘ "no auto constraints" commit, keep drawing.
+          if (event.ctrlKey && event.timeStamp - modifierClickAtRef.current < 600) return;
           if (draft?.type === 'polyline') finishActivePolyline();
           else if (draft) cancelDraft();
           else if (tool !== 'select') switchTool('select');
@@ -1828,6 +1894,7 @@ export default function InventorSketchOverlay({
               role="presentation"
               className="rounded-lg border border-sky-400/40 bg-slate-950/95 p-2 text-[11px] text-white shadow-xl"
               onMouseDown={(event) => event.stopPropagation()}
+              onContextMenu={(event) => event.stopPropagation()}
             >
               {draft.type === 'line' && (
                 <div className="grid grid-cols-2 gap-1.5">
@@ -1837,7 +1904,7 @@ export default function InventorSketchOverlay({
                       ref={dynamicInputRef}
                       value={dynamicA}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
+                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
                       onKeyDown={handleLineInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
@@ -1847,7 +1914,7 @@ export default function InventorSketchOverlay({
                     <input
                       value={dynamicB}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, b: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(event.target.value); }}
+                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(normalizeDecimalInput(event.target.value)); }}
                       onKeyDown={handleLineInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
@@ -1862,7 +1929,7 @@ export default function InventorSketchOverlay({
                       ref={dynamicInputRef}
                       value={dynamicA}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
+                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
                       onKeyDown={handleShapeInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
@@ -1872,7 +1939,7 @@ export default function InventorSketchOverlay({
                     <input
                       value={dynamicB}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, b: true }))}
-                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(event.target.value); }}
+                      onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(normalizeDecimalInput(event.target.value)); }}
                       onKeyDown={handleShapeInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
@@ -1886,7 +1953,7 @@ export default function InventorSketchOverlay({
                     ref={dynamicInputRef}
                     value={dynamicA}
                     onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
-                    onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
+                    onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(normalizeDecimalInput(event.target.value)); }}
                     onKeyDown={handleShapeInputKeyDown}
                     className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                   />
