@@ -255,6 +255,18 @@ describe('InventoryBulkGrid — pagination and thumbnails', () => {
     expect(firstRow.querySelectorAll('[role="gridcell"]')[1].childElementCount).toBeGreaterThan(0);
   });
 
+  it('drops selected rows that are not on the current page (e.g. moved by a refetch)', () => {
+    const onSelectAll = vi.fn();
+    renderGrid({ rows: manyRows, onSelectAll, selectedRowIds: new Set(['i-01', 'i-30']) });
+    expect(onSelectAll).toHaveBeenCalledWith(['i-01']);
+  });
+
+  it('leaves the selection alone when every selected row is visible', () => {
+    const onSelectAll = vi.fn();
+    renderGrid({ rows: manyRows, onSelectAll, selectedRowIds: new Set(['i-01', 'i-02']) });
+    expect(onSelectAll).not.toHaveBeenCalled();
+  });
+
   it('hides the footer when there is nothing to edit', () => {
     renderGrid({ rows: [] });
     expect(screen.queryByTestId('inventory-bulk-pagination-footer')).not.toBeInTheDocument();

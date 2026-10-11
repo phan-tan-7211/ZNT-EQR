@@ -313,9 +313,9 @@ function ShortcutTable({ title, rows }: { title: string; rows: Array<[ReactNode,
       <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">{title}</h3>
       <dl className="divide-y">
         {rows.map(([keys, description]) => (
-          <div key={description} className="flex items-center justify-between gap-3 py-2">
-            <dd className="min-w-0 text-sm">{description}</dd>
+          <div key={description} className="flex flex-row-reverse items-center justify-between gap-3 py-2">
             <dt className="flex shrink-0 flex-wrap items-center justify-end gap-1">{keys}</dt>
+            <dd className="min-w-0 text-sm">{description}</dd>
           </div>
         ))}
       </dl>

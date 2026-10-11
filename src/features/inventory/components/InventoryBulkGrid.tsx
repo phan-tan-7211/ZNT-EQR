@@ -326,6 +326,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
     columns,
     state: { sorting },
     onSortingChange: (updater) => {
+      cancelPendingSelection();
       setSorting(updater);
       setPage(1);
       onClearSelection();
@@ -342,12 +343,33 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
     [sortedRows, safePage, pageSize],
   );
 
+  // Keep the stored page in range when the list shrinks (e.g. after a
+  // commit refetch), so it doesn't jump back if the list grows again.
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage);
+  }, [page, safePage]);
+
+  // Selection must only ever contain rows on the current page. A commit
+  // refetch or a background refresh can re-sort or shift rows onto another
+  // page while they stay selected; drop those so "apply to selected" can
+  // never write to rows the user cannot see.
+  useEffect(() => {
+    if (selectedRowIds.size === 0) return;
+    const pageIds = new Set(pageRows.map((r) => r.id));
+    const visibleSelection = [...selectedRowIds].filter((id) => pageIds.has(id));
+    if (visibleSelection.length !== selectedRowIds.size) onSelectAll(visibleSelection);
+  }, [pageRows, selectedRowIds, onSelectAll]);
+
   const handlePageChange = (nextPage: number) => {
+    // A row click toggles selection after a short debounce; cancel it so a
+    // click right before paging can't select a row on the page being left.
+    cancelPendingSelection();
     onClearSelection();
     setPage(nextPage);
   };
 
   const handlePageSizeChange = (nextPageSize: number) => {
+    cancelPendingSelection();
     onClearSelection();
     setPageSize(nextPageSize);
     setPage(1);
@@ -453,7 +475,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
         className="rounded-md border bg-card overflow-x-auto"
         role="grid"
         aria-label={t('inventoryBulk.gridLabel')}
-        aria-rowcount={sortedRows.length}
+        aria-rowcount={pageRows.length}
       >
         {/* ── Sticky header ── */}
         <div

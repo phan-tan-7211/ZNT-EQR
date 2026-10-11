@@ -1307,7 +1307,11 @@ export default function InventorSketchOverlay({
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
       // A dialog (the guide, a confirm) owns the keyboard while it is open.
-      if (target?.closest('[role="dialog"]')) return;
+      // F1 is still swallowed there so the browser's own help never opens.
+      if (target?.closest('[role="dialog"]')) {
+        if (event.key === 'F1') event.preventDefault();
+        return;
+      }
 
       if (onOpenGuide && (event.key === 'F1' || (event.key === '?' && !event.ctrlKey && !event.metaKey))) {
         event.preventDefault();
