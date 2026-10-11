@@ -1,6 +1,6 @@
 import { useMemo, useState, type KeyboardEvent } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Plus, Search, Wrench } from 'lucide-react';
+import { Plus, QrCode, Search, Upload, Wrench } from 'lucide-react';
 import Page from '@/components/layout/Page';
 import PageHeader from '@/components/layout/PageHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,6 +19,9 @@ import { ProductPartsCatalog } from '@/features/tooling/components/compatibility
 import { ProductionOperationsCatalog } from '@/features/tooling/components/compatibility/ProductionOperationsCatalog';
 import { ToolingDesignsCatalog } from '@/features/tooling/components/master/ToolingDesignsCatalog';
 import { ToolingFormDialog } from '@/features/tooling/components/master/ToolingFormDialog';
+import { ToolingImportDialog } from '@/features/tooling/components/import/ToolingImportDialog';
+import { ToolingExportMenu } from '@/features/tooling/components/reports/ToolingExportMenu';
+import { ToolingQrLabelsDialog } from '@/features/tooling/components/reports/ToolingQrLabelsDialog';
 import { ToolingLifeBar } from '@/features/tooling/components/master/ToolingOverviewTab';
 import { useToolingList } from '@/features/tooling/hooks/useTooling';
 import { useToolingPermissions } from '@/features/tooling/hooks/useToolingPermissions';
@@ -75,6 +78,8 @@ function ToolsView({ organizationId, canManage }: { organizationId: string; canM
   const [issueFilter, setIssueFilter] = useState<IssueFilter>(ALL);
   const [attentionFilter, setAttentionFilter] = useState<AttentionFilter>(ALL);
   const [createOpen, setCreateOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
+  const [labelsOpen, setLabelsOpen] = useState(false);
 
   const query = search.trim().toLowerCase();
   const filtersActive =
@@ -126,12 +131,25 @@ function ToolsView({ organizationId, canManage }: { organizationId: string; canM
             />
           </div>
         </div>
-        {canManage && (
-          <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
-            {t('toolingMaster.list.register')}
+        <div className="flex flex-wrap gap-2">
+          <ToolingExportMenu tools={filtered} />
+          <Button variant="outline" onClick={() => setLabelsOpen(true)} disabled={filtered.length === 0}>
+            <QrCode className="mr-2 h-4 w-4" aria-hidden="true" />
+            {t('toolingReports.labels.open')}
           </Button>
-        )}
+          {canManage && (
+            <Button variant="outline" onClick={() => setImportOpen(true)}>
+              <Upload className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t('toolingImport.trigger')}
+            </Button>
+          )}
+          {canManage && (
+            <Button onClick={() => setCreateOpen(true)} className="w-full sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t('toolingMaster.list.register')}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -328,6 +346,8 @@ function ToolsView({ organizationId, canManage }: { organizationId: string; canM
       )}
 
       {canManage && <ToolingFormDialog open={createOpen} onOpenChange={setCreateOpen} organizationId={organizationId} />}
+      {canManage && <ToolingImportDialog open={importOpen} onOpenChange={setImportOpen} organizationId={organizationId} />}
+      <ToolingQrLabelsDialog open={labelsOpen} onOpenChange={setLabelsOpen} tools={filtered} />
     </div>
   );
 }

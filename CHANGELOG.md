@@ -11,6 +11,8 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.0] - 2026-10-11
+
 ### Added
 
 - **Tooling alerts** - Owners, admins and the responsible person are notified when a tool reaches its life warning, hits its life limit or is quarantined, and a new Tooling attention dashboard widget lists tools that need action.

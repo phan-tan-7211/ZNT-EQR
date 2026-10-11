@@ -4,6 +4,8 @@ import { toolingMasterResources } from '@/i18n/toolingMasterResources';
 import { toolingCompatibilityResources } from '@/i18n/toolingCompatibilityResources';
 import { toolingOperationsResources } from '@/i18n/toolingOperationsResources';
 import { toolingInsightsResources } from '@/i18n/toolingInsightsResources';
+import { toolingReportsResources } from '@/i18n/toolingReportsResources';
+import { toolingImportResources } from '@/i18n/toolingImportResources';
 
 type Tree = { readonly [key: string]: unknown };
 
@@ -15,6 +17,8 @@ const RESOURCE_FILES: Record<string, Record<(typeof LANGUAGES)[number], Tree>> =
   toolingCompatibilityResources,
   toolingOperationsResources,
   toolingInsightsResources,
+  toolingReportsResources,
+  toolingImportResources,
 };
 
 /** Flatten a nested resource tree into `dotted.key -> string value`. */
