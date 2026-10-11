@@ -81,6 +81,14 @@ Deno.test({
         isValidRedirectUrl("https://preview.eqr-zinitek.pages.dev/dashboard/organization/integrations", "https://eqr.zinitek.com"),
         true,
       );
+      assertEquals(
+        isValidRedirectUrl("https://eqr-zinitek.pages.dev/dashboard/organization/integrations", "https://eqr.zinitek.com"),
+        true,
+      );
+      assertEquals(
+        isValidRedirectUrl("https://evil-eqr-zinitek.pages.dev/dashboard/organization/integrations", "https://eqr.zinitek.com"),
+        false,
+      );
     });
   },
 });

@@ -7,7 +7,7 @@ This document describes the in-app bug reporting feature that allows authenticat
 Users can access the bug reporting form from the **Support** page in the dashboard. Submitting a report:
 
 1. Captures anonymized session diagnostics (app version, browser, errors, performance)
-2. Creates a GitHub Issue in `phan-tan-7211/ZntEqr`, assigned to `phan-tan-7211` with the `user-reported` label
+2. Creates a GitHub Issue in `phan-tan-7211/ZNT-EQR`, assigned to `phan-tan-7211` with the `user-reported` label
 3. Inserts a record in the `tickets` Supabase table, linking the GitHub issue number
 4. Shows a success confirmation to the user
 
@@ -161,7 +161,7 @@ A GitHub Personal Access Token is required for the `create-ticket` edge function
 3. Set the following:
    - **Token name:** `ZNTEQR Bug Reporter` (or similar)
    - **Expiration:** Choose an appropriate expiration (recommended: 90 days, then rotate)
-   - **Repository access:** Select **Only select repositories** > `phan-tan-7211/ZntEqr`
+   - **Repository access:** Select **Only select repositories** > `phan-tan-7211/ZNT-EQR`
    - **Permissions:** Under **Repository permissions**, set **Issues** to **Read and write**
 4. Click **Generate token** and copy the value
 
@@ -177,7 +177,7 @@ openssl rand -hex 32
 
 #### How to Configure the Webhook
 
-1. Go to [GitHub repo Settings > Webhooks](https://github.com/phan-tan-7211/ZntEqr/settings/hooks)
+1. Go to [GitHub repo Settings > Webhooks](https://github.com/phan-tan-7211/ZNT-EQR/settings/hooks)
 2. Click **Add webhook**
 3. Set:
    - **Payload URL:** `https://<supabase-url>/functions/v1/github-issue-webhook`
