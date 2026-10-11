@@ -1,12 +1,12 @@
-# Persistent Supabase Branch for `equip-qr-*.vercel.app`
+# Persistent Supabase Branch for `preview.eqr-zinitek.pages.dev`
 
 > Decision record for reversing the shared-production preview backend after
 > #1033. This document records the approved target only. It does **not** create
-> the branch, change Vercel env, seed Auth, or enable Quick Login on the
+> the branch, change Cloudflare Pages env, seed Auth, or enable Quick Login on the
 > current live preview.
 
 **Status:** Approved target; implementation remains queued.  
-**Current live state:** `equip-qr-*.vercel.app` still points at production
+**Current live state:** `preview.eqr-zinitek.pages.dev` still points at production
 Supabase (`wgynakhoppqkrutnslmv` / `https://wgynakhoppqkrutnslmv.supabase.co`) until the
 cutover checklist below is executed.  
 **Related docs:** [preview-architecture-migration](./preview-architecture-migration.md),
@@ -18,7 +18,7 @@ cutover checklist below is executed.
 
 ## Context
 
-`equip-qr-*.vercel.app` currently shares production Supabase Auth and data with
+`preview.eqr-zinitek.pages.dev` currently shares production Supabase Auth and data with
 `eqr.zinitek.com`. That kept the #1033 rollback simple, but it makes preview QA
 more expensive in operator time and risk than the fixed cost of restoring an
 isolated backend.
@@ -43,9 +43,9 @@ Important constraints locked by Product:
 
 | Surface | Decision | Notes |
 |---------|----------|-------|
-| `equip-qr-*.vercel.app` backend | Create a **new persistent Supabase Database Branch** on the production project | Do **not** reuse retired branch `olsdirkvvfegvclbpgrg` as-is. |
+| `preview.eqr-zinitek.pages.dev` backend | Create a **new persistent Supabase Database Branch** on the production project | Do **not** reuse retired branch `olsdirkvvfegvclbpgrg` as-is. |
 | Branch data | Create with **`with_data: false`** | Never clone production rows. Never seed production. |
-| Vercel Preview env for git `preview` | Point `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at the persistent branch | The stable hostname remains `https://preview.eqr-zinitek.pages.dev`. |
+| Cloudflare Pages Preview env for git `preview` | Point `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at the persistent branch | The stable hostname remains `https://preview.eqr-zinitek.pages.dev`. |
 | Edge Function secrets | Restore `edge-env-preview-secrets` onto the persistent branch | Set `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev` on that branch. |
 | Preview Auth | Seed preview-only Quick Login and email/password personas through the **Auth Admin API** | Branch `service_role` is allowed for this seed on the persistent branch only. |
 | Production Auth | No change | Production never shows the Quick Login picker and never accepts preview-only passwords. |
@@ -85,7 +85,7 @@ test org rather than introducing production-linked accounts.
 
 - Preview QA stops depending on production Auth sessions and live production
   rows.
-- `equip-qr-*.vercel.app` can use Quick Login without widening production blast
+- `preview.eqr-zinitek.pages.dev` can use Quick Login without widening production blast
   radius.
 - Reviewers get a stable preview hostname with isolated test data instead of a
   mix of production state and per-PR ephemeral URLs.
@@ -111,7 +111,7 @@ this checklist:
    `olsdirkvvfegvclbpgrg`.
 3. Restore `edge-env-preview-secrets` onto the new branch and confirm
    `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev`.
-4. Point the Vercel **Preview** env for git `preview` at the branch
+4. Point the Cloudflare Pages **Preview** env for git `preview` at the branch
    `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
 5. Configure branch Auth so `site_url=https://preview.eqr-zinitek.pages.dev` and the
    required redirect URLs stay aligned with that preview hostname.
@@ -134,10 +134,10 @@ this checklist:
 
 If the preview cutover fails, rollback is intentionally small:
 
-1. Point the Vercel **Preview** env for git `preview` back to production
+1. Point the Cloudflare Pages **Preview** env for git `preview` back to production
    `VITE_SUPABASE_URL=https://wgynakhoppqkrutnslmv.supabase.co` and the production anon
    key.
-2. Redeploy `equip-qr-*.vercel.app` and confirm preview traffic is back on
+2. Redeploy `preview.eqr-zinitek.pages.dev` and confirm preview traffic is back on
    production Supabase.
 3. Leave the persistent preview branch detached for later cleanup rather than
    improvising writes against production.

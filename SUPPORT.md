@@ -50,9 +50,9 @@ We use **GitHub Issues** for bugs, feature requests, and general questions.
 
 ### How to report
 
-- **Bugs**: [Open an issue](https://github.com/phan-tan-7211/Equipment-Management/issues/new) with a clear summary, steps to reproduce, expected vs actual behavior, and your environment (browser/OS, ZNTEQR version, role).
+- **Bugs**: [Open an issue](https://github.com/phan-tan-7211/ZNT-EQR/issues/new) with a clear summary, steps to reproduce, expected vs actual behavior, and your environment (browser/OS, ZNTEQR version, role).
 - **Feature requests**: Same link; describe the use case, proposed solution, and who it helps.
-- **Questions**: Open an issue and add the `question` label, or use [GitHub Discussions](https://github.com/phan-tan-7211/Equipment-Management/discussions) if you prefer.
+- **Questions**: Open an issue and add the `question` label, or use [GitHub Discussions](https://github.com/phan-tan-7211/ZNT-EQR/discussions) if you prefer.
 
 Detailed templates and labels (e.g. `bug`, `enhancement`, `documentation`) are in [CONTRIBUTING.md – Reporting Issues](CONTRIBUTING.md#reporting-issues).
 
@@ -78,7 +78,7 @@ Please include:
 To contribute code or docs:
 
 - Read [CONTRIBUTING.md](CONTRIBUTING.md) for branching, PRs, and coding guidelines.
-- Use [GitHub Pull Requests](https://github.com/phan-tan-7211/Equipment-Management/pulls) for changes.
+- Use [GitHub Pull Requests](https://github.com/phan-tan-7211/ZNT-EQR/pulls) for changes.
 
 ---
 
@@ -91,4 +91,4 @@ To contribute code or docs:
 
 ---
 
-**ZNTEQR™** · [ZNT LLC](https://eqrweb.zinitek.com) · [Repository](https://github.com/phan-tan-7211/Equipment-Management)
+**ZNTEQR™** · [ZNT LLC](https://eqrweb.zinitek.com) · [Repository](https://github.com/phan-tan-7211/ZNT-EQR)

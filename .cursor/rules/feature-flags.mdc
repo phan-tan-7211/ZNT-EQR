@@ -10,7 +10,7 @@ alwaysApply: false
 
 ## Policy
 
-**Do NOT add feature flags for new functionality.** ZNTEQR is a solo-developer codebase with a single primary customer. Flag-gated rollouts add ceremony without the telemetry surface to justify them. Ship features directly behind real RBAC/RLS and let `equip-qr-*.vercel.app` be the staging gate.
+**Do NOT add feature flags for new functionality.** ZNTEQR is a solo-developer codebase with a single primary customer. Flag-gated rollouts add ceremony without the telemetry surface to justify them. Ship features directly behind real RBAC/RLS and let the Cloudflare Pages preview for git `preview` (`https://preview.eqr-zinitek.pages.dev`) be the staging gate.
 
 ```tsx
 // ✅ CORRECT — ship directly, gated only by RBAC/RLS

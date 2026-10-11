@@ -16,7 +16,7 @@ This runbook documents the production email signup path after the Resend SMTP cu
 | SMTP host | `smtp.resend.com` |
 | SMTP port | `587` |
 | SMTP username | `resend` |
-| Resend sending domain | `eqr.zinitek.com` |
+| Resend sending domain | `zinitek.com` |
 | Resend domain status | Verified, sending enabled |
 | Auth email rate limit | `30` emails per hour |
 | Per-recipient SMTP frequency | `60` seconds |
@@ -83,7 +83,7 @@ Use this checklist after any Auth, SMTP, DNS, or signup-flow change.
    - `rate_limit_email_sent = 30`
    - `mailer_autoconfirm = false`
 2. Confirm Resend domain health:
-   - `eqr.zinitek.com` is verified.
+   - `zinitek.com` is verified.
    - Sending is enabled.
    - Open and click tracking can remain disabled.
 3. Submit one fresh production signup with a real inbox.

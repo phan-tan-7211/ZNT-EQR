@@ -94,7 +94,7 @@ Read access to production database is restricted to:
 
 - Production infrastructure is managed via:
   - Supabase Dashboard (database, auth, storage)
-  - Vercel/Netlify (application hosting)
+  - Cloudflare Pages (application hosting)
   - GitHub (source code)
 - Access to production infrastructure requires:
   - Owner-level permissions on Supabase project

@@ -114,7 +114,7 @@ The test exports a work order to Google Docs and opens the returned `document_ur
 |----------|----------------|-------------|
 | `E2E_REAL_AUTH_STORAGE_STATE` | All `@real-auth` tests | Path to captured storage JSON |
 | `E2E_REAL_AUTH_BASE_URL` | Optional | Defaults to `https://preview.eqr-zinitek.pages.dev` |
-| `VERCEL_AUTOMATION_BYPASS_SECRET` | Protected preview runs | Vercel Deployment Protection bypass secret from `op://ZNTEQR Agents/vercel-automation-bypass/VERCEL_AUTOMATION_BYPASS_SECRET` |
+| `VERCEL_AUTOMATION_BYPASS_SECRET` | Legacy only | Retired Vercel Deployment Protection bypass (`op://ZNTEQR Agents/vercel-automation-bypass/VERCEL_AUTOMATION_BYPASS_SECRET`). Cloudflare Pages previews ignore the `x-vercel-*` headers — leave unset |
 | `E2E_QBO_WORK_ORDER_ID` | Export test only | Known-safe **completed** preview work order UUID (`1660137f-a803-4510-9a0a-96c7048d0eb4`) |
 | `E2E_ALLOW_QBO_DRAFTS` | QBO export test only | Must be `true` to opt in to **sandbox** draft invoice create/update on preview |
 | `E2E_ALLOW_QBO_PRODUCTION_DRAFTS` | Rare prod QBO export test | When `true`, export test expects production QBO and opens `app.qbo.intuit.com` |
@@ -122,12 +122,6 @@ The test exports a work order to Google Docs and opens the returned `document_ur
 | `E2E_QB_LOCAL_AUTH_STORAGE_STATE` | Local QB integration replay | Defaults to `tmp/playwright/auth/quickbooks-local.json` |
 | `E2E_QB_DEVELOPER_AUTH_STORAGE_STATE` | Developer portal replay | Defaults to `tmp/playwright/auth/quickbooks-developer-local.json` |
 | `E2E_QB_ORG_ID` | `Invoke-QboQuery.ps1` | Organization UUID for credential lookup (defaults to first row) |
-
-Load the Vercel bypass secret before running tests against protected preview:
-
-```powershell
-$env:VERCEL_AUTOMATION_BYPASS_SECRET = op read "op://ZNTEQR Agents/vercel-automation-bypass/VERCEL_AUTOMATION_BYPASS_SECRET"
-```
 
 To reuse a Google-only storage state as a starting point for the combined ZNTEQR + QBO state:
 
@@ -185,7 +179,7 @@ Spec file: `e2e/user/full/real-auth-integrations.spec.ts`
 | `Export failed:` toast | Intuit API / mapping / tax errors | Check edge function response in Playwright trace |
 | `QuickBooks Setup Required` | Team customer mapping missing | Map team in Team Settings |
 | Tests skipped | Missing env vars | Set variables per table above |
-| QBO OAuth sends the browser to `olsdirk` or `wgynakhoppqkrutnslmv.supabase.co` | Stale Vercel build or retired hostname | Ensure `VITE_SUPABASE_URL` is `https://wgynakhoppqkrutnslmv.supabase.co` on Vercel Preview and Intuit redirect URI matches `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` |
+| QBO OAuth sends the browser to `olsdirk`, `supabase.equipqr.app`, or `supabase.preview.equipqr.app` | Stale Cloudflare Pages build or retired hostname | Ensure `VITE_SUPABASE_URL` is `https://wgynakhoppqkrutnslmv.supabase.co` in the Cloudflare Pages **Preview** environment variables and the Intuit redirect URI matches `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` (keep that live callback registered) |
 
 ## Safety rails
 

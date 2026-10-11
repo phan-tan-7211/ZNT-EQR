@@ -8,7 +8,7 @@ description: "Step-by-step guides for technicians, managers, admins, and equipme
 Browse guides by workflow and role. For bug reports and ticket tracking, use the signed-in support page in the app.
 
 - [Open support & tickets](https://eqr.zinitek.com/dashboard/support)
-- [System status](https://eqr.zinitek.com/support)
+- [Public support page (no sign-in)](https://eqr.zinitek.com/support)
 - [Open ZNTEQR](https://eqr.zinitek.com)
 
 ## Categories

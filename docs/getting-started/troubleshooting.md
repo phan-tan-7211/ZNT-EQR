@@ -317,7 +317,7 @@ export const supabase = createClient(url, key, {
 3. **Static File Serving:**
    ```javascript
    // For SPA routing, ensure server redirects all routes to index.html
-   // Check vercel.json or netlify.toml configuration
+   // Check public/_redirects (Cloudflare Pages / Netlify) or netlify.toml
    ```
 
 ## Performance Issues

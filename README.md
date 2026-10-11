@@ -55,8 +55,8 @@ The system is designed for managing equipment records, QR-code access, maintenan
 Clone this repository:
 
 ```bash
-git clone https://github.com/phan-tan-7211/Equipment-Management.git
-cd Equipment-Management
+git clone https://github.com/phan-tan-7211/ZNT-EQR.git
+cd ZNT-EQR
 ```
 
 Install dependencies:
@@ -191,7 +191,7 @@ dev/                 Development scripts and utilities
 
 ## Repository
 
-GitHub: `phan-tan-7211/Equipment-Management`
+GitHub: `phan-tan-7211/ZNT-EQR`
 
 ## Project Name
 

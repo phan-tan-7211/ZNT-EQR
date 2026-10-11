@@ -6,14 +6,14 @@ Authoritative day-to-day workflow. See also [`docs/ops/git-and-deploy.md`](../op
 
 - **`preview`** is the integration train; branch off **`preview`** for work.
 - **`main`** is production; ship via controlled **`preview` → `main`** (or `/release`).
-- **Default QA URL:** commit-specific Vercel Preview (`*.vercel.app`) after you push a work branch; **`equip-qr-*.vercel.app`** after merge to git **`preview`**.
+- **Default QA URL:** the per-deployment Cloudflare Pages preview (`https://<hash>.eqr-zinitek.pages.dev`, linked from the GitHub **Cloudflare Pages** check) after you push a work branch; **`https://preview.eqr-zinitek.pages.dev`** after merge to git **`preview`**.
 - Feature PRs accumulate short CHANGELOG `[Unreleased]` bullets per `.cursor/rules/changelog.mdc` and **do not** bump `package.json`. Version bumps happen on promote to `main`.
 
 ## Lifecycle
 
 ```text
 Plan → branch off preview → implement → verify locally
-→ push work branch → test on *.vercel.app Preview URL
+→ push work branch → test on the *.eqr-zinitek.pages.dev preview URL
 → PR to preview → CI green → merge
 → (later) /release or preview → main → Production Release Readiness → eqr.zinitek.com
 ```
@@ -39,9 +39,9 @@ Run local stack via `dev-start.bat`. Gate: lint, type-check, targeted tests, sma
 git push -u origin HEAD
 ```
 
-- Vercel creates a Preview deployment for the branch.
-- Open the deployment URL from the PR or Vercel dashboard (`<hash>.eqr-zinitek.pages.dev`).
-- After merge to git **`preview`**, **`equip-qr-*.vercel.app`** updates via that branch’s Vercel deploy.
+- Cloudflare Pages creates a Preview deployment for the branch.
+- Open the deployment URL from the PR's **Cloudflare Pages** check or the Cloudflare Pages dashboard (`https://<hash>.eqr-zinitek.pages.dev`).
+- After merge to git **`preview`**, **`https://preview.eqr-zinitek.pages.dev`** updates via that branch’s Cloudflare Pages deploy.
 
 ### 4) PR to preview
 
@@ -55,14 +55,14 @@ Requirements: CI green, visual evidence for UI changes, Supabase green or skippe
 
 When ready to ship, run **`/release`** (or open `preview` → `main` / `chore/release-v*` with version bump). On push to `main`:
 
-1. Vercel builds a staged Production deployment.
-2. **Production Release Readiness** applies migrations, strict schema drift, waits for the build, runs **`vercel promote`**.
+1. Cloudflare Pages builds and publishes the production deployment for `eqr.zinitek.com`.
+2. **Production Release Readiness** applies Supabase migrations, runs the strict schema drift check, and deploys Edge Functions.
 
-No manual Vercel dashboard promote step.
+There is no manual promote step; confirm both the Cloudflare Pages check and Production Release Readiness are green.
 
 ## Release-ready checklist
 
-- Validated on the **Preview deployment URL**, local stack, and/or **`equip-qr-*.vercel.app`** (as appropriate).
+- Validated on the **Preview deployment URL**, local stack, and/or **`https://preview.eqr-zinitek.pages.dev`** (as appropriate).
 - CI green on PR to **`preview`** (and on the promote PR to **`main`** when shipping).
 - Migrations/auth-sensitive paths verified locally when applicable.
 - Review threads and automated review items addressed.

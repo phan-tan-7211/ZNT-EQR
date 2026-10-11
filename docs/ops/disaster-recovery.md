@@ -342,8 +342,8 @@ After a successful restoration, complete these verification steps:
 # Verify the deep health endpoint (Supabase Edge Function, no auth required)
 curl https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/healthcheck
 
-# Check the public status page for aggregate service health
-# https://eqr.zinitek.com/support
+# Check the Better Stack monitors (ZNTEQR Web, ZNTEQR API Health) for aggregate service health.
+# ZNTEQR has no public status page; see docs/ops/better-stack-monitoring.md
 ```
 
 - [ ] **Test critical workflows**:

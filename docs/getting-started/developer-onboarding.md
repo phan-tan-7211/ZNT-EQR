@@ -12,7 +12,7 @@ Before you begin, ensure you have the following installed on your development ma
 
 ### Required Software
 
-- **Node.js** — must satisfy `engines.node` in the root [`package.json`](https://github.com/phan-tan-7211/Equipment-Management/blob/main/package.json) (currently **Node 24.x LTS**). We recommend the latest **24.x** LTS release. [Download here](https://nodejs.org/)
+- **Node.js** — must satisfy `engines.node` in the root [`package.json`](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/package.json) (currently **Node 24.x LTS**). We recommend the latest **24.x** LTS release. [Download here](https://nodejs.org/)
 - **npm** (comes with Node.js) - We use npm exclusively (no yarn/pnpm/bun)
 - **Docker Desktop** — required for the full local stack (`dev-start.bat` / Supabase). [Download here](https://www.docker.com/products/docker-desktop)
 - **Git** - [Download here](https://git-scm.com/)
@@ -88,8 +88,8 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 > **📋 Full Reference**: The `.env.example` file contains detailed documentation for all environment variables, including descriptions, file references, and generation commands. See also:
 > - **[Setup Guide - Environment Configuration](../technical/setup.md#environment-configuration)** - Overview of environment variable categories
-> - **[Supabase Branch Secrets](https://github.com/phan-tan-7211/Equipment-Management/blob/main/docs/ops/supabase-branch-secrets.md)** - Edge Function secrets for production/preview
-> - **[Local Supabase Development](https://github.com/phan-tan-7211/Equipment-Management/blob/main/docs/ops/local-supabase-development.md)** - Local development environment setup
+> - **[Supabase Branch Secrets](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/supabase-branch-secrets.md)** - Edge Function secrets for production/preview
+> - **[Local Supabase Development](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/local-supabase-development.md)** - Local development environment setup
 
 ### 4. Start Development Server
 
@@ -113,7 +113,7 @@ Visit `http://localhost:8080` to see the application running!
 
 > **⚠️ IMPORTANT: Local Supabase is the standard development method.**
 > 
-> All database development should be done locally first, then deployed to production. See [Local Supabase Development Guide](https://github.com/phan-tan-7211/Equipment-Management/blob/main/docs/ops/local-supabase-development.md) for complete setup instructions.
+> All database development should be done locally first, then deployed to production. See [Local Supabase Development Guide](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/local-supabase-development.md) for complete setup instructions.
 
 **For local development (recommended):**
 
@@ -187,7 +187,7 @@ See **[Git and Deploy](../ops/git-and-deploy.md)** and **[Development Lifecycle]
 
 2. **Implement, verify locally, commit**
 
-3. **Push work branch** — Vercel Preview builds; test on the commit-specific **`*.vercel.app`** URL. After merge to git **`preview`**, **`equip-qr-*.vercel.app`** updates.
+3. **Push work branch** — Cloudflare Pages builds a preview; test on the per-deployment **`*.eqr-zinitek.pages.dev`** URL from the GitHub **Cloudflare Pages** check. After merge to git **`preview`**, **`https://preview.eqr-zinitek.pages.dev`** updates.
 
    ```powershell
    git push -u origin HEAD
@@ -441,7 +441,7 @@ describe('EquipmentCard', () => {
    npx supabase db push --linked
    ```
 
-**Note**: See [Local Supabase Development Guide](https://github.com/phan-tan-7211/Equipment-Management/blob/main/docs/ops/local-supabase-development.md) for detailed setup instructions.
+**Note**: See [Local Supabase Development Guide](https://github.com/phan-tan-7211/ZNT-EQR/blob/main/docs/ops/local-supabase-development.md) for detailed setup instructions.
 
 ## Troubleshooting Common Issues
 
