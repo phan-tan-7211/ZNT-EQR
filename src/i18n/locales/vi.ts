@@ -33,6 +33,7 @@ const vi = {
       equipment: 'Danh sách thiết bị',
       fleetMap: 'Bản đồ thiết bị',
       facilityMap: 'Sơ đồ mặt bằng nhà máy',
+      tooling: 'Dụng cụ công nghệ',
       inventory: 'Kho vật tư',
       partLookup: 'Tra cứu linh kiện',
       partAlternates: 'Linh kiện thay thế',

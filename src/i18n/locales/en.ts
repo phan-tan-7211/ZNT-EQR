@@ -33,6 +33,7 @@ const en = {
       equipment: 'Equipment',
       fleetMap: 'Fleet Map',
       facilityMap: 'Facility Floor Plan',
+      tooling: 'Tooling',
       inventory: 'Inventory',
       partLookup: 'Part Lookup',
       partAlternates: 'Part Alternates',
