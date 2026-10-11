@@ -13412,6 +13412,61 @@ $$;
 ALTER FUNCTION "public"."release_reserved_slot"("org_id" "uuid", "invitation_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."release_tooling_drawing_revision"("p_tooling_id" "uuid", "p_revision" "text", "p_change_description" "text", "p_drawing_number" "text" DEFAULT NULL::"text", "p_effective_date" "date" DEFAULT NULL::"date") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+  v_id uuid;
+  v_drawing text := COALESCE(NULLIF(btrim(p_drawing_number), ''), v_row.drawing_number);
+  v_effective date := COALESCE(p_effective_date, CURRENT_DATE);
+BEGIN
+  IF length(btrim(COALESCE(p_revision, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_REVISION_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF length(btrim(COALESCE(p_change_description, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_REASON_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.usability_state = 'retired' THEN
+    RAISE EXCEPTION 'TOOLING_RETIRED' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_drawing_revisions
+  SET status = 'superseded', superseded_at = now()
+  WHERE tooling_equipment_id = p_tooling_id AND status = 'released';
+
+  BEGIN
+    INSERT INTO public.tooling_drawing_revisions (
+      organization_id, tooling_equipment_id, drawing_number, revision, effective_date,
+      change_description, released_by, released_by_name
+    ) VALUES (
+      v_row.organization_id, p_tooling_id, v_drawing, btrim(p_revision), v_effective,
+      btrim(p_change_description), auth.uid(), public.tooling_actor_name(auth.uid())
+    )
+    RETURNING id INTO v_id;
+  EXCEPTION WHEN unique_violation THEN
+    RAISE EXCEPTION 'TOOLING_REVISION_DUPLICATE' USING ERRCODE = '23505';
+  END;
+
+  UPDATE public.tooling_details
+  SET drawing_number = v_drawing,
+      drawing_revision = btrim(p_revision),
+      revision_effective_date = v_effective
+  WHERE equipment_id = p_tooling_id;
+
+  PERFORM public.tooling_log_event(v_row, 'drawing_revision_released',
+    v_row.drawing_revision, btrim(p_revision), NULL, p_change_description,
+    jsonb_build_object('revision_id', v_id, 'drawing_number', v_drawing, 'effective_date', v_effective));
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."release_tooling_drawing_revision"("p_tooling_id" "uuid", "p_revision" "text", "p_change_description" "text", "p_drawing_number" "text", "p_effective_date" "date") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."remove_organization_member"("p_organization_id" "uuid", "p_user_id" "uuid", "p_reason" "text" DEFAULT NULL::"text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -16179,6 +16234,90 @@ $$;
 ALTER FUNCTION "public"."tooling_normalize_master_code"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."tooling_notify_state_changes"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_type text;
+  v_title text;
+  v_message text;
+  v_name text;
+  v_code text;
+  v_old_limit boolean;
+  v_new_limit boolean;
+  v_old_warning boolean;
+  v_new_warning boolean;
+BEGIN
+  v_old_limit := OLD.life_limit IS NOT NULL AND OLD.cumulative_usage >= OLD.life_limit;
+  v_new_limit := NEW.life_limit IS NOT NULL AND NEW.cumulative_usage >= NEW.life_limit;
+  v_old_warning := OLD.warning_limit IS NOT NULL AND OLD.cumulative_usage >= OLD.warning_limit;
+  v_new_warning := NEW.warning_limit IS NOT NULL AND NEW.cumulative_usage >= NEW.warning_limit;
+
+  -- Fire only on entering a state, so repeated usage entries do not spam.
+  IF v_new_limit AND NOT v_old_limit THEN
+    v_type := 'tooling_life_limit';
+  ELSIF v_new_warning AND NOT v_old_warning AND NOT v_new_limit THEN
+    v_type := 'tooling_life_warning';
+  ELSIF NEW.usability_state = 'quarantined' AND OLD.usability_state IS DISTINCT FROM 'quarantined' THEN
+    v_type := 'tooling_quarantined';
+  ELSE
+    RETURN NEW;
+  END IF;
+
+  SELECT e.name, e.management_code INTO v_name, v_code FROM public.equipment AS e WHERE e.id = NEW.equipment_id;
+
+  v_title := CASE v_type
+    WHEN 'tooling_life_limit' THEN 'Tool life limit reached'
+    WHEN 'tooling_life_warning' THEN 'Tool life warning'
+    ELSE 'Tool quarantined'
+  END;
+  v_message := CASE v_type
+    WHEN 'tooling_life_limit' THEN format('%s (%s) reached its life limit (%s / %s %s). A disposition is required before it can be issued again.',
+      v_name, COALESCE(v_code, '-'), NEW.cumulative_usage, NEW.life_limit, NEW.usage_unit)
+    WHEN 'tooling_life_warning' THEN format('%s (%s) reached its warning threshold (%s / %s %s).',
+      v_name, COALESCE(v_code, '-'), NEW.cumulative_usage, NEW.warning_limit, NEW.usage_unit)
+    ELSE format('%s (%s) was quarantined and cannot be issued until it is inspected and released.',
+      v_name, COALESCE(v_code, '-'))
+  END;
+
+  INSERT INTO public.notifications (organization_id, user_id, type, title, message, data)
+  SELECT NEW.organization_id, recipients.user_id, v_type, v_title, v_message,
+         jsonb_build_object(
+           'tooling_id', NEW.equipment_id,
+           'equipment_id', NEW.equipment_id,
+           'management_code', v_code,
+           'tool_name', v_name,
+           'cumulative_usage', NEW.cumulative_usage,
+           'warning_limit', NEW.warning_limit,
+           'life_limit', NEW.life_limit,
+           'usage_unit', NEW.usage_unit
+         )
+  FROM (
+    SELECT om.user_id
+    FROM public.organization_members AS om
+    WHERE om.organization_id = NEW.organization_id
+      AND om.status = 'active'
+      AND om.role IN ('owner', 'admin')
+    UNION
+    SELECT NEW.responsible_user_id
+    WHERE NEW.responsible_user_id IS NOT NULL
+      AND public.is_org_member(NEW.responsible_user_id, NEW.organization_id)
+  ) AS recipients;
+
+  RETURN NEW;
+EXCEPTION WHEN OTHERS THEN
+  -- Notifications are best-effort; never block the tooling transaction.
+  RAISE WARNING 'tooling_notify_state_changes failed: % (SQLSTATE: %)', SQLERRM, SQLSTATE;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_notify_state_changes"() OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."tooling_touch_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
@@ -18329,7 +18468,7 @@ CREATE TABLE IF NOT EXISTS "public"."notifications" (
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
     "is_global" boolean DEFAULT false NOT NULL,
-    CONSTRAINT "notifications_type_check" CHECK (("type" = ANY (ARRAY['work_order_request'::"text", 'work_order_accepted'::"text", 'work_order_assigned'::"text", 'work_order_completed'::"text", 'work_order_submitted'::"text", 'work_order_in_progress'::"text", 'work_order_on_hold'::"text", 'work_order_cancelled'::"text", 'general'::"text", 'ownership_transfer_request'::"text", 'ownership_transfer_accepted'::"text", 'ownership_transfer_rejected'::"text", 'ownership_transfer_cancelled'::"text", 'member_removed'::"text", 'workspace_migration'::"text", 'workspace_merge_request'::"text", 'workspace_merge_accepted'::"text", 'workspace_merge_rejected'::"text", 'member_added'::"text", 'member_role_changed'::"text", 'team_member_added'::"text", 'team_member_role_changed'::"text", 'audit_export'::"text", 'export_ready'::"text"])))
+    CONSTRAINT "notifications_type_check" CHECK (("type" = ANY (ARRAY['work_order_request'::"text", 'work_order_accepted'::"text", 'work_order_assigned'::"text", 'work_order_completed'::"text", 'work_order_submitted'::"text", 'work_order_in_progress'::"text", 'work_order_on_hold'::"text", 'work_order_cancelled'::"text", 'general'::"text", 'ownership_transfer_request'::"text", 'ownership_transfer_accepted'::"text", 'ownership_transfer_rejected'::"text", 'ownership_transfer_cancelled'::"text", 'member_removed'::"text", 'workspace_migration'::"text", 'workspace_merge_request'::"text", 'workspace_merge_accepted'::"text", 'workspace_merge_rejected'::"text", 'member_added'::"text", 'member_role_changed'::"text", 'team_member_added'::"text", 'team_member_role_changed'::"text", 'audit_export'::"text", 'export_ready'::"text", 'tooling_life_warning'::"text", 'tooling_life_limit'::"text", 'tooling_quarantined'::"text"])))
 );
 
 
@@ -19721,6 +19860,33 @@ CREATE TABLE IF NOT EXISTS "public"."tooling_designs" (
 ALTER TABLE "public"."tooling_designs" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."tooling_drawing_revisions" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "drawing_number" "text",
+    "revision" "text" NOT NULL,
+    "effective_date" "date",
+    "change_description" "text" NOT NULL,
+    "status" "text" DEFAULT 'released'::"text" NOT NULL,
+    "released_by" "uuid" NOT NULL,
+    "released_by_name" "text",
+    "released_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "superseded_at" timestamp with time zone,
+    CONSTRAINT "tooling_drawing_revisions_description_not_blank" CHECK (("length"("btrim"("change_description")) > 0)),
+    CONSTRAINT "tooling_drawing_revisions_revision_not_blank" CHECK (("length"("btrim"("revision")) > 0)),
+    CONSTRAINT "tooling_drawing_revisions_status_check" CHECK (("status" = ANY (ARRAY['released'::"text", 'superseded'::"text"]))),
+    CONSTRAINT "tooling_drawing_revisions_superseded_shape" CHECK ((("status" = 'superseded'::"text") = ("superseded_at" IS NOT NULL)))
+);
+
+
+ALTER TABLE "public"."tooling_drawing_revisions" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_drawing_revisions" IS 'Append-only drawing revision register per tool. Written only by release_tooling_drawing_revision.';
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."tooling_events" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "organization_id" "uuid" NOT NULL,
@@ -19734,7 +19900,7 @@ CREATE TABLE IF NOT EXISTS "public"."tooling_events" (
     "actor_id" "uuid",
     "actor_name" "text",
     "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
-    CONSTRAINT "tooling_events_type_check" CHECK (("event_type" = ANY (ARRAY['registered'::"text", 'details_updated'::"text", 'approved'::"text", 'issued'::"text", 'returned'::"text", 'transferred'::"text", 'usability_changed'::"text", 'limits_changed'::"text", 'limit_disposition'::"text", 'usage_corrected'::"text", 'inspection_recorded'::"text", 'returned_to_service'::"text", 'compatibility_changed'::"text"])))
+    CONSTRAINT "tooling_events_type_check" CHECK (("event_type" = ANY (ARRAY['registered'::"text", 'details_updated'::"text", 'approved'::"text", 'issued'::"text", 'returned'::"text", 'transferred'::"text", 'usability_changed'::"text", 'limits_changed'::"text", 'limit_disposition'::"text", 'usage_corrected'::"text", 'inspection_recorded'::"text", 'returned_to_service'::"text", 'compatibility_changed'::"text", 'drawing_revision_released'::"text"])))
 );
 
 
@@ -20719,6 +20885,11 @@ ALTER TABLE ONLY "public"."tooling_details"
 
 
 
+ALTER TABLE ONLY "public"."tooling_drawing_revisions"
+    ADD CONSTRAINT "tooling_drawing_revisions_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."tooling_events"
     ADD CONSTRAINT "tooling_events_pkey" PRIMARY KEY ("id");
 
@@ -21603,6 +21774,14 @@ CREATE INDEX "idx_tooling_details_org_state" ON "public"."tooling_details" USING
 
 
 
+CREATE INDEX "idx_tooling_drawing_revisions_org" ON "public"."tooling_drawing_revisions" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_tooling_drawing_revisions_tool" ON "public"."tooling_drawing_revisions" USING "btree" ("tooling_equipment_id", "released_at" DESC);
+
+
+
 CREATE INDEX "idx_tooling_events_assignment" ON "public"."tooling_events" USING "btree" ("assignment_id") WHERE ("assignment_id" IS NOT NULL);
 
 
@@ -21816,6 +21995,14 @@ CREATE UNIQUE INDEX "tooling_assignments_one_active_key" ON "public"."tooling_as
 
 
 CREATE UNIQUE INDEX "tooling_compatibility_active_combo_key" ON "public"."tooling_compatibility" USING "btree" ("tooling_equipment_id", "product_part_id", COALESCE("operation_id", '00000000-0000-0000-0000-000000000000'::"uuid"), COALESCE("machine_equipment_id", '00000000-0000-0000-0000-000000000000'::"uuid")) WHERE "is_active";
+
+
+
+CREATE UNIQUE INDEX "tooling_drawing_revisions_one_released_key" ON "public"."tooling_drawing_revisions" USING "btree" ("tooling_equipment_id") WHERE ("status" = 'released'::"text");
+
+
+
+CREATE UNIQUE INDEX "tooling_drawing_revisions_tool_revision_key" ON "public"."tooling_drawing_revisions" USING "btree" ("tooling_equipment_id", "upper"("btrim"("revision")));
 
 
 
@@ -22132,6 +22319,10 @@ CREATE OR REPLACE TRIGGER "trg_tooling_details_updated_at" BEFORE UPDATE ON "pub
 
 
 CREATE OR REPLACE TRIGGER "trg_tooling_details_validate" BEFORE INSERT OR UPDATE ON "public"."tooling_details" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_validate_equipment_refs"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_notify_state_changes" AFTER UPDATE OF "cumulative_usage", "usability_state", "life_limit", "warning_limit" ON "public"."tooling_details" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_notify_state_changes"();
 
 
 
@@ -23157,6 +23348,16 @@ ALTER TABLE ONLY "public"."tooling_details"
 
 ALTER TABLE ONLY "public"."tooling_details"
     ADD CONSTRAINT "tooling_details_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_drawing_revisions"
+    ADD CONSTRAINT "tooling_drawing_revisions_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_drawing_revisions"
+    ADD CONSTRAINT "tooling_drawing_revisions_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id");
 
 
 
@@ -24830,6 +25031,13 @@ ALTER TABLE "public"."tooling_details" ENABLE ROW LEVEL SECURITY;
 
 
 CREATE POLICY "tooling_details_members_select" ON "public"."tooling_details" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_drawing_revisions" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_drawing_revisions_members_select" ON "public"."tooling_drawing_revisions" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
 
 
 
@@ -26787,6 +26995,11 @@ GRANT ALL ON FUNCTION "public"."release_reserved_slot"("org_id" "uuid", "invitat
 
 
 
+REVOKE ALL ON FUNCTION "public"."release_tooling_drawing_revision"("p_tooling_id" "uuid", "p_revision" "text", "p_change_description" "text", "p_drawing_number" "text", "p_effective_date" "date") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."release_tooling_drawing_revision"("p_tooling_id" "uuid", "p_revision" "text", "p_change_description" "text", "p_drawing_number" "text", "p_effective_date" "date") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."remove_organization_member"("p_organization_id" "uuid", "p_user_id" "uuid", "p_reason" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."remove_organization_member"("p_organization_id" "uuid", "p_user_id" "uuid", "p_reason" "text") TO "service_role";
 
@@ -27024,6 +27237,11 @@ GRANT ALL ON FUNCTION "public"."tooling_log_event"("p_row" "public"."tooling_det
 
 REVOKE ALL ON FUNCTION "public"."tooling_normalize_master_code"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."tooling_normalize_master_code"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_notify_state_changes"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_notify_state_changes"() TO "service_role";
 
 
 
@@ -27681,6 +27899,11 @@ GRANT ALL ON TABLE "public"."tooling_compatibility" TO "service_role";
 
 GRANT ALL ON TABLE "public"."tooling_designs" TO "authenticated";
 GRANT ALL ON TABLE "public"."tooling_designs" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_drawing_revisions" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_drawing_revisions" TO "service_role";
 
 
 

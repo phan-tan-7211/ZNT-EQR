@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+### Added
+
+- **Tooling alerts** - Owners, admins and the responsible person are notified when a tool reaches its life warning, hits its life limit or is quarantined, and a new Tooling attention dashboard widget lists tools that need action.
+- **Tooling reports, import and labels** - Export the tool register, customer-owned tooling and per-tool history to CSV, Excel or PDF, import tools, products and operations from Excel, and print QR labels for many tools at once.
+- **Drawing revisions** - Each tool keeps a drawing revision register; releasing a new revision supersedes the previous one and is recorded in the tool history.
+
 ## [3.43.0] - 2026-10-11
 
 ### Added

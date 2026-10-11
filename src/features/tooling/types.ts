@@ -74,7 +74,8 @@ export type ToolingEventType =
   | 'usage_corrected'
   | 'inspection_recorded'
   | 'returned_to_service'
-  | 'compatibility_changed';
+  | 'compatibility_changed'
+  | 'drawing_revision_released';
 
 /** Row of the `tooling_overview` view (security_invoker). */
 export interface ToolingOverview {
@@ -271,6 +272,21 @@ export interface ToolingEvent {
   actor_id: string | null;
   actor_name: string | null;
   created_at: string;
+}
+
+export interface ToolingDrawingRevision {
+  id: string;
+  organization_id: string;
+  tooling_equipment_id: string;
+  drawing_number: string | null;
+  revision: string;
+  effective_date: string | null;
+  change_description: string;
+  status: 'released' | 'superseded';
+  released_by: string;
+  released_by_name: string | null;
+  released_at: string;
+  superseded_at: string | null;
 }
 
 /** Linked work orders are read straight from `work_orders` (equipment_id = tool). */
