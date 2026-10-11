@@ -481,39 +481,80 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE
   public.tooling_designs, public.product_parts, public.production_operations
 TO authenticated;
 
-DO $policies$
-DECLARE
-  v_table text;
-BEGIN
-  FOREACH v_table IN ARRAY ARRAY[
-    'tooling_designs', 'product_parts', 'production_operations',
-    'tooling_details', 'tooling_compatibility', 'tooling_assignments',
-    'tooling_usage_logs', 'tooling_verifications', 'tooling_events'
-  ]
-  LOOP
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (public.is_org_member((SELECT auth.uid()), organization_id))',
-      v_table || '_members_select', v_table
-    );
-  END LOOP;
+CREATE POLICY tooling_designs_members_select ON public.tooling_designs
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
 
-  FOREACH v_table IN ARRAY ARRAY['tooling_designs', 'product_parts', 'production_operations']
-  LOOP
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR INSERT TO authenticated WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id))',
-      v_table || '_admin_insert', v_table
-    );
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR UPDATE TO authenticated USING (public.is_org_admin((SELECT auth.uid()), organization_id)) WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id))',
-      v_table || '_admin_update', v_table
-    );
-    EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR DELETE TO authenticated USING (public.is_org_admin((SELECT auth.uid()), organization_id))',
-      v_table || '_admin_delete', v_table
-    );
-  END LOOP;
-END;
-$policies$;
+CREATE POLICY product_parts_members_select ON public.product_parts
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY production_operations_members_select ON public.production_operations
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_details_members_select ON public.tooling_details
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_compatibility_members_select ON public.tooling_compatibility
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_assignments_members_select ON public.tooling_assignments
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_usage_logs_members_select ON public.tooling_usage_logs
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_verifications_members_select ON public.tooling_verifications
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_events_members_select ON public.tooling_events
+  FOR SELECT TO authenticated
+  USING (public.is_org_member((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_designs_admin_insert ON public.tooling_designs
+  FOR INSERT TO authenticated
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_designs_admin_update ON public.tooling_designs
+  FOR UPDATE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id))
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY tooling_designs_admin_delete ON public.tooling_designs
+  FOR DELETE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY product_parts_admin_insert ON public.product_parts
+  FOR INSERT TO authenticated
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY product_parts_admin_update ON public.product_parts
+  FOR UPDATE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id))
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY product_parts_admin_delete ON public.product_parts
+  FOR DELETE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY production_operations_admin_insert ON public.production_operations
+  FOR INSERT TO authenticated
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY production_operations_admin_update ON public.production_operations
+  FOR UPDATE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id))
+  WITH CHECK (public.is_org_admin((SELECT auth.uid()), organization_id));
+
+CREATE POLICY production_operations_admin_delete ON public.production_operations
+  FOR DELETE TO authenticated
+  USING (public.is_org_admin((SELECT auth.uid()), organization_id));
 
 -- Master rows cannot move between organizations once created.
 CREATE FUNCTION public.tooling_lock_master_org()
@@ -1616,11 +1657,20 @@ GRANT EXECUTE ON FUNCTION public.set_tooling_life_limits(uuid, text, numeric, nu
 GRANT EXECUTE ON FUNCTION public.record_tooling_limit_disposition(uuid, text, numeric, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.set_tooling_usability(uuid, text, text) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.record_tooling_verification(uuid, text, text, text, uuid, boolean, boolean, date) TO authenticated;
--- rpc-authenticated-grant-allowed: create_tooling, update_tooling_details, approve_tooling
--- rpc-authenticated-grant-allowed: create_tooling_compatibility, set_tooling_compatibility_status
--- rpc-authenticated-grant-allowed: issue_tooling, return_tooling, transfer_tooling_location
--- rpc-authenticated-grant-allowed: record_tooling_usage, correct_tooling_usage, set_tooling_life_limits
--- rpc-authenticated-grant-allowed: record_tooling_limit_disposition, set_tooling_usability, record_tooling_verification
+-- rpc-authenticated-grant-allowed: create_tooling
+-- rpc-authenticated-grant-allowed: update_tooling_details
+-- rpc-authenticated-grant-allowed: approve_tooling
+-- rpc-authenticated-grant-allowed: create_tooling_compatibility
+-- rpc-authenticated-grant-allowed: set_tooling_compatibility_status
+-- rpc-authenticated-grant-allowed: issue_tooling
+-- rpc-authenticated-grant-allowed: return_tooling
+-- rpc-authenticated-grant-allowed: transfer_tooling_location
+-- rpc-authenticated-grant-allowed: record_tooling_usage
+-- rpc-authenticated-grant-allowed: correct_tooling_usage
+-- rpc-authenticated-grant-allowed: set_tooling_life_limits
+-- rpc-authenticated-grant-allowed: record_tooling_limit_disposition
+-- rpc-authenticated-grant-allowed: set_tooling_usability
+-- rpc-authenticated-grant-allowed: record_tooling_verification
 
 COMMENT ON TABLE public.tooling_details IS 'Tooling-specific attributes for equipment rows in the TL group (1:1). Mutated only through tooling RPCs.';
 COMMENT ON TABLE public.tooling_compatibility IS 'Approved tool <-> product part <-> operation <-> machine combinations. NULL machine = manual tooling.';
