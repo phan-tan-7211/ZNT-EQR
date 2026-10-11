@@ -11,6 +11,17 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.42.0] - 2026-10-11
+
+### Added
+
+- **Sketch guide** - A new Guide button on the Facility Map, and a ? button in the sketch toolbar, open an illustrated step-by-step guide to the sketch tools and shortcuts. Press ? or F1 while sketching to open it.
+- **Inventory bulk edit thumbnails** - The inventory bulk-edit grid now shows each part's image, with a larger preview on hover.
+
+### Fixed
+
+- **Inventory bulk edit paging** - The inventory bulk-edit grid now pages through every item (25 per page) instead of showing everything in one short scrolling box.
+
 ## [3.41.0] - 2026-10-11
 
 ### Added
