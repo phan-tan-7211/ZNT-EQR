@@ -12,8 +12,6 @@ import type {
   ArcEntity,
   CircleEntity,
   LineEntity,
-  PolylineEntity,
-  RectEntity,
   SketchEntity,
   SketchPoint,
   SketchStyle,
@@ -83,14 +81,6 @@ const entitySegments = (entity: SketchEntity): Segment[] => {
   }
   return [];
 };
-
-const otherSegments = (
-  entities: SketchEntity[],
-  targetId: string,
-): Segment[] =>
-  entities
-    .filter((entity) => entity.id !== targetId)
-    .flatMap(entitySegments);
 
 /**
  * Every other entity's `t` position along segment a→b where it crosses —

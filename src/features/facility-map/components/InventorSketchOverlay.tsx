@@ -17,13 +17,13 @@ import {
   Trash2,
   Undo2,
   Redo2,
+  Ruler,
   Waypoints,
   X,
 } from 'lucide-react';
 
 import {
   beginSketchInteraction,
-  cancelSketchCommand,
   createSketchCommandState,
   createSketchId,
   displayToModelUnits,
@@ -103,6 +103,16 @@ import {
 } from '@/features/facility-map/sketch/constraints/advancedConstraints';
 import { solveSketchConstraints } from '@/features/facility-map/sketch/constraints/constraintSolver';
 import {
+  inferLineConstraints,
+  pruneOrphanConstraints,
+} from '@/features/facility-map/sketch/constraints/autoConstraints';
+import {
+  isDynamicInputKey,
+  pickPrimaryDimension,
+  resolveToolShortcut,
+  shortcutForTool,
+} from '@/features/facility-map/sketch/commands/shortcuts';
+import {
   applySymmetryConstraint,
   applyTangentConstraint,
 } from '@/features/facility-map/sketch/constraints/parametricConstraints';
@@ -132,7 +142,6 @@ import {
 import {
   angleDeg,
   arcPoint,
-  clampPositive,
   degToRad,
   distance,
 } from '@/features/facility-map/sketch/core/geometry';
@@ -162,7 +171,6 @@ import {
 } from '@/features/facility-map/sketch/parametric/parameterBinding';
 import { calibrateMmPerUnitFromFloorWidth } from '@/features/facility-map/sketch/integration/calibration';
 import {
-  commitLineDraft,
   getLineDynamicAngle,
   getLineDynamicLength,
   getLineKeyboardAction,
@@ -235,7 +243,17 @@ const SHOW_DIMENSIONS_STORAGE_KEY = 'znteqr.facilityMap.sketch.showDimensions';
 // (see the `threshold` computed with cssPixelsToSketchUnits in this file).
 const ENTITY_HIT_TARGET_PX = 10;
 
-const applySketchConstraintSolve = (document: SketchDocument): SketchDocument => {
+// i18n keys for the solver's `status` codes shown in the Constraints readout.
+const CONSTRAINT_STATUS_LABEL_KEYS: Record<string, string> = {
+  'under-constrained': 'facilityMap.sketchStatusUnderConstrained',
+  'fully-constrained': 'facilityMap.sketchStatusFullyConstrained',
+  'over-constrained': 'facilityMap.sketchStatusOverConstrained',
+  conflict: 'facilityMap.sketchStatusConflict',
+};
+
+const applySketchConstraintSolve = (input: SketchDocument): SketchDocument => {
+  const liveConstraints = pruneOrphanConstraints(input.entities, input.constraints);
+  const document = liveConstraints === input.constraints ? input : { ...input, constraints: liveConstraints };
   if (!document.constraints.length) return document;
   const solved = solveSketchConstraints(document.entities, document.constraints);
   if (solved.status === 'conflict') {
@@ -245,6 +263,14 @@ const applySketchConstraintSolve = (document: SketchDocument): SketchDocument =>
     return { ...document, constraints: solved.constraints };
   }
   return { ...document, entities: solved.entities, constraints: solved.constraints };
+};
+
+const isCreateSketchTool = (tool: SketchTool): boolean =>
+  tool === 'line' || tool === 'polyline' || tool === 'rect' || tool === 'circle' || tool === 'arc';
+
+const blurActiveInput = () => {
+  const active = document.activeElement;
+  if (active instanceof HTMLInputElement) active.blur();
 };
 
 type DynamicLocks = {
@@ -344,7 +370,11 @@ export default function InventorSketchOverlay({
   // same select/grip handlers, which is safe because the effect below
   // already forces `tool` back to 'select' whenever `enabled` is false.
   const canInteract = enabled || interactive;
+  // The last non-select tool, so Space/Enter can repeat it the way
+  // Inventor's "Repeat <command>" does.
+  const lastToolRef = useRef<SketchTool | null>(null);
   const setTool = useCallback((nextTool: SketchTool) => {
+    if (nextTool !== 'select') lastToolRef.current = nextTool;
     setCommandState((current) => selectSketchTool(current, nextTool));
   }, []);
   const [presets, setPresets] = useState<ToolPresetMap>(() =>
@@ -377,6 +407,9 @@ export default function InventorSketchOverlay({
   const dragRef = useRef<{ start: Point; entities: SketchEntity[] } | null>(null);
   const gripRef = useRef<{ entity: SketchEntity; grip: BasicGrip } | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
+  // First field of the heads-up value box, so typing a digit while
+  // drawing jumps straight into it (Inventor's dynamic input).
+  const dynamicInputRef = useRef<HTMLInputElement | null>(null);
   // Live rendered width of the SVG in CSS pixels, kept in sync via
   // ResizeObserver so entity hit-areas stay a constant on-screen size
   // (ENTITY_HIT_TARGET_PX) across zoom levels and window resizes — mirrors
@@ -432,93 +465,6 @@ export default function InventorSketchOverlay({
     }
   }, [enabled]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
-      if (event.key === 'Escape') {
-        setDraft(null);
-        setSelectedIds([]);
-        setSelectedDimensionId('');
-        setSelectionBox(null);
-        setActiveGrip(null);
-        gripRef.current = null;
-        sketchHistory.cancelTransaction();
-        setCommandState(cancelSketchCommand());
-        setMessage('');
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
-        event.preventDefault();
-        if (event.shiftKey) sketchHistory.redo();
-        else sketchHistory.undo();
-        return;
-      }
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
-        event.preventDefault();
-        sketchHistory.redo();
-        return;
-      }
-      if (
-        (event.ctrlKey || event.metaKey) &&
-        event.key.toLowerCase() === 'd' &&
-        selectedIds.length
-      ) {
-        event.preventDefault();
-        const duplicated = duplicateSelectedEntities(
-          store.entities,
-          selectedIds,
-          { x: 10, y: 10 },
-          (entity) => createSketchId(`sketch-${entity.type}`),
-        );
-        setStore((current) => ({
-          ...current,
-          entities: [...current.entities, ...duplicated.entities],
-        }));
-        setSelectedIds(duplicated.ids);
-        return;
-      }
-      if (
-        (event.key === 'Delete' || event.key === 'Backspace') &&
-        selectedDimensionId
-      ) {
-        event.preventDefault();
-        const selected = viewDimensions.find(
-          (dimension) => dimension.id === selectedDimensionId,
-        );
-        if (selected) {
-          setStore((current) => ({
-            ...current,
-            dimensions: hideDimension(
-              current.dimensions,
-              selected,
-            ),
-          }));
-        }
-        setSelectedDimensionId('');
-        return;
-      }
-      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedIds.length) {
-        event.preventDefault();
-        const selected = new Set(selectedIds);
-        setStore((current) => ({
-          ...current,
-          entities: current.entities.filter((entity) => !selected.has(entity.id)),
-        }));
-        setSelectedIds([]);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [
-    enabled,
-    selectedDimensionId,
-    selectedIds,
-    sketchHistory,
-    setStore,
-    store.entities,
-  ]);
 
   const currentStyle = useMemo(() => {
     if (
@@ -672,25 +618,66 @@ export default function InventorSketchOverlay({
     setDraft(null);
     setCommandState((current) => endSketchInteraction(current));
     resetDynamic();
+    blurActiveInput();
   };
 
-  const commitLine = (currentPoint: Point) => {
+  // Drops the shape being drawn but stays in the current tool, the way the
+  // first Esc in Inventor ends a line chain without leaving the Line command.
+  const cancelDraft = () => {
+    finishCreateInteraction();
+    setMessage('');
+  };
+
+  /**
+   * Commits the current line and, like Inventor's Line command, immediately
+   * starts the next segment from its end so a profile can be drawn as one
+   * click per corner. Esc, right-click, or clicking the chain's start point
+   * again ends the chain. New lines get horizontal/vertical/coincident
+   * constraints inferred from how they were snapped; holding Ctrl while
+   * clicking suppresses that inference.
+   */
+  const commitLine = (currentPoint: Point, options: { suppressInference?: boolean } = {}) => {
     if (!draft || draft.type !== 'line') return;
 
-    const line = commitLineDraft({
-      draft,
+    // Only a value the user actually typed (a locked field) overrides the
+    // pointer. Feeding back the auto-filled, display-rounded text would nudge
+    // a snapped endpoint off the point it snapped to.
+    const end = resolveLinePreviewEnd({
+      start: draft.start,
       current: currentPoint,
       lengthInput: dynamicA,
       angleInput: dynamicB,
+      lockLength: dynamicLocks.a,
+      lockAngle: dynamicLocks.b,
       document: store,
-      style: presets.line,
     });
+    const line: LineEntity = {
+      id: createSketchId('sketch-line'),
+      type: 'line',
+      x1: draft.start.x,
+      y1: draft.start.y,
+      x2: end.x,
+      y2: end.y,
+      ...presets.line,
+    };
+    if (distance(draft.start, end) <= 1e-9) {
+      cancelDraft();
+      return;
+    }
 
-    setStore((current) => ({
-      ...current,
-      entities: [...current.entities, line],
-    }));
-    finishCreateInteraction();
+    setStore((current) => {
+      const inferred = options.suppressInference
+        ? []
+        : inferLineConstraints(current.entities, line, (kind) => createSketchId(`constraint-${kind}`));
+      return {
+        ...current,
+        entities: [...current.entities, line],
+        constraints: inferred.length ? [...current.constraints, ...inferred] : current.constraints,
+      };
+    });
+    resetDynamic();
+    blurActiveInput();
+    setDraft(startLineDraft(end));
   };
 
   const handleLineInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -706,10 +693,16 @@ export default function InventorSketchOverlay({
       return;
     }
 
-    setDraft(null);
-    setCommandState(cancelSketchCommand());
-    resetDynamic();
-    setMessage('');
+    cancelDraft();
+  };
+
+  const handleShapeInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!draft || (draft.type !== 'rect' && draft.type !== 'circle')) return;
+    if (event.key !== 'Enter' && event.key !== 'Escape') return;
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.key === 'Enter') commitDraft(pointer);
+    else cancelDraft();
   };
 
   const commitPolyline = (polylineDraft: PolylineDraft) => {
@@ -734,20 +727,6 @@ export default function InventorSketchOverlay({
     commitPolyline(finished);
   };
 
-  useEffect(() => {
-    if (!enabled || !draft || draft.type !== 'polyline') return;
-
-    const onPolylineKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
-      if (event.key !== 'Enter') return;
-      event.preventDefault();
-      finishActivePolyline();
-    };
-
-    window.addEventListener('keydown', onPolylineKeyDown);
-    return () => window.removeEventListener('keydown', onPolylineKeyDown);
-  }, [draft, enabled, presets.polyline, setStore]);
 
   const commitArc = (arcDraft: ArcDraft) => {
     const entity = createArcEntity({
@@ -771,8 +750,9 @@ export default function InventorSketchOverlay({
     if (draft.type === 'rect') {
       const fallbackW = Math.abs(currentPoint.x - draft.start.x);
       const fallbackH = Math.abs(currentPoint.y - draft.start.y);
-      const width = resolveRectangleWidth(dynamicA, fallbackW, store);
-      const height = resolveRectangleHeight(dynamicB, fallbackH, store);
+      // Same rule as the line: only typed (locked) values override the pointer.
+      const width = dynamicLocks.a ? resolveRectangleWidth(dynamicA, fallbackW, store) : fallbackW;
+      const height = dynamicLocks.b ? resolveRectangleHeight(dynamicB, fallbackH, store) : fallbackH;
       const rect = createRectangleEntity({
         draft,
         current: currentPoint,
@@ -786,7 +766,7 @@ export default function InventorSketchOverlay({
       }));
     } else {
       const fallbackRadius = distance(draft.start, currentPoint);
-      const radius = resolveCircleRadius(dynamicA, fallbackRadius, store);
+      const radius = dynamicLocks.a ? resolveCircleRadius(dynamicA, fallbackRadius, store) : fallbackRadius;
       const circle = createCircleEntity({
         draft,
         radius,
@@ -805,7 +785,10 @@ export default function InventorSketchOverlay({
     if (!enabled || event.button !== 0) return;
     const raw = pointFromEvent(event);
     if (!raw) return;
-    const point = endpointSnap(raw);
+    // Commit exactly what the preview showed: the line preview applies
+    // horizontal/vertical inference on top of point snapping, so the click
+    // has to as well or a line that looked horizontal lands a hair off.
+    const point = draft?.type === 'line' ? inferLineEnd(draft.start, raw) : endpointSnap(raw);
     setPointer(point);
 
     if (tool === 'line') {
@@ -816,7 +799,7 @@ export default function InventorSketchOverlay({
         resetDynamic();
         return;
       }
-      commitLine(point);
+      commitLine(point, { suppressInference: event.ctrlKey || event.metaKey });
       return;
     }
 
@@ -977,16 +960,25 @@ export default function InventorSketchOverlay({
     // reached the canvas, so drawing over existing geometry silently did
     // nothing and the only workaround was drawing beside it and dragging it
     // into place afterward.
-    const isCreateTool = tool === 'line' || tool === 'polyline' || tool === 'rect' || tool === 'circle' || tool === 'arc';
-    if (isCreateTool) return;
+    if (isCreateSketchTool(tool)) return;
 
     const point = pointFromEvent(event);
     if (!point) return;
     event.stopPropagation();
 
+    if (tool === 'dimension') {
+      // Inventor's D: pick geometry, type its size. Edits the entity's main
+      // dimension (length / radius / diameter), never its angle first.
+      const dimension = pickPrimaryDimension(viewDimensions, entity.id);
+      if (!dimension) return;
+      setShowDimensions(true);
+      editDimension(dimension);
+      return;
+    }
+
     if (tool === 'break') {
       if (entity.type !== 'line') {
-        setMessage('Break supports Line only.');
+        setMessage(t('facilityMap.sketchBreakLineOnly'));
         return;
       }
       const nextEntities = breakLineAtPoint(
@@ -996,26 +988,26 @@ export default function InventorSketchOverlay({
         () => createSketchId('sketch-line'),
       );
       if (!nextEntities) {
-        setMessage('Choose a point inside the line, not an endpoint.');
+        setMessage(t('facilityMap.sketchBreakInvalidPoint'));
         return;
       }
       setStore((current) => ({
         ...current,
         entities: nextEntities,
       }));
-      setMessage('Break applied.');
+      setMessage(t('facilityMap.sketchBreakApplied'));
       return;
     }
 
     if (tool === 'offset') {
       const rawDistance = window.prompt(
-        `Offset distance (${store.displayUnit})`,
+        t('facilityMap.sketchOffsetPrompt', { unit: store.displayUnit }),
         '10',
       );
       if (rawDistance == null) return;
       const displayDistance = Number(rawDistance);
       if (!Number.isFinite(displayDistance) || displayDistance <= 0) {
-        setMessage('Offset distance must be greater than 0.');
+        setMessage(t('facilityMap.sketchOffsetInvalid'));
         return;
       }
       const modelDistance = displayToModelUnits(
@@ -1050,7 +1042,7 @@ export default function InventorSketchOverlay({
             return single ? [single] : [];
           })();
       if (!newEntities.length) {
-        setMessage('Offset supports Line, Polyline, Circle, and Arc only.');
+        setMessage(t('facilityMap.sketchOffsetUnsupported'));
         return;
       }
       setStore((current) => ({
@@ -1060,8 +1052,8 @@ export default function InventorSketchOverlay({
       setSelectedIds(newEntities.map((created) => created.id));
       setMessage(
         chainResult
-          ? `Offset applied to the whole connected chain (${chainResult.chain.segments.length} edges).`
-          : 'Offset applied.',
+          ? t('facilityMap.sketchOffsetChainApplied', { count: chainResult.chain.segments.length })
+          : t('facilityMap.sketchOffsetApplied'),
       );
       return;
     }
@@ -1201,7 +1193,7 @@ export default function InventorSketchOverlay({
         document: store,
       }),
     };
-  }, [draft, dynamicA, dynamicB, dynamicLocks, store.displayUnit, store.mmPerUnit]);
+  }, [draft, dynamicA, dynamicB, dynamicLocks, store]);
 
   const editDimension = (dimension: ViewDimension) => {
     const currentDisplayValue = dimension.kind === 'angle'
@@ -1217,7 +1209,7 @@ export default function InventorSketchOverlay({
             : dimension.kind === 'vertical'
               ? t('facilityMap.sketchEnterHeight')
               : dimension.kind === 'diameter'
-                ? 'Diameter'
+                ? t('facilityMap.sketchDiameter')
                 : t('facilityMap.sketchEnterLength');
     const raw = window.prompt(
       promptLabel,
@@ -1288,6 +1280,145 @@ export default function InventorSketchOverlay({
     }).filter((dimension) => !dimension.hidden);
   }, [store.dimensions, store.entities]);
 
+  const switchTool = (nextTool: SketchTool) => {
+    sketchHistory.cancelTransaction();
+    setTool(nextTool);
+    setDraft(null);
+    resetDynamic();
+    setModifyPreview(null);
+    setMessage('');
+    blurActiveInput();
+  };
+
+  // One window-level keyboard handler for the whole sketch session. It is
+  // re-pointed at the latest render's closure on every render, so it never
+  // reads stale state (selection, draft, view dimensions) the way a
+  // dependency-listed effect could when a dependency was missed.
+  const keyHandlerRef = useRef<(event: KeyboardEvent) => void>(() => {});
+  useEffect(() => {
+    keyHandlerRef.current = (event: KeyboardEvent) => {
+      const target = event.target instanceof HTMLElement ? event.target : null;
+      if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+
+      if (event.key === 'Escape') {
+        // Inventor-style two-stage Esc: first ends the shape/chain being
+        // drawn, the next one leaves the tool, then clears the selection.
+        sketchHistory.cancelTransaction();
+        setActiveGrip(null);
+        gripRef.current = null;
+        setSelectionBox(null);
+        setModifyPreview(null);
+        setMessage('');
+        if (draft) {
+          cancelDraft();
+          return;
+        }
+        if (tool !== 'select') {
+          switchTool('select');
+          return;
+        }
+        setSelectedIds([]);
+        setSelectedDimensionId('');
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+        event.preventDefault();
+        if (event.shiftKey) sketchHistory.redo();
+        else sketchHistory.undo();
+        return;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
+        event.preventDefault();
+        sketchHistory.redo();
+        return;
+      }
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 'd' &&
+        selectedIds.length
+      ) {
+        event.preventDefault();
+        const duplicated = duplicateSelectedEntities(
+          store.entities,
+          selectedIds,
+          { x: 10, y: 10 },
+          (entity) => createSketchId(`sketch-${entity.type}`),
+        );
+        setStore((current) => ({
+          ...current,
+          entities: [...current.entities, ...duplicated.entities],
+        }));
+        setSelectedIds(duplicated.ids);
+        return;
+      }
+      if (event.key === 'Enter' && draft?.type === 'polyline') {
+        event.preventDefault();
+        finishActivePolyline();
+        return;
+      }
+      if (
+        draft &&
+        (draft.type === 'line' || draft.type === 'rect' || draft.type === 'circle') &&
+        isDynamicInputKey(event)
+      ) {
+        // Typing a number while drawing goes straight into the first value
+        // field — no need to click into the box first.
+        event.preventDefault();
+        setDynamicLocks((value) => ({ ...value, a: true }));
+        setDynamicA(event.key === ',' ? '.' : event.key);
+        dynamicInputRef.current?.focus();
+        return;
+      }
+      if ((event.key === ' ' || event.key === 'Enter') && !draft && tool === 'select' && lastToolRef.current) {
+        event.preventDefault();
+        switchTool(lastToolRef.current);
+        return;
+      }
+      const shortcutTool = resolveToolShortcut(event);
+      if (shortcutTool) {
+        event.preventDefault();
+        if (!event.repeat && shortcutTool !== tool) switchTool(shortcutTool);
+        return;
+      }
+      if (
+        (event.key === 'Delete' || event.key === 'Backspace') &&
+        selectedDimensionId
+      ) {
+        event.preventDefault();
+        const selected = viewDimensions.find(
+          (dimension) => dimension.id === selectedDimensionId,
+        );
+        if (selected) {
+          setStore((current) => ({
+            ...current,
+            dimensions: hideDimension(
+              current.dimensions,
+              selected,
+            ),
+          }));
+        }
+        setSelectedDimensionId('');
+        return;
+      }
+      if ((event.key === 'Delete' || event.key === 'Backspace') && selectedIds.length) {
+        event.preventDefault();
+        const selected = new Set(selectedIds);
+        setStore((current) => ({
+          ...current,
+          entities: current.entities.filter((entity) => !selected.has(entity.id)),
+        }));
+        setSelectedIds([]);
+      }
+    };
+  });
+
+  useEffect(() => {
+    if (!enabled) return;
+    const onKeyDown = (event: KeyboardEvent) => keyHandlerRef.current(event);
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [enabled]);
+
   if (!visible) return null;
 
   return (
@@ -1305,6 +1436,15 @@ export default function InventorSketchOverlay({
         viewBox={`0 0 ${canvasWidth} ${canvasHeight}`}
         preserveAspectRatio="none"
         onMouseDown={handleCanvasMouseDown}
+        onContextMenu={(event) => {
+          if (!enabled) return;
+          // Right-click finishes the current shape (Inventor's "OK"), or
+          // leaves the tool when nothing is being drawn.
+          event.preventDefault();
+          if (draft?.type === 'polyline') finishActivePolyline();
+          else if (draft) cancelDraft();
+          else if (tool !== 'select') switchTool('select');
+        }}
         onDoubleClick={(event) => {
           if (tool !== 'polyline' || !draft || draft.type !== 'polyline') return;
           event.preventDefault();
@@ -1382,7 +1522,8 @@ export default function InventorSketchOverlay({
                   (tool === 'trim' ||
                     tool === 'extend' ||
                     tool === 'break' ||
-                    tool === 'offset')
+                    tool === 'offset' ||
+                    tool === 'dimension')
                 ? 'crosshair'
                 : 'default';
           // Trim/Extend/Break/Offset target a specific curve, the way
@@ -1397,7 +1538,8 @@ export default function InventorSketchOverlay({
             tool === 'trim' ||
             tool === 'extend' ||
             tool === 'break' ||
-            tool === 'offset';
+            tool === 'offset' ||
+            tool === 'dimension';
           const interaction = {
             stroke: 'transparent',
             strokeWidth: hitStrokeWidth,
@@ -1673,6 +1815,7 @@ export default function InventorSketchOverlay({
                   <label>
                     <span className="mb-1 block text-slate-400">{t('facilityMap.sketchLength')} ({store.displayUnit})</span>
                     <input
+                      ref={dynamicInputRef}
                       value={dynamicA}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
                       onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
@@ -1697,9 +1840,11 @@ export default function InventorSketchOverlay({
                   <label>
                     <span className="mb-1 block text-slate-400">{t('facilityMap.sketchWidth')} ({store.displayUnit})</span>
                     <input
+                      ref={dynamicInputRef}
                       value={dynamicA}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
                       onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
+                      onKeyDown={handleShapeInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
                   </label>
@@ -1709,6 +1854,7 @@ export default function InventorSketchOverlay({
                       value={dynamicB}
                       onFocus={() => setDynamicLocks((value) => ({ ...value, b: true }))}
                       onChange={(event) => { setDynamicLocks((value) => ({ ...value, b: true })); setDynamicB(event.target.value); }}
+                      onKeyDown={handleShapeInputKeyDown}
                       className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                     />
                   </label>
@@ -1718,9 +1864,11 @@ export default function InventorSketchOverlay({
                 <label>
                   <span className="mb-1 block text-slate-400">{t('facilityMap.sketchRadius')} ({store.displayUnit})</span>
                   <input
+                    ref={dynamicInputRef}
                     value={dynamicA}
                     onFocus={() => setDynamicLocks((value) => ({ ...value, a: true }))}
                     onChange={(event) => { setDynamicLocks((value) => ({ ...value, a: true })); setDynamicA(event.target.value); }}
+                    onKeyDown={handleShapeInputKeyDown}
                     className="w-full rounded border border-white/15 bg-white/10 px-1.5 py-1 text-white"
                   />
                 </label>
@@ -1747,28 +1895,22 @@ export default function InventorSketchOverlay({
             {([
               ['select', MousePointer2, 'facilityMap.toolSelect'],
               ['line', Minus, 'facilityMap.toolLine'],
-              ['polyline', Waypoints, 'Polyline'],
-              ['arc', Spline, 'Arc'],
+              ['polyline', Waypoints, 'facilityMap.toolPolyline'],
+              ['arc', Spline, 'facilityMap.toolArc'],
               ['rect', Square, 'facilityMap.toolRectangle'],
               ['circle', CircleIcon, 'facilityMap.toolCircle'],
               ['trim', Scissors, 'facilityMap.sketchTrim'],
               ['extend', ArrowUpRight, 'facilityMap.sketchExtend'],
-              ['break', Split, 'Break'],
-              ['offset', Rows3, 'Offset'],
+              ['break', Split, 'facilityMap.sketchBreak'],
+              ['offset', Rows3, 'facilityMap.sketchOffset'],
+              ['dimension', Ruler, 'facilityMap.sketchDimensionTool'],
             ] as const).map(([id, Icon, label]) => (
               <button
                 key={id}
                 type="button"
-                onClick={() => {
-                  sketchHistory.cancelTransaction();
-                  setTool(id);
-                  setDraft(null);
-                  resetDynamic();
-                  setModifyPreview(null);
-                  setMessage('');
-                }}
+                onClick={() => switchTool(id)}
                 className={`rounded-md p-2 ${tool === id ? 'bg-sky-500 text-white' : 'hover:bg-white/10'}`}
-                title={label === 'Polyline' || label === 'Arc' ? label : t(label)}
+                title={shortcutForTool(id) ? `${t(label)} (${shortcutForTool(id)})` : `${t(label)} (Esc)`}
               >
                 <Icon className="h-4 w-4" />
               </button>
@@ -1808,7 +1950,7 @@ export default function InventorSketchOverlay({
               className="inline-flex items-center gap-1 rounded-md border border-red-400/30 px-3 py-2 text-xs font-semibold text-red-300 hover:bg-red-500/10"
             >
               <X className="h-4 w-4" />
-              Cancel
+              {t('sharedUi.cancel')}
             </button>
             <button
               type="button"
@@ -1850,7 +1992,7 @@ export default function InventorSketchOverlay({
               onClick={() => {
                 const currentWidthMm = store.mmPerUnit * canvasWidth;
                 const raw = window.prompt(
-                  'Known floor width (mm)',
+                  t('facilityMap.sketchCalibratePrompt'),
                   currentWidthMm.toFixed(0),
                 );
                 if (raw == null) return;
@@ -1867,7 +2009,7 @@ export default function InventorSketchOverlay({
               }}
               className="mb-2 w-full rounded-md border border-cyan-400/20 px-2 py-1.5 text-[10px] text-cyan-200 hover:bg-cyan-500/10"
             >
-              Calibrate from floor width
+              {t('facilityMap.sketchCalibrate')}
             </button>
 
             {(tool === 'line' || tool === 'polyline' || tool === 'arc' || tool === 'rect' || tool === 'circle') && (
@@ -1898,13 +2040,13 @@ export default function InventorSketchOverlay({
 
             <div className="mt-3 rounded-md border border-cyan-400/20 bg-cyan-500/5 p-2">
               <div className="mb-2 flex items-center justify-between text-[10px] font-semibold text-cyan-200">
-                <span>Parameters</span>
+                <span>{t('facilityMap.sketchParameters')}</span>
                 <button
                   type="button"
                   onClick={() => {
-                    const name = window.prompt('Parameter name', `p${store.parameters.length + 1}`);
+                    const name = window.prompt(t('facilityMap.sketchParameterNamePrompt'), `p${store.parameters.length + 1}`);
                     if (!name) return;
-                    const expression = window.prompt('Expression', '100 mm');
+                    const expression = window.prompt(t('facilityMap.sketchParameterExpressionPrompt'), '100 mm');
                     if (!expression) return;
                     const next = [
                       ...store.parameters,
@@ -1923,7 +2065,7 @@ export default function InventorSketchOverlay({
                   }}
                   className="rounded border border-cyan-400/30 px-2 py-1 text-[9px] text-cyan-200 hover:bg-cyan-500/10"
                 >
-                  + Add
+                  {t('facilityMap.sketchAddParameter')}
                 </button>
               </div>
               <div className="grid gap-1">
@@ -1937,9 +2079,9 @@ export default function InventorSketchOverlay({
                         type="button"
                         className="truncate text-left text-cyan-100 hover:underline"
                         onClick={() => {
-                          const nextName = window.prompt('Parameter name', parameter.name);
+                          const nextName = window.prompt(t('facilityMap.sketchParameterNamePrompt'), parameter.name);
                           if (!nextName) return;
-                          const nextExpression = window.prompt('Expression', parameter.expression);
+                          const nextExpression = window.prompt(t('facilityMap.sketchParameterExpressionPrompt'), parameter.expression);
                           if (nextExpression == null) return;
                           try {
                             const renamed = renameParameter(
@@ -1958,7 +2100,7 @@ export default function InventorSketchOverlay({
                               }),
                             );
                           } catch (error) {
-                            setMessage(error instanceof Error ? error.message : 'Invalid parameter');
+                            setMessage(error instanceof Error ? error.message : t('facilityMap.sketchInvalidParameter'));
                           }
                         }}
                       >
@@ -1976,11 +2118,11 @@ export default function InventorSketchOverlay({
                             (dimension) => dimension.parameterId === parameter.id,
                           );
                           if (bound) {
-                            setMessage('Parameter is bound to a dimension.');
+                            setMessage(t('facilityMap.sketchParameterBound'));
                             return;
                           }
                           if (!protection.ok) {
-                            setMessage(`Used by: ${protection.dependents.join(', ')}`);
+                            setMessage(t('facilityMap.sketchParameterUsedBy', { names: protection.dependents.join(', ') }));
                             return;
                           }
                           setStore((current) =>
@@ -2004,7 +2146,7 @@ export default function InventorSketchOverlay({
                   </div>
                 ))}
                 {!calculatedParameters.length && (
-                  <div className="text-[9px] text-slate-500">No parameters</div>
+                  <div className="text-[9px] text-slate-500">{t('facilityMap.sketchNoParameters')}</div>
                 )}
               </div>
             </div>
@@ -2066,21 +2208,21 @@ export default function InventorSketchOverlay({
                     onClick={() => applySingleConstraint('horizontal')}
                     className="rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Horizontal
+                    {t('facilityMap.sketchConstraintHorizontal')}
                   </button>
                   <button
                     type="button"
                     onClick={() => applySingleConstraint('vertical')}
                     className="rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Vertical
+                    {t('facilityMap.sketchConstraintVertical')}
                   </button>
                   <button
                     type="button"
                     onClick={addFix}
                     className="col-span-2 rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Fix
+                    {t('facilityMap.sketchConstraintFix')}
                   </button>
                 </div>
               );
@@ -2117,14 +2259,20 @@ export default function InventorSketchOverlay({
               };
               return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
-                  {(['coincident', 'parallel', 'perpendicular', 'equal', 'midpoint'] as const).map((kind) => (
+                  {([
+                    ['coincident', 'facilityMap.sketchConstraintCoincident'],
+                    ['parallel', 'facilityMap.sketchConstraintParallel'],
+                    ['perpendicular', 'facilityMap.sketchConstraintPerpendicular'],
+                    ['equal', 'facilityMap.sketchConstraintEqual'],
+                    ['midpoint', 'facilityMap.sketchConstraintMidpoint'],
+                  ] as const).map(([kind, labelKey]) => (
                     <button
                       key={kind}
                       type="button"
                       onClick={() => applyPair(kind)}
-                      className="rounded-md border border-violet-400/30 px-2 py-2 text-xs capitalize text-violet-300 hover:bg-violet-500/10"
+                      className="rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                     >
-                      {kind}
+                      {t(labelKey)}
                     </button>
                   ))}
                 </div>
@@ -2161,7 +2309,7 @@ export default function InventorSketchOverlay({
                     }}
                     className="mt-3 w-full rounded-md border border-violet-400/30 px-3 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Tangent
+                    {t('facilityMap.sketchConstraintTangent')}
                   </button>
                 );
               }
@@ -2202,14 +2350,14 @@ export default function InventorSketchOverlay({
                     onClick={() => applyRadial('equal')}
                     className="rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Equal
+                    {t('facilityMap.sketchConstraintEqual')}
                   </button>
                   <button
                     type="button"
                     onClick={() => applyRadial('concentric')}
                     className="rounded-md border border-violet-400/30 px-2 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                   >
-                    Concentric
+                    {t('facilityMap.sketchConstraintConcentric')}
                   </button>
                 </div>
               );
@@ -2238,11 +2386,11 @@ export default function InventorSketchOverlay({
                       entities: result.entities,
                       constraints: [...current.constraints, result.constraint],
                     }));
-                    setMessage('Symmetry constraint applied.');
+                    setMessage(t('facilityMap.sketchSymmetryApplied'));
                   }}
                   className="mt-3 w-full rounded-md border border-violet-400/30 px-3 py-2 text-xs text-violet-300 hover:bg-violet-500/10"
                 >
-                  Symmetry: axis / reference / target
+                  {t('facilityMap.sketchConstraintSymmetry')}
                 </button>
               );
             })()}
@@ -2269,11 +2417,11 @@ export default function InventorSketchOverlay({
                       entities: [...current.entities, ...mirrored.copies],
                     }));
                     setSelectedIds(mirrored.ids);
-                    setMessage('Mirror applied across first selected line.');
+                    setMessage(t('facilityMap.sketchMirrorApplied'));
                   }}
                   className="mt-3 w-full rounded-md border border-cyan-400/30 px-3 py-2 text-xs text-cyan-300 hover:bg-cyan-500/10"
                 >
-                  Mirror across first line
+                  {t('facilityMap.sketchMirror')}
                 </button>
               );
             })()}
@@ -2312,7 +2460,7 @@ export default function InventorSketchOverlay({
                         }}
                         className="w-full rounded border border-cyan-400/20 bg-slate-900 px-2 py-1.5 text-xs text-cyan-100"
                       >
-                        <option value="">No parameter binding</option>
+                        <option value="">{t('facilityMap.sketchNoParameterBinding')}</option>
                         {compatible.map((parameter) => (
                           <option key={parameter.id} value={parameter.id}>
                             {parameter.name}
@@ -2339,7 +2487,7 @@ export default function InventorSketchOverlay({
                     }}
                     className="inline-flex w-full items-center justify-center rounded-md border border-amber-400/30 px-3 py-2 text-xs text-amber-300 hover:bg-amber-500/10"
                   >
-                    {isReference ? 'Set driving' : 'Set reference'}
+                    {isReference ? t('facilityMap.sketchSetDriving') : t('facilityMap.sketchSetReference')}
                   </button>
                   <button
                     type="button"
@@ -2360,7 +2508,7 @@ export default function InventorSketchOverlay({
                     className="inline-flex w-full items-center justify-center gap-2 rounded-md border border-red-400/30 px-3 py-2 text-xs text-red-300 hover:bg-red-500/10"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    Delete dimension
+                    {t('facilityMap.sketchDeleteDimension')}
                   </button>
                 </div>
               );
@@ -2386,7 +2534,7 @@ export default function InventorSketchOverlay({
                 title="Ctrl/Cmd+D"
               >
                 <Copy className="h-3.5 w-3.5" />
-                Copy selected
+                {t('facilityMap.sketchCopySelected')}
               </button>
             )}
 
@@ -2409,9 +2557,13 @@ export default function InventorSketchOverlay({
             )}
 
             <div className="mt-3 rounded-md border border-violet-400/20 bg-violet-500/5 p-2 text-[10px] text-violet-200">
-              Constraints: {constraintSolve.status}
+              {t('facilityMap.sketchConstraintsStatus', {
+                status: CONSTRAINT_STATUS_LABEL_KEYS[constraintSolve.status]
+                  ? t(CONSTRAINT_STATUS_LABEL_KEYS[constraintSolve.status])
+                  : constraintSolve.status,
+              })}
               {constraintSolve.status !== 'conflict' && (
-                <> · {constraintSolve.converged ? 'converged' : 'iteration limit'}</>
+                <> · {constraintSolve.converged ? t('facilityMap.sketchConverged') : t('facilityMap.sketchIterationLimit')}</>
               )}
             </div>
 
@@ -2419,10 +2571,15 @@ export default function InventorSketchOverlay({
               {tool === 'trim' || tool === 'extend'
                 ? t('facilityMap.sketchTrimExtendHint')
                 : tool === 'break'
-                  ? 'Click a line to split it at the clicked position.'
+                  ? t('facilityMap.sketchBreakHint')
                   : tool === 'offset'
-                    ? 'Click a line/polyline, then enter offset distance.'
-                    : t('facilityMap.sketchDimensionHint')}
+                    ? t('facilityMap.sketchOffsetHint')
+                    : tool === 'dimension'
+                      ? t('facilityMap.sketchDimensionToolHint')
+                      : tool === 'line'
+                        ? t('facilityMap.sketchLineChainHint')
+                        : t('facilityMap.sketchDimensionHint')}
+              <div className="mt-1 text-slate-500">{t('facilityMap.sketchShortcutsHint')}</div>
             </div>
             {message && <div className="mt-2 text-[10px] text-amber-300">{message}</div>}
           </div>
