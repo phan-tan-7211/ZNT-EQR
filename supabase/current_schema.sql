@@ -838,6 +838,33 @@ COMMENT ON FUNCTION "public"."apply_pending_admin_grants_for_user"("p_user_id" "
 
 
 
+CREATE OR REPLACE FUNCTION "public"."approve_tooling"("p_tooling_id" "uuid", "p_note" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+BEGIN
+  IF v_row.approval_status = 'approved' THEN
+    RETURN;
+  END IF;
+  IF v_row.usability_state = 'retired' THEN
+    RAISE EXCEPTION 'TOOLING_RETIRED' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_details
+  SET approval_status = 'approved', approved_by = auth.uid(), approved_at = now()
+  WHERE equipment_id = p_tooling_id;
+
+  PERFORM public.tooling_log_event(v_row, 'approved', 'pending', 'approved', NULL, p_note, '{}'::jsonb);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."approve_tooling"("p_tooling_id" "uuid", "p_note" "text") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."assert_inventory_read_access"("p_organization_id" "uuid") RETURNS "void"
     LANGUAGE "plpgsql"
     SET "search_path" TO ''
@@ -3224,6 +3251,51 @@ COMMENT ON FUNCTION "public"."convert_work_order_to_historical"("p_work_order_id
 
 
 
+CREATE OR REPLACE FUNCTION "public"."correct_tooling_usage"("p_tooling_id" "uuid", "p_delta" numeric, "p_reason" "text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+  v_after numeric;
+  v_id uuid;
+BEGIN
+  IF p_delta IS NULL OR p_delta = 0 THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_QUANTITY' USING ERRCODE = '22023';
+  END IF;
+  IF length(btrim(COALESCE(p_reason, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_REASON_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.cumulative_usage + p_delta < 0 THEN
+    RAISE EXCEPTION 'TOOLING_USAGE_NEGATIVE' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_details
+  SET cumulative_usage = cumulative_usage + p_delta,
+      usage_since_maintenance = GREATEST(usage_since_maintenance + p_delta, 0)
+  WHERE equipment_id = p_tooling_id
+  RETURNING cumulative_usage INTO v_after;
+
+  INSERT INTO public.tooling_usage_logs (
+    organization_id, tooling_equipment_id, entry_type, quantity, usage_unit,
+    cumulative_after, reason, recorded_by, recorded_by_name
+  ) VALUES (
+    v_row.organization_id, p_tooling_id, 'correction', p_delta, v_row.usage_unit,
+    v_after, btrim(p_reason), auth.uid(), public.tooling_actor_name(auth.uid())
+  )
+  RETURNING id INTO v_id;
+
+  PERFORM public.tooling_log_event(v_row, 'usage_corrected', v_row.cumulative_usage::text, v_after::text, NULL, p_reason,
+    jsonb_build_object('usage_log_id', v_id, 'delta', p_delta));
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."correct_tooling_usage"("p_tooling_id" "uuid", "p_delta" numeric, "p_reason" "text") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."count_equipment_matching_pm_rules"("p_organization_id" "uuid", "p_rules" "jsonb") RETURNS integer
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -4281,6 +4353,159 @@ ALTER FUNCTION "public"."create_quickbooks_oauth_session"("p_organization_id" "u
 
 
 COMMENT ON FUNCTION "public"."create_quickbooks_oauth_session"("p_organization_id" "uuid", "p_redirect_url" "text", "p_origin_url" "text") IS 'Creates a server-side OAuth session for QuickBooks connection. Returns session token to include in OAuth state. Validates user is admin/owner of organization.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."create_tooling"("p_organization_id" "uuid", "p_payload" "jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_uid uuid := auth.uid();
+  v_group_id uuid;
+  v_equipment_id uuid := NULLIF(p_payload->>'equipment_id', '')::uuid;
+  v_existing public.equipment;
+  v_location text := NULLIF(btrim(p_payload->>'storage_location'), '');
+  v_team uuid := NULLIF(p_payload->>'team_id', '')::uuid;
+  v_row public.tooling_details;
+BEGIN
+  IF v_uid IS NULL OR NOT public.is_org_admin(v_uid, p_organization_id) THEN
+    RAISE EXCEPTION 'TOOLING_PERMISSION_DENIED' USING ERRCODE = '42501';
+  END IF;
+
+  IF v_team IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM public.teams AS t WHERE t.id = v_team AND t.organization_id = p_organization_id
+  ) THEN
+    RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+  END IF;
+
+  -- Reuse the organization's TL classification; seed it when the org has not
+  -- configured one yet so every tool gets a stable TL management code.
+  SELECT g.id INTO v_group_id
+  FROM public.equipment_groups AS g
+  WHERE g.organization_id = p_organization_id AND g.code = 'TL';
+
+  IF v_group_id IS NULL THEN
+    INSERT INTO public.equipment_groups (organization_id, code, name, examples, management_focus, description)
+    VALUES (p_organization_id, 'TL', 'Tooling / Jig / Fixture', 'Mold, Jig, Fixture, Die, Checking Fixture',
+            'Tool life, maintenance, location, condition', 'Production and inspection tooling, molds, jigs and fixtures.')
+    RETURNING id INTO v_group_id;
+  END IF;
+
+  IF v_equipment_id IS NOT NULL THEN
+    SELECT e.* INTO v_existing FROM public.equipment AS e WHERE e.id = v_equipment_id FOR UPDATE;
+    IF NOT FOUND OR v_existing.organization_id <> p_organization_id THEN
+      RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+    END IF;
+    IF v_existing.equipment_group_id IS NOT NULL AND v_existing.equipment_group_id <> v_group_id THEN
+      RAISE EXCEPTION 'TOOLING_EQUIPMENT_NOT_TL' USING ERRCODE = '23514';
+    END IF;
+    IF v_existing.equipment_group_id IS NULL THEN
+      UPDATE public.equipment SET equipment_group_id = v_group_id WHERE id = v_equipment_id;
+    END IF;
+    IF EXISTS (SELECT 1 FROM public.tooling_details AS td WHERE td.equipment_id = v_equipment_id) THEN
+      RAISE EXCEPTION 'TOOLING_ALREADY_REGISTERED' USING ERRCODE = '23505';
+    END IF;
+  ELSE
+    IF length(btrim(COALESCE(p_payload->>'name', ''))) = 0 THEN
+      RAISE EXCEPTION 'TOOLING_NAME_REQUIRED' USING ERRCODE = '22023';
+    END IF;
+    INSERT INTO public.equipment (
+      organization_id, name, manufacturer, model, serial_number, status, location,
+      installation_date, team_id, equipment_group_id, notes
+    ) VALUES (
+      p_organization_id,
+      btrim(p_payload->>'name'),
+      COALESCE(NULLIF(btrim(p_payload->>'manufacturer'), ''), '-'),
+      COALESCE(NULLIF(btrim(p_payload->>'model'), ''), '-'),
+      NULLIF(btrim(p_payload->>'serial_number'), ''),
+      'active',
+      COALESCE(v_location, '-'),
+      CURRENT_DATE,
+      v_team,
+      v_group_id,
+      NULLIF(btrim(p_payload->>'notes'), '')
+    )
+    RETURNING id INTO v_equipment_id;
+  END IF;
+
+  BEGIN
+  INSERT INTO public.tooling_details (
+    equipment_id, organization_id, tooling_type, design_id, ownership_type, owner_name,
+    storage_location, responsible_user_id, requires_machine, drawing_number,
+    drawing_revision, revision_effective_date, usage_unit, warning_limit, life_limit,
+    maintenance_interval, inspection_interval_days, next_inspection_due, notes, created_by
+  ) VALUES (
+    v_equipment_id,
+    p_organization_id,
+    COALESCE(NULLIF(p_payload->>'tooling_type', ''), 'jig'),
+    NULLIF(p_payload->>'design_id', '')::uuid,
+    COALESCE(NULLIF(p_payload->>'ownership_type', ''), 'company'),
+    NULLIF(btrim(p_payload->>'owner_name'), ''),
+    v_location,
+    NULLIF(p_payload->>'responsible_user_id', '')::uuid,
+    COALESCE((p_payload->>'requires_machine')::boolean, true),
+    NULLIF(btrim(p_payload->>'drawing_number'), ''),
+    NULLIF(btrim(p_payload->>'drawing_revision'), ''),
+    NULLIF(p_payload->>'revision_effective_date', '')::date,
+    COALESCE(NULLIF(p_payload->>'usage_unit', ''), 'cycles'),
+    NULLIF(p_payload->>'warning_limit', '')::numeric,
+    NULLIF(p_payload->>'life_limit', '')::numeric,
+    NULLIF(p_payload->>'maintenance_interval', '')::numeric,
+    NULLIF(p_payload->>'inspection_interval_days', '')::integer,
+    CASE WHEN NULLIF(p_payload->>'inspection_interval_days', '') IS NULL THEN NULL
+         ELSE CURRENT_DATE + (p_payload->>'inspection_interval_days')::integer END,
+    NULLIF(btrim(p_payload->>'notes'), ''),
+    v_uid
+  )
+  RETURNING * INTO v_row;
+  EXCEPTION WHEN foreign_key_violation THEN
+    RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+  END;
+
+  PERFORM public.tooling_log_event(v_row, 'registered', NULL, v_row.tooling_type, NULL, NULL,
+    jsonb_build_object('enrolled_existing', p_payload ? 'equipment_id'));
+  RETURN v_equipment_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_tooling"("p_organization_id" "uuid", "p_payload" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."create_tooling_compatibility"("p_tooling_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid" DEFAULT NULL::"uuid", "p_machine_equipment_id" "uuid" DEFAULT NULL::"uuid", "p_drawing_revision" "text" DEFAULT NULL::"text", "p_effective_from" "date" DEFAULT NULL::"date", "p_effective_to" "date" DEFAULT NULL::"date", "p_notes" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+  v_id uuid;
+BEGIN
+  BEGIN
+    INSERT INTO public.tooling_compatibility (
+      organization_id, tooling_equipment_id, product_part_id, operation_id,
+      machine_equipment_id, drawing_revision, effective_from, effective_to, notes, created_by
+    ) VALUES (
+      v_row.organization_id, p_tooling_id, p_product_part_id, p_operation_id,
+      p_machine_equipment_id, NULLIF(btrim(p_drawing_revision), ''), p_effective_from,
+      p_effective_to, NULLIF(btrim(p_notes), ''), auth.uid()
+    )
+    RETURNING id INTO v_id;
+  EXCEPTION
+    WHEN unique_violation THEN
+      RAISE EXCEPTION 'TOOLING_COMPATIBILITY_DUPLICATE' USING ERRCODE = '23505';
+    WHEN foreign_key_violation THEN
+      RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+  END;
+
+  PERFORM public.tooling_log_event(v_row, 'compatibility_changed', NULL, 'pending', NULL, NULL,
+    jsonb_build_object('compatibility_id', v_id, 'action', 'created'));
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."create_tooling_compatibility"("p_tooling_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_machine_equipment_id" "uuid", "p_drawing_revision" "text", "p_effective_from" "date", "p_effective_to" "date", "p_notes" "text") OWNER TO "postgres";
 
 
 
@@ -9423,6 +9648,104 @@ $$;
 ALTER FUNCTION "public"."is_work_order_team_manager"("p_user_id" "uuid", "p_work_order_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."issue_tooling"("p_tooling_id" "uuid", "p_issued_to_user_id" "uuid", "p_machine_equipment_id" "uuid" DEFAULT NULL::"uuid", "p_product_part_id" "uuid" DEFAULT NULL::"uuid", "p_operation_id" "uuid" DEFAULT NULL::"uuid", "p_issue_location" "text" DEFAULT NULL::"text", "p_condition" "text" DEFAULT NULL::"text", "p_notes" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'operate');
+  v_compat_id uuid;
+  v_assignment_id uuid;
+  v_condition text := COALESCE(NULLIF(p_condition, ''), v_row.condition);
+BEGIN
+  IF p_issued_to_user_id IS NULL OR NOT public.is_org_member(p_issued_to_user_id, v_row.organization_id) THEN
+    RAISE EXCEPTION 'TOOLING_HOLDER_NOT_MEMBER' USING ERRCODE = '22023';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.tooling_assignments AS a
+    WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'TOOLING_ALREADY_ISSUED' USING ERRCODE = '23505';
+  END IF;
+
+  IF v_row.approval_status <> 'approved' THEN
+    RAISE EXCEPTION 'TOOLING_NOT_APPROVED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.usability_state <> 'available' THEN
+    RAISE EXCEPTION 'TOOLING_NOT_USABLE' USING ERRCODE = '22023', DETAIL = v_row.usability_state;
+  END IF;
+  IF v_row.condition = 'damaged' OR v_condition = 'damaged' THEN
+    RAISE EXCEPTION 'TOOLING_DAMAGED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.life_limit IS NOT NULL AND v_row.cumulative_usage >= v_row.life_limit THEN
+    RAISE EXCEPTION 'TOOLING_LIFE_LIMIT_REACHED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.next_inspection_due IS NOT NULL AND v_row.next_inspection_due < CURRENT_DATE THEN
+    RAISE EXCEPTION 'TOOLING_INSPECTION_OVERDUE' USING ERRCODE = '22023';
+  END IF;
+
+  -- Validate only the production context that was supplied.
+  IF p_machine_equipment_id IS NOT NULL OR p_product_part_id IS NOT NULL OR p_operation_id IS NOT NULL THEN
+    SELECT c.id INTO v_compat_id
+    FROM public.tooling_compatibility AS c
+    WHERE c.tooling_equipment_id = p_tooling_id
+      AND c.is_active
+      AND c.approval_status = 'approved'
+      AND (c.effective_from IS NULL OR c.effective_from <= CURRENT_DATE)
+      AND (c.effective_to IS NULL OR c.effective_to >= CURRENT_DATE)
+      AND (p_product_part_id IS NULL OR c.product_part_id = p_product_part_id)
+      AND (p_operation_id IS NULL OR c.operation_id = p_operation_id)
+      AND (p_machine_equipment_id IS NULL OR c.machine_equipment_id = p_machine_equipment_id)
+    ORDER BY c.approved_at DESC
+    LIMIT 1;
+
+    IF v_compat_id IS NULL THEN
+      RAISE EXCEPTION 'TOOLING_INCOMPATIBLE_CONTEXT' USING ERRCODE = '22023';
+    END IF;
+  END IF;
+
+  BEGIN
+    INSERT INTO public.tooling_assignments (
+      organization_id, tooling_equipment_id, status, issued_to_user_id, issued_to_name,
+      issued_by, issued_by_name, machine_equipment_id, product_part_id, operation_id,
+      compatibility_id, issue_location, condition_at_issue, notes
+    ) VALUES (
+      v_row.organization_id, p_tooling_id, 'active', p_issued_to_user_id,
+      public.tooling_actor_name(p_issued_to_user_id), auth.uid(), public.tooling_actor_name(auth.uid()),
+      p_machine_equipment_id, p_product_part_id, p_operation_id, v_compat_id,
+      NULLIF(btrim(p_issue_location), ''), v_condition, NULLIF(btrim(p_notes), '')
+    )
+    RETURNING id INTO v_assignment_id;
+  EXCEPTION
+    WHEN unique_violation THEN
+      RAISE EXCEPTION 'TOOLING_ALREADY_ISSUED' USING ERRCODE = '23505';
+  END;
+
+  IF v_condition IS DISTINCT FROM v_row.condition THEN
+    UPDATE public.tooling_details SET condition = v_condition WHERE equipment_id = p_tooling_id;
+  END IF;
+
+  PERFORM public.tooling_log_event(v_row, 'issued', v_row.storage_location,
+    COALESCE(NULLIF(btrim(p_issue_location), ''), public.tooling_actor_name(p_issued_to_user_id)),
+    v_assignment_id, p_notes,
+    jsonb_strip_nulls(jsonb_build_object(
+      'issued_to_user_id', p_issued_to_user_id,
+      'machine_equipment_id', p_machine_equipment_id,
+      'product_part_id', p_product_part_id,
+      'operation_id', p_operation_id,
+      'compatibility_id', v_compat_id,
+      'condition', v_condition
+    )));
+  RETURN v_assignment_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."issue_tooling"("p_tooling_id" "uuid", "p_issued_to_user_id" "uuid", "p_machine_equipment_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_issue_location" "text", "p_condition" "text", "p_notes" "text") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."latest_scans_for_equipment_ids"("p_organization_id" "uuid", "p_equipment_ids" "uuid"[]) RETURNS TABLE("equipment_id" "uuid", "location" "text", "scanned_at" timestamp with time zone)
     LANGUAGE "sql" STABLE
     SET "search_path" TO 'public', 'pg_temp'
@@ -12783,6 +13106,182 @@ $$;
 ALTER FUNCTION "public"."record_equipment_status_change"() OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."record_tooling_limit_disposition"("p_tooling_id" "uuid", "p_disposition" "text", "p_new_life_limit" numeric, "p_reason" "text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+BEGIN
+  IF length(btrim(COALESCE(p_reason, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_REASON_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+
+  IF p_disposition = 'extend_life' THEN
+    IF p_new_life_limit IS NULL OR p_new_life_limit <= v_row.cumulative_usage THEN
+      RAISE EXCEPTION 'TOOLING_INVALID_LIFE_LIMIT' USING ERRCODE = '22023';
+    END IF;
+    UPDATE public.tooling_details
+    SET life_limit = p_new_life_limit,
+        warning_limit = CASE WHEN warning_limit IS NOT NULL AND warning_limit > p_new_life_limit THEN p_new_life_limit ELSE warning_limit END
+    WHERE equipment_id = p_tooling_id;
+  ELSIF p_disposition = 'retire' THEN
+    IF EXISTS (
+      SELECT 1 FROM public.tooling_assignments AS a
+      WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+    ) THEN
+      RAISE EXCEPTION 'TOOLING_ISSUED_RETURN_FIRST' USING ERRCODE = '22023';
+    END IF;
+    UPDATE public.tooling_details SET usability_state = 'retired' WHERE equipment_id = p_tooling_id;
+  ELSE
+    RAISE EXCEPTION 'TOOLING_INVALID_ACTION' USING ERRCODE = '22023';
+  END IF;
+
+  PERFORM public.tooling_log_event(v_row, 'limit_disposition',
+    COALESCE(v_row.life_limit::text, '-'),
+    CASE WHEN p_disposition = 'retire' THEN 'retired' ELSE p_new_life_limit::text END,
+    NULL, p_reason,
+    jsonb_build_object('disposition', p_disposition, 'cumulative_usage', v_row.cumulative_usage));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."record_tooling_limit_disposition"("p_tooling_id" "uuid", "p_disposition" "text", "p_new_life_limit" numeric, "p_reason" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."record_tooling_usage"("p_tooling_id" "uuid", "p_quantity" numeric, "p_production_quantity" numeric DEFAULT NULL::numeric, "p_notes" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'operate');
+  v_assignment uuid;
+BEGIN
+  IF p_production_quantity IS NOT NULL AND p_production_quantity < 0 THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_QUANTITY' USING ERRCODE = '22023';
+  END IF;
+  SELECT a.id INTO v_assignment
+  FROM public.tooling_assignments AS a
+  WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active';
+
+  -- Actual usage is always recorded, even past the life limit: the counter must
+  -- reflect reality. The limit blocks further issue, not the record.
+  RETURN public.tooling_apply_usage(v_row, p_quantity, p_production_quantity, v_assignment, p_notes);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."record_tooling_usage"("p_tooling_id" "uuid", "p_quantity" numeric, "p_production_quantity" numeric, "p_notes" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."record_tooling_verification"("p_tooling_id" "uuid", "p_verification_type" "text", "p_result" "text", "p_findings" "text" DEFAULT NULL::"text", "p_work_order_id" "uuid" DEFAULT NULL::"uuid", "p_maintenance_completed" boolean DEFAULT false, "p_return_to_service" boolean DEFAULT false, "p_next_due" "date" DEFAULT NULL::"date") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  -- Inspectors (operate tier) record results; releasing to service is an
+  -- owner/admin authorization.
+  v_row public.tooling_details := public.tooling_lock_for_actor(
+    p_tooling_id, CASE WHEN COALESCE(p_return_to_service, false) THEN 'admin' ELSE 'operate' END);
+  v_after text;
+  v_next date;
+  v_id uuid;
+  v_issued boolean;
+BEGIN
+  IF p_verification_type NOT IN ('periodic', 'post_repair', 'incoming', 'first_article', 'other') THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_ACTION' USING ERRCODE = '22023';
+  END IF;
+  IF p_result NOT IN ('pass', 'fail', 'conditional') THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_ACTION' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.usability_state = 'retired' THEN
+    RAISE EXCEPTION 'TOOLING_RETIRED' USING ERRCODE = '22023';
+  END IF;
+
+  IF p_work_order_id IS NOT NULL AND NOT EXISTS (
+    SELECT 1 FROM public.work_orders AS w
+    WHERE w.id = p_work_order_id
+      AND w.organization_id = v_row.organization_id
+      AND w.equipment_id = p_tooling_id
+  ) THEN
+    RAISE EXCEPTION 'TOOLING_WORK_ORDER_MISMATCH' USING ERRCODE = '23514';
+  END IF;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.tooling_assignments AS a
+    WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+  ) INTO v_issued;
+
+  v_after := v_row.usability_state;
+  IF COALESCE(p_return_to_service, false) THEN
+    IF p_result <> 'pass' THEN
+      RAISE EXCEPTION 'TOOLING_RTS_REQUIRES_PASS' USING ERRCODE = '22023';
+    END IF;
+    IF v_row.life_limit IS NOT NULL AND v_row.cumulative_usage >= v_row.life_limit THEN
+      RAISE EXCEPTION 'TOOLING_DISPOSITION_REQUIRED' USING ERRCODE = '22023';
+    END IF;
+    v_after := 'available';
+  ELSIF p_result = 'fail' THEN
+    IF v_issued THEN
+      RAISE EXCEPTION 'TOOLING_ISSUED_RETURN_FIRST' USING ERRCODE = '22023';
+    END IF;
+    v_after := CASE WHEN v_row.usability_state = 'available' THEN 'quarantined' ELSE v_row.usability_state END;
+  END IF;
+
+  v_next := COALESCE(
+    p_next_due,
+    CASE WHEN v_row.inspection_interval_days IS NOT NULL AND p_result = 'pass'
+         THEN CURRENT_DATE + v_row.inspection_interval_days END,
+    v_row.next_inspection_due
+  );
+
+  INSERT INTO public.tooling_verifications (
+    organization_id, tooling_equipment_id, verification_type, result, findings, work_order_id,
+    maintenance_completed, returned_to_service, usability_before, usability_after,
+    cumulative_usage_at, next_due, inspected_by, inspected_by_name,
+    approved_by, approved_by_name, approved_at
+  ) VALUES (
+    v_row.organization_id, p_tooling_id, p_verification_type, p_result, NULLIF(btrim(p_findings), ''),
+    p_work_order_id, COALESCE(p_maintenance_completed, false), COALESCE(p_return_to_service, false),
+    v_row.usability_state, v_after, v_row.cumulative_usage, v_next,
+    auth.uid(), public.tooling_actor_name(auth.uid()),
+    CASE WHEN p_return_to_service THEN auth.uid() END,
+    CASE WHEN p_return_to_service THEN public.tooling_actor_name(auth.uid()) END,
+    CASE WHEN p_return_to_service THEN now() END
+  )
+  RETURNING id INTO v_id;
+
+  -- Maintenance resets the since-maintenance counter only; lifetime usage is
+  -- never reset by ordinary maintenance.
+  UPDATE public.tooling_details
+  SET usability_state = v_after,
+      last_inspection_at = now(),
+      next_inspection_due = v_next,
+      usage_since_maintenance = CASE WHEN COALESCE(p_maintenance_completed, false) THEN 0 ELSE usage_since_maintenance END,
+      last_maintenance_at = CASE WHEN COALESCE(p_maintenance_completed, false) THEN now() ELSE last_maintenance_at END,
+      condition = CASE WHEN COALESCE(p_return_to_service, false) AND condition = 'damaged' THEN 'good' ELSE condition END
+  WHERE equipment_id = p_tooling_id;
+
+  PERFORM public.tooling_log_event(v_row, 'inspection_recorded', p_verification_type, p_result, NULL, p_findings,
+    jsonb_strip_nulls(jsonb_build_object('verification_id', v_id, 'work_order_id', p_work_order_id,
+      'maintenance_completed', COALESCE(p_maintenance_completed, false))));
+
+  IF v_after IS DISTINCT FROM v_row.usability_state THEN
+    PERFORM public.tooling_log_event(v_row,
+      CASE WHEN COALESCE(p_return_to_service, false) THEN 'returned_to_service' ELSE 'usability_changed' END,
+      v_row.usability_state, v_after, NULL, p_findings,
+      jsonb_build_object('verification_id', v_id));
+  END IF;
+
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."record_tooling_verification"("p_tooling_id" "uuid", "p_verification_type" "text", "p_result" "text", "p_findings" "text", "p_work_order_id" "uuid", "p_maintenance_completed" boolean, "p_return_to_service" boolean, "p_next_due" "date") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."refresh_quickbooks_tokens_manual"() RETURNS TABLE("credentials_count" integer, "message" "text")
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public', 'pg_temp'
@@ -14186,6 +14685,77 @@ COMMENT ON FUNCTION "public"."resubmit_workspace_access_request"() IS 'Allows an
 
 
 
+CREATE OR REPLACE FUNCTION "public"."return_tooling"("p_tooling_id" "uuid", "p_condition" "text", "p_return_location" "text" DEFAULT NULL::"text", "p_usage_quantity" numeric DEFAULT NULL::numeric, "p_notes" "text" DEFAULT NULL::"text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'operate');
+  v_assignment public.tooling_assignments;
+  v_location text := COALESCE(NULLIF(btrim(p_return_location), ''), v_row.storage_location);
+BEGIN
+  IF p_condition IS NULL OR p_condition NOT IN ('new', 'good', 'worn', 'damaged') THEN
+    RAISE EXCEPTION 'TOOLING_CONDITION_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF p_usage_quantity IS NOT NULL AND p_usage_quantity < 0 THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_QUANTITY' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT a.* INTO v_assignment
+  FROM public.tooling_assignments AS a
+  WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'TOOLING_NOT_ISSUED' USING ERRCODE = '22023';
+  END IF;
+
+  IF p_usage_quantity IS NOT NULL AND p_usage_quantity > 0 THEN
+    PERFORM public.tooling_apply_usage(v_row, p_usage_quantity, NULL, v_assignment.id, 'return');
+  END IF;
+
+  UPDATE public.tooling_assignments
+  SET status = 'returned',
+      returned_at = now(),
+      returned_by = auth.uid(),
+      returned_by_name = public.tooling_actor_name(auth.uid()),
+      return_location = v_location,
+      condition_at_return = p_condition,
+      usage_at_return = NULLIF(p_usage_quantity, 0),
+      return_notes = NULLIF(btrim(p_notes), '')
+  WHERE id = v_assignment.id;
+
+  -- A tool returned damaged is quarantined until inspected and released.
+  UPDATE public.tooling_details
+  SET condition = p_condition,
+      storage_location = v_location,
+      usability_state = CASE WHEN p_condition = 'damaged' AND usability_state = 'available'
+                             THEN 'quarantined' ELSE usability_state END
+  WHERE equipment_id = p_tooling_id;
+
+  PERFORM public.tooling_log_event(v_row, 'returned', v_assignment.issue_location, v_location,
+    v_assignment.id, p_notes,
+    jsonb_strip_nulls(jsonb_build_object(
+      'condition_at_issue', v_assignment.condition_at_issue,
+      'condition_at_return', p_condition,
+      'usage_quantity', p_usage_quantity,
+      'quarantined', p_condition = 'damaged'
+    )));
+
+  IF p_condition = 'damaged' AND v_row.usability_state = 'available' THEN
+    PERFORM public.tooling_log_event(v_row, 'usability_changed', 'available', 'quarantined',
+      v_assignment.id, 'Returned damaged', '{}'::jsonb);
+  END IF;
+
+  RETURN v_assignment.id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."return_tooling"("p_tooling_id" "uuid", "p_condition" "text", "p_return_location" "text", "p_usage_quantity" numeric, "p_notes" "text") OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."revert_pm_completion"("p_pm_id" "uuid", "p_reason" "text" DEFAULT 'Reverted by admin'::"text") RETURNS "jsonb"
     LANGUAGE "plpgsql" SECURITY DEFINER
     SET "search_path" TO 'public'
@@ -14710,6 +15280,135 @@ ALTER FUNCTION "public"."set_team_permission_override"("p_organization_id" "uuid
 
 
 COMMENT ON FUNCTION "public"."set_team_permission_override"("p_organization_id" "uuid", "p_team_role" "text", "p_permission_key" "text", "p_allowed" boolean) IS 'Owner-only: set or reset a configurable team-role permission; audited.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."set_tooling_compatibility_status"("p_compatibility_id" "uuid", "p_action" "text", "p_note" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_compat public.tooling_compatibility;
+  v_row public.tooling_details;
+BEGIN
+  SELECT c.* INTO v_compat FROM public.tooling_compatibility AS c WHERE c.id = p_compatibility_id;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'TOOLING_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+  v_row := public.tooling_lock_for_actor(v_compat.tooling_equipment_id, 'admin');
+
+  SELECT c.* INTO v_compat FROM public.tooling_compatibility AS c WHERE c.id = p_compatibility_id FOR UPDATE;
+
+  IF p_action = 'approve' THEN
+    IF NOT v_compat.is_active THEN
+      RAISE EXCEPTION 'TOOLING_COMPATIBILITY_INACTIVE' USING ERRCODE = '22023';
+    END IF;
+    UPDATE public.tooling_compatibility
+    SET approval_status = 'approved', approved_by = auth.uid(), approved_at = now()
+    WHERE id = p_compatibility_id;
+  ELSIF p_action = 'reject' THEN
+    UPDATE public.tooling_compatibility
+    SET approval_status = 'rejected', approved_by = auth.uid(), approved_at = now(), is_active = false
+    WHERE id = p_compatibility_id;
+  ELSIF p_action = 'deactivate' THEN
+    UPDATE public.tooling_compatibility SET is_active = false WHERE id = p_compatibility_id;
+  ELSE
+    RAISE EXCEPTION 'TOOLING_INVALID_ACTION' USING ERRCODE = '22023';
+  END IF;
+
+  PERFORM public.tooling_log_event(v_row, 'compatibility_changed', v_compat.approval_status, p_action, NULL, p_note,
+    jsonb_build_object('compatibility_id', p_compatibility_id, 'action', p_action));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."set_tooling_compatibility_status"("p_compatibility_id" "uuid", "p_action" "text", "p_note" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."set_tooling_life_limits"("p_tooling_id" "uuid", "p_usage_unit" "text", "p_warning_limit" numeric, "p_life_limit" numeric, "p_maintenance_interval" numeric, "p_inspection_interval_days" integer, "p_reason" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+BEGIN
+  IF p_usage_unit IS DISTINCT FROM v_row.usage_unit AND v_row.cumulative_usage > 0 THEN
+    RAISE EXCEPTION 'TOOLING_UNIT_LOCKED' USING ERRCODE = '22023';
+  END IF;
+  -- Lifting the hard limit of a tool that already reached it is a formal
+  -- disposition, not a settings edit.
+  IF v_row.life_limit IS NOT NULL
+     AND v_row.cumulative_usage >= v_row.life_limit
+     AND (p_life_limit IS NULL OR p_life_limit > v_row.life_limit) THEN
+    RAISE EXCEPTION 'TOOLING_DISPOSITION_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_details
+  SET usage_unit = COALESCE(p_usage_unit, usage_unit),
+      warning_limit = p_warning_limit,
+      life_limit = p_life_limit,
+      maintenance_interval = p_maintenance_interval,
+      inspection_interval_days = p_inspection_interval_days,
+      next_inspection_due = CASE
+        WHEN p_inspection_interval_days IS NULL THEN NULL
+        WHEN p_inspection_interval_days IS DISTINCT FROM v_row.inspection_interval_days
+          THEN COALESCE(v_row.last_inspection_at::date, CURRENT_DATE) + p_inspection_interval_days
+        ELSE next_inspection_due
+      END
+  WHERE equipment_id = p_tooling_id;
+
+  PERFORM public.tooling_log_event(v_row, 'limits_changed',
+    COALESCE(v_row.life_limit::text, '-'), COALESCE(p_life_limit::text, '-'), NULL, p_reason,
+    jsonb_build_object(
+      'usage_unit', jsonb_build_object('old', v_row.usage_unit, 'new', COALESCE(p_usage_unit, v_row.usage_unit)),
+      'warning_limit', jsonb_build_object('old', v_row.warning_limit, 'new', p_warning_limit),
+      'life_limit', jsonb_build_object('old', v_row.life_limit, 'new', p_life_limit),
+      'maintenance_interval', jsonb_build_object('old', v_row.maintenance_interval, 'new', p_maintenance_interval),
+      'inspection_interval_days', jsonb_build_object('old', v_row.inspection_interval_days, 'new', p_inspection_interval_days)
+    ));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."set_tooling_life_limits"("p_tooling_id" "uuid", "p_usage_unit" "text", "p_warning_limit" numeric, "p_life_limit" numeric, "p_maintenance_interval" numeric, "p_inspection_interval_days" integer, "p_reason" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."set_tooling_usability"("p_tooling_id" "uuid", "p_state" "text", "p_reason" "text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  -- Anyone allowed to operate the tool may quarantine it (stop-the-line);
+  -- every other out-of-service state needs an owner/admin.
+  v_row public.tooling_details := public.tooling_lock_for_actor(
+    p_tooling_id, CASE WHEN p_state = 'quarantined' THEN 'operate' ELSE 'admin' END);
+BEGIN
+  IF p_state NOT IN ('quarantined', 'under_repair', 'pending_inspection', 'blocked', 'retired') THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_STATE' USING ERRCODE = '22023';
+  END IF;
+  IF length(btrim(COALESCE(p_reason, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_REASON_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.usability_state = 'retired' THEN
+    RAISE EXCEPTION 'TOOLING_RETIRED' USING ERRCODE = '22023';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.tooling_assignments AS a
+    WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'TOOLING_ISSUED_RETURN_FIRST' USING ERRCODE = '22023';
+  END IF;
+  IF v_row.usability_state = p_state THEN
+    RETURN;
+  END IF;
+
+  UPDATE public.tooling_details SET usability_state = p_state WHERE equipment_id = p_tooling_id;
+  PERFORM public.tooling_log_event(v_row, 'usability_changed', v_row.usability_state, p_state, NULL, p_reason, '{}'::jsonb);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."set_tooling_usability"("p_tooling_id" "uuid", "p_state" "text", "p_reason" "text") OWNER TO "postgres";
 
 
 
@@ -15266,6 +15965,268 @@ $$;
 ALTER FUNCTION "public"."synthesize_historical_timeline_events"("p_historical_start_date" timestamp with time zone, "p_completed_date" timestamp with time zone, "p_status" "public"."work_order_status", "p_assignee_id" "uuid") OWNER TO "postgres";
 
 
+CREATE OR REPLACE FUNCTION "public"."tooling_actor_name"("p_user_id" "uuid") RETURNS "text"
+    LANGUAGE "sql" STABLE SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+  SELECT COALESCE(
+    (SELECT p.name FROM public.profiles AS p WHERE p.id = p_user_id),
+    (SELECT u.email FROM auth.users AS u WHERE u.id = p_user_id)
+  );
+$$;
+
+
+ALTER FUNCTION "public"."tooling_actor_name"("p_user_id" "uuid") OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_details" (
+    "equipment_id" "uuid" NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_type" "text" NOT NULL,
+    "design_id" "uuid",
+    "ownership_type" "text" DEFAULT 'company'::"text" NOT NULL,
+    "owner_name" "text",
+    "storage_location" "text",
+    "responsible_user_id" "uuid",
+    "condition" "text" DEFAULT 'good'::"text" NOT NULL,
+    "usability_state" "text" DEFAULT 'available'::"text" NOT NULL,
+    "approval_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "approved_by" "uuid",
+    "approved_at" timestamp with time zone,
+    "requires_machine" boolean DEFAULT true NOT NULL,
+    "drawing_number" "text",
+    "drawing_revision" "text",
+    "revision_effective_date" "date",
+    "usage_unit" "text" DEFAULT 'cycles'::"text" NOT NULL,
+    "warning_limit" numeric,
+    "life_limit" numeric,
+    "maintenance_interval" numeric,
+    "inspection_interval_days" integer,
+    "cumulative_usage" numeric DEFAULT 0 NOT NULL,
+    "usage_since_maintenance" numeric DEFAULT 0 NOT NULL,
+    "last_maintenance_at" timestamp with time zone,
+    "last_inspection_at" timestamp with time zone,
+    "next_inspection_due" "date",
+    "notes" "text",
+    "created_by" "uuid" DEFAULT "auth"."uid"(),
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "tooling_details_approval_check" CHECK (("approval_status" = ANY (ARRAY['pending'::"text", 'approved'::"text"]))),
+    CONSTRAINT "tooling_details_approval_stamp_check" CHECK ((("approval_status" = 'pending'::"text") OR ("approved_at" IS NOT NULL))),
+    CONSTRAINT "tooling_details_condition_check" CHECK (("condition" = ANY (ARRAY['new'::"text", 'good'::"text", 'worn'::"text", 'damaged'::"text"]))),
+    CONSTRAINT "tooling_details_limits_positive" CHECK (((("warning_limit" IS NULL) OR ("warning_limit" > (0)::numeric)) AND (("life_limit" IS NULL) OR ("life_limit" > (0)::numeric)) AND (("maintenance_interval" IS NULL) OR ("maintenance_interval" > (0)::numeric)) AND (("inspection_interval_days" IS NULL) OR ("inspection_interval_days" > 0)))),
+    CONSTRAINT "tooling_details_ownership_check" CHECK (("ownership_type" = ANY (ARRAY['company'::"text", 'customer'::"text", 'supplier'::"text", 'other'::"text"]))),
+    CONSTRAINT "tooling_details_type_check" CHECK (("tooling_type" = ANY (ARRAY['jig'::"text", 'fixture'::"text", 'mold'::"text", 'die'::"text", 'checking_fixture'::"text", 'general_tool'::"text"]))),
+    CONSTRAINT "tooling_details_unit_check" CHECK (("usage_unit" = ANY (ARRAY['cycles'::"text", 'shots'::"text", 'strokes'::"text", 'pieces'::"text"]))),
+    CONSTRAINT "tooling_details_usability_check" CHECK (("usability_state" = ANY (ARRAY['available'::"text", 'quarantined'::"text", 'under_repair'::"text", 'pending_inspection'::"text", 'blocked'::"text", 'retired'::"text"]))),
+    CONSTRAINT "tooling_details_usage_non_negative" CHECK ((("cumulative_usage" >= (0)::numeric) AND ("usage_since_maintenance" >= (0)::numeric))),
+    CONSTRAINT "tooling_details_warning_le_life" CHECK ((("warning_limit" IS NULL) OR ("life_limit" IS NULL) OR ("warning_limit" <= "life_limit")))
+);
+
+
+ALTER TABLE "public"."tooling_details" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_details" IS 'Tooling-specific attributes for equipment rows in the TL group (1:1). Mutated only through tooling RPCs.';
+
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_apply_usage"("p_row" "public"."tooling_details", "p_quantity" numeric, "p_production_quantity" numeric, "p_assignment_id" "uuid", "p_reason" "text") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_after numeric;
+  v_id uuid;
+BEGIN
+  IF p_quantity IS NULL OR p_quantity <= 0 THEN
+    RAISE EXCEPTION 'TOOLING_INVALID_QUANTITY' USING ERRCODE = '22023';
+  END IF;
+  IF p_row.usability_state = 'retired' THEN
+    RAISE EXCEPTION 'TOOLING_RETIRED' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_details
+  SET cumulative_usage = cumulative_usage + p_quantity,
+      usage_since_maintenance = usage_since_maintenance + p_quantity
+  WHERE equipment_id = p_row.equipment_id
+  RETURNING cumulative_usage INTO v_after;
+
+  INSERT INTO public.tooling_usage_logs (
+    organization_id, tooling_equipment_id, entry_type, quantity, usage_unit,
+    production_quantity, assignment_id, cumulative_after, reason, recorded_by, recorded_by_name
+  ) VALUES (
+    p_row.organization_id, p_row.equipment_id, 'usage', p_quantity, p_row.usage_unit,
+    p_production_quantity, p_assignment_id, v_after, NULLIF(btrim(p_reason), ''),
+    auth.uid(), public.tooling_actor_name(auth.uid())
+  )
+  RETURNING id INTO v_id;
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_apply_usage"("p_row" "public"."tooling_details", "p_quantity" numeric, "p_production_quantity" numeric, "p_assignment_id" "uuid", "p_reason" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_lock_for_actor"("p_tooling_id" "uuid", "p_tier" "text") RETURNS "public"."tooling_details"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details;
+  v_team uuid;
+  v_uid uuid := auth.uid();
+BEGIN
+  IF v_uid IS NULL THEN
+    RAISE EXCEPTION 'TOOLING_NOT_AUTHENTICATED' USING ERRCODE = '42501';
+  END IF;
+
+  SELECT td.* INTO v_row
+  FROM public.tooling_details AS td
+  WHERE td.equipment_id = p_tooling_id
+  FOR UPDATE;
+
+  IF NOT FOUND OR NOT public.is_org_member(v_uid, v_row.organization_id) THEN
+    RAISE EXCEPTION 'TOOLING_NOT_FOUND' USING ERRCODE = 'P0002';
+  END IF;
+
+  IF public.is_org_admin(v_uid, v_row.organization_id) THEN
+    RETURN v_row;
+  END IF;
+
+  IF p_tier = 'operate' THEN
+    SELECT e.team_id INTO v_team FROM public.equipment AS e WHERE e.id = p_tooling_id;
+    IF public.has_team_permission(v_uid, v_row.organization_id, v_team, 'equipment.update') THEN
+      RETURN v_row;
+    END IF;
+  END IF;
+
+  RAISE EXCEPTION 'TOOLING_PERMISSION_DENIED' USING ERRCODE = '42501';
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_lock_for_actor"("p_tooling_id" "uuid", "p_tier" "text") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_lock_master_org"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF NEW.organization_id IS DISTINCT FROM OLD.organization_id THEN
+    RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_lock_master_org"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_log_event"("p_row" "public"."tooling_details", "p_event_type" "text", "p_from" "text", "p_to" "text", "p_assignment_id" "uuid", "p_reason" "text", "p_details" "jsonb") RETURNS "uuid"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_id uuid;
+  v_name text;
+BEGIN
+  INSERT INTO public.tooling_events (
+    organization_id, tooling_equipment_id, event_type, from_value, to_value,
+    assignment_id, reason, details, actor_id, actor_name
+  ) VALUES (
+    p_row.organization_id, p_row.equipment_id, p_event_type, p_from, p_to,
+    p_assignment_id, NULLIF(btrim(p_reason), ''), COALESCE(p_details, '{}'::jsonb),
+    auth.uid(), public.tooling_actor_name(auth.uid())
+  )
+  RETURNING id INTO v_id;
+
+  SELECT e.name INTO v_name FROM public.equipment AS e WHERE e.id = p_row.equipment_id;
+  PERFORM public.log_audit_entry(
+    p_row.organization_id, 'equipment', p_row.equipment_id, v_name, 'UPDATE',
+    jsonb_build_object('tooling_' || p_event_type, jsonb_build_object('old', p_from, 'new', p_to)),
+    jsonb_build_object('source', 'tooling', 'event_id', v_id, 'reason', NULLIF(btrim(p_reason), ''))
+  );
+  RETURN v_id;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_log_event"("p_row" "public"."tooling_details", "p_event_type" "text", "p_from" "text", "p_to" "text", "p_assignment_id" "uuid", "p_reason" "text", "p_details" "jsonb") OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_normalize_master_code"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  IF TG_TABLE_NAME = 'product_parts' THEN
+    NEW.part_number := upper(btrim(NEW.part_number));
+  ELSIF TG_TABLE_NAME = 'production_operations' THEN
+    NEW.code := upper(btrim(NEW.code));
+  ELSIF TG_TABLE_NAME = 'tooling_designs' THEN
+    NEW.design_code := upper(btrim(NEW.design_code));
+  END IF;
+  NEW.name := btrim(NEW.name);
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_normalize_master_code"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_touch_updated_at"() RETURNS "trigger"
+    LANGUAGE "plpgsql"
+    SET "search_path" TO ''
+    AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_touch_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."tooling_validate_equipment_refs"() RETURNS "trigger"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_org uuid;
+BEGIN
+  IF TG_TABLE_NAME = 'tooling_details' THEN
+    SELECT e.organization_id INTO v_org FROM public.equipment AS e WHERE e.id = NEW.equipment_id;
+    IF v_org IS DISTINCT FROM NEW.organization_id THEN
+      RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+    END IF;
+    IF NEW.responsible_user_id IS NOT NULL
+       AND NOT public.is_org_member(NEW.responsible_user_id, NEW.organization_id) THEN
+      RAISE EXCEPTION 'TOOLING_RESPONSIBLE_NOT_MEMBER' USING ERRCODE = '23514';
+    END IF;
+  ELSIF NEW.machine_equipment_id IS NOT NULL THEN
+    SELECT e.organization_id INTO v_org FROM public.equipment AS e WHERE e.id = NEW.machine_equipment_id;
+    IF v_org IS DISTINCT FROM NEW.organization_id THEN
+      RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+    END IF;
+    IF EXISTS (SELECT 1 FROM public.tooling_details AS td WHERE td.equipment_id = NEW.machine_equipment_id) THEN
+      RAISE EXCEPTION 'TOOLING_MACHINE_IS_TOOL' USING ERRCODE = '23514';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+
+ALTER FUNCTION "public"."tooling_validate_equipment_refs"() OWNER TO "postgres";
+
+
+
 CREATE OR REPLACE FUNCTION "public"."touch_equipment_group_updated_at"() RETURNS "trigger"
     LANGUAGE "plpgsql"
     SET "search_path" TO 'public'
@@ -15292,6 +16253,33 @@ CREATE OR REPLACE FUNCTION "public"."touch_updated_at"() RETURNS "trigger"
 
 
 ALTER FUNCTION "public"."touch_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."transfer_tooling_location"("p_tooling_id" "uuid", "p_to_location" "text", "p_reason" "text" DEFAULT NULL::"text") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'operate');
+BEGIN
+  IF length(btrim(COALESCE(p_to_location, ''))) = 0 THEN
+    RAISE EXCEPTION 'TOOLING_LOCATION_REQUIRED' USING ERRCODE = '22023';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM public.tooling_assignments AS a
+    WHERE a.tooling_equipment_id = p_tooling_id AND a.status = 'active'
+  ) THEN
+    RAISE EXCEPTION 'TOOLING_ISSUED_RETURN_FIRST' USING ERRCODE = '22023';
+  END IF;
+
+  UPDATE public.tooling_details SET storage_location = btrim(p_to_location) WHERE equipment_id = p_tooling_id;
+  PERFORM public.tooling_log_event(v_row, 'transferred', v_row.storage_location, btrim(p_to_location), NULL, p_reason, '{}'::jsonb);
+END;
+$$;
+
+
+ALTER FUNCTION "public"."transfer_tooling_location"("p_tooling_id" "uuid", "p_to_location" "text", "p_reason" "text") OWNER TO "postgres";
+
 
 
 CREATE OR REPLACE FUNCTION "public"."trigger_departure_processing"() RETURNS "jsonb"
@@ -15986,6 +16974,50 @@ $$;
 
 
 ALTER FUNCTION "public"."update_quickbooks_team_customers_updated_at"() OWNER TO "postgres";
+
+
+CREATE OR REPLACE FUNCTION "public"."update_tooling_details"("p_tooling_id" "uuid", "p_payload" "jsonb") RETURNS "void"
+    LANGUAGE "plpgsql" SECURITY DEFINER
+    SET "search_path" TO ''
+    AS $$
+DECLARE
+  v_row public.tooling_details := public.tooling_lock_for_actor(p_tooling_id, 'admin');
+  v_new public.tooling_details;
+BEGIN
+  BEGIN
+  UPDATE public.tooling_details AS td SET
+    tooling_type = CASE WHEN p_payload ? 'tooling_type' THEN p_payload->>'tooling_type' ELSE td.tooling_type END,
+    design_id = CASE WHEN p_payload ? 'design_id' THEN NULLIF(p_payload->>'design_id', '')::uuid ELSE td.design_id END,
+    ownership_type = CASE WHEN p_payload ? 'ownership_type' THEN p_payload->>'ownership_type' ELSE td.ownership_type END,
+    owner_name = CASE WHEN p_payload ? 'owner_name' THEN NULLIF(btrim(p_payload->>'owner_name'), '') ELSE td.owner_name END,
+    responsible_user_id = CASE WHEN p_payload ? 'responsible_user_id' THEN NULLIF(p_payload->>'responsible_user_id', '')::uuid ELSE td.responsible_user_id END,
+    requires_machine = CASE WHEN p_payload ? 'requires_machine' THEN (p_payload->>'requires_machine')::boolean ELSE td.requires_machine END,
+    drawing_number = CASE WHEN p_payload ? 'drawing_number' THEN NULLIF(btrim(p_payload->>'drawing_number'), '') ELSE td.drawing_number END,
+    drawing_revision = CASE WHEN p_payload ? 'drawing_revision' THEN NULLIF(btrim(p_payload->>'drawing_revision'), '') ELSE td.drawing_revision END,
+    revision_effective_date = CASE WHEN p_payload ? 'revision_effective_date' THEN NULLIF(p_payload->>'revision_effective_date', '')::date ELSE td.revision_effective_date END,
+    notes = CASE WHEN p_payload ? 'notes' THEN NULLIF(btrim(p_payload->>'notes'), '') ELSE td.notes END
+  WHERE td.equipment_id = p_tooling_id
+  RETURNING * INTO v_new;
+  EXCEPTION WHEN foreign_key_violation THEN
+    RAISE EXCEPTION 'TOOLING_CROSS_ORGANIZATION' USING ERRCODE = '23514';
+  END;
+
+  PERFORM public.tooling_log_event(v_new, 'details_updated',
+    v_row.drawing_revision, v_new.drawing_revision, NULL, NULL,
+    jsonb_strip_nulls(jsonb_build_object(
+      'tooling_type', CASE WHEN v_row.tooling_type IS DISTINCT FROM v_new.tooling_type THEN jsonb_build_object('old', v_row.tooling_type, 'new', v_new.tooling_type) END,
+      'ownership_type', CASE WHEN v_row.ownership_type IS DISTINCT FROM v_new.ownership_type THEN jsonb_build_object('old', v_row.ownership_type, 'new', v_new.ownership_type) END,
+      'drawing_number', CASE WHEN v_row.drawing_number IS DISTINCT FROM v_new.drawing_number THEN jsonb_build_object('old', v_row.drawing_number, 'new', v_new.drawing_number) END,
+      'drawing_revision', CASE WHEN v_row.drawing_revision IS DISTINCT FROM v_new.drawing_revision THEN jsonb_build_object('old', v_row.drawing_revision, 'new', v_new.drawing_revision) END,
+      'responsible_user_id', CASE WHEN v_row.responsible_user_id IS DISTINCT FROM v_new.responsible_user_id THEN jsonb_build_object('old', v_row.responsible_user_id, 'new', v_new.responsible_user_id) END,
+      'requires_machine', CASE WHEN v_row.requires_machine IS DISTINCT FROM v_new.requires_machine THEN jsonb_build_object('old', v_row.requires_machine, 'new', v_new.requires_machine) END
+    )));
+END;
+$$;
+
+
+ALTER FUNCTION "public"."update_tooling_details"("p_tooling_id" "uuid", "p_payload" "jsonb") OWNER TO "postgres";
+
 
 
 CREATE OR REPLACE FUNCTION "public"."update_updated_at_column"() RETURNS "trigger"
@@ -17970,6 +19002,47 @@ COMMENT ON COLUMN "public"."preventative_maintenance"."completed_by_name" IS 'De
 
 
 
+CREATE TABLE IF NOT EXISTS "public"."product_parts" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "part_number" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "customer_name" "text",
+    "revision" "text",
+    "description" "text",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_by" "uuid" DEFAULT "auth"."uid"(),
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "product_parts_name_not_blank" CHECK (("length"("btrim"("name")) > 0)),
+    CONSTRAINT "product_parts_number_not_blank" CHECK (("length"("btrim"("part_number")) > 0))
+);
+
+
+ALTER TABLE "public"."product_parts" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."production_operations" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "code" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "operation_type" "text" DEFAULT 'other'::"text" NOT NULL,
+    "description" "text",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_by" "uuid" DEFAULT "auth"."uid"(),
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "production_operations_code_not_blank" CHECK (("length"("btrim"("code")) > 0)),
+    CONSTRAINT "production_operations_name_not_blank" CHECK (("length"("btrim"("name")) > 0)),
+    CONSTRAINT "production_operations_type_check" CHECK (("operation_type" = ANY (ARRAY['welding'::"text", 'pressing'::"text", 'assembly'::"text", 'inspection'::"text", 'machining'::"text", 'molding'::"text", 'painting'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."production_operations" OWNER TO "postgres";
+
+
+
 CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "id" "uuid" NOT NULL,
     "email" "text",
@@ -18554,6 +19627,252 @@ CREATE TABLE IF NOT EXISTS "public"."tickets" (
 
 
 ALTER TABLE "public"."tickets" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_assignments" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "status" "text" DEFAULT 'active'::"text" NOT NULL,
+    "issued_to_user_id" "uuid" NOT NULL,
+    "issued_to_name" "text",
+    "issued_by" "uuid" NOT NULL,
+    "issued_by_name" "text",
+    "issued_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "machine_equipment_id" "uuid",
+    "product_part_id" "uuid",
+    "operation_id" "uuid",
+    "compatibility_id" "uuid",
+    "issue_location" "text",
+    "condition_at_issue" "text" NOT NULL,
+    "notes" "text",
+    "returned_at" timestamp with time zone,
+    "returned_by" "uuid",
+    "returned_by_name" "text",
+    "return_location" "text",
+    "condition_at_return" "text",
+    "usage_at_return" numeric,
+    "return_notes" "text",
+    CONSTRAINT "tooling_assignments_condition_check" CHECK ((("condition_at_issue" = ANY (ARRAY['new'::"text", 'good'::"text", 'worn'::"text", 'damaged'::"text"])) AND (("condition_at_return" IS NULL) OR ("condition_at_return" = ANY (ARRAY['new'::"text", 'good'::"text", 'worn'::"text", 'damaged'::"text"]))))),
+    CONSTRAINT "tooling_assignments_return_shape" CHECK (((("status" = 'active'::"text") AND ("returned_at" IS NULL)) OR (("status" = 'returned'::"text") AND ("returned_at" IS NOT NULL) AND ("condition_at_return" IS NOT NULL)))),
+    CONSTRAINT "tooling_assignments_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'returned'::"text"])))
+);
+
+
+ALTER TABLE "public"."tooling_assignments" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_assignments" IS 'Durable issue/return history. Partial unique index enforces one active checkout per tool.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_compatibility" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "product_part_id" "uuid" NOT NULL,
+    "operation_id" "uuid",
+    "machine_equipment_id" "uuid",
+    "drawing_revision" "text",
+    "effective_from" "date",
+    "effective_to" "date",
+    "approval_status" "text" DEFAULT 'pending'::"text" NOT NULL,
+    "approved_by" "uuid",
+    "approved_at" timestamp with time zone,
+    "is_active" boolean DEFAULT true NOT NULL,
+    "notes" "text",
+    "created_by" "uuid" DEFAULT "auth"."uid"(),
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "tooling_compatibility_approval_check" CHECK (("approval_status" = ANY (ARRAY['pending'::"text", 'approved'::"text", 'rejected'::"text"]))),
+    CONSTRAINT "tooling_compatibility_approval_stamp_check" CHECK ((("approval_status" = 'pending'::"text") OR ("approved_at" IS NOT NULL))),
+    CONSTRAINT "tooling_compatibility_dates_check" CHECK ((("effective_to" IS NULL) OR ("effective_from" IS NULL) OR ("effective_to" >= "effective_from"))),
+    CONSTRAINT "tooling_compatibility_not_self" CHECK (("machine_equipment_id" IS DISTINCT FROM "tooling_equipment_id"))
+);
+
+
+ALTER TABLE "public"."tooling_compatibility" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_compatibility" IS 'Approved tool <-> product part <-> operation <-> machine combinations. NULL machine = manual tooling.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_designs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "design_code" "text" NOT NULL,
+    "name" "text" NOT NULL,
+    "tooling_type" "text" NOT NULL,
+    "drawing_number" "text",
+    "current_revision" "text",
+    "revision_effective_date" "date",
+    "description" "text",
+    "is_active" boolean DEFAULT true NOT NULL,
+    "created_by" "uuid" DEFAULT "auth"."uid"(),
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "updated_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "tooling_designs_code_not_blank" CHECK (("length"("btrim"("design_code")) > 0)),
+    CONSTRAINT "tooling_designs_name_not_blank" CHECK (("length"("btrim"("name")) > 0)),
+    CONSTRAINT "tooling_designs_type_check" CHECK (("tooling_type" = ANY (ARRAY['jig'::"text", 'fixture'::"text", 'mold'::"text", 'die'::"text", 'checking_fixture'::"text", 'general_tool'::"text"])))
+);
+
+
+ALTER TABLE "public"."tooling_designs" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_events" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "event_type" "text" NOT NULL,
+    "from_value" "text",
+    "to_value" "text",
+    "assignment_id" "uuid",
+    "reason" "text",
+    "details" "jsonb" DEFAULT '{}'::"jsonb" NOT NULL,
+    "actor_id" "uuid",
+    "actor_name" "text",
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "tooling_events_type_check" CHECK (("event_type" = ANY (ARRAY['registered'::"text", 'details_updated'::"text", 'approved'::"text", 'issued'::"text", 'returned'::"text", 'transferred'::"text", 'usability_changed'::"text", 'limits_changed'::"text", 'limit_disposition'::"text", 'usage_corrected'::"text", 'inspection_recorded'::"text", 'returned_to_service'::"text", 'compatibility_changed'::"text"])))
+);
+
+
+ALTER TABLE "public"."tooling_events" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_events" IS 'Append-only tooling lifecycle ledger (movements, state changes, approvals, dispositions).';
+
+
+
+CREATE OR REPLACE VIEW "public"."tooling_overview" WITH ("security_invoker"='true') AS
+ SELECT "td"."equipment_id" AS "id",
+    "td"."organization_id",
+    "e"."name",
+    "e"."management_code",
+    "e"."manufacturer",
+    "e"."model",
+    "e"."serial_number",
+    "e"."status" AS "equipment_status",
+    "e"."team_id",
+    "e"."image_url",
+    "td"."tooling_type",
+    "td"."design_id",
+    "d"."design_code",
+    "d"."name" AS "design_name",
+    "td"."ownership_type",
+    "td"."owner_name",
+    "td"."storage_location",
+    "td"."responsible_user_id",
+    "rp"."name" AS "responsible_name",
+    "td"."condition",
+    "td"."usability_state",
+    "td"."approval_status",
+    "td"."approved_by",
+    "td"."approved_at",
+    "td"."requires_machine",
+    "td"."drawing_number",
+    "td"."drawing_revision",
+    "td"."revision_effective_date",
+    "td"."usage_unit",
+    "td"."warning_limit",
+    "td"."life_limit",
+    "td"."maintenance_interval",
+    "td"."inspection_interval_days",
+    "td"."cumulative_usage",
+    "td"."usage_since_maintenance",
+    "td"."last_maintenance_at",
+    "td"."last_inspection_at",
+    "td"."next_inspection_due",
+    "td"."notes",
+    "td"."created_at",
+    "td"."updated_at",
+        CASE
+            WHEN ("td"."life_limit" IS NULL) THEN NULL::numeric
+            ELSE ("td"."life_limit" - "td"."cumulative_usage")
+        END AS "remaining_life",
+    (("td"."warning_limit" IS NOT NULL) AND ("td"."cumulative_usage" >= "td"."warning_limit")) AS "warning_reached",
+    (("td"."life_limit" IS NOT NULL) AND ("td"."cumulative_usage" >= "td"."life_limit")) AS "life_limit_reached",
+    (("td"."maintenance_interval" IS NOT NULL) AND ("td"."usage_since_maintenance" >= "td"."maintenance_interval")) AS "maintenance_due",
+    (("td"."next_inspection_due" IS NOT NULL) AND ("td"."next_inspection_due" < CURRENT_DATE)) AS "inspection_overdue",
+    "a"."id" AS "active_assignment_id",
+    "a"."issued_to_user_id",
+    "a"."issued_to_name",
+    "a"."issued_at",
+    "a"."machine_equipment_id" AS "issued_machine_id",
+    ("a"."id" IS NOT NULL) AS "is_issued",
+    (("a"."id" IS NULL) AND ("td"."approval_status" = 'approved'::"text") AND ("td"."usability_state" = 'available'::"text") AND ("td"."condition" <> 'damaged'::"text") AND (("td"."life_limit" IS NULL) OR ("td"."cumulative_usage" < "td"."life_limit")) AND (("td"."next_inspection_due" IS NULL) OR ("td"."next_inspection_due" >= CURRENT_DATE))) AS "is_issuable"
+   FROM (((("public"."tooling_details" "td"
+     JOIN "public"."equipment" "e" ON (("e"."id" = "td"."equipment_id")))
+     LEFT JOIN "public"."tooling_designs" "d" ON (("d"."id" = "td"."design_id")))
+     LEFT JOIN "public"."profiles" "rp" ON (("rp"."id" = "td"."responsible_user_id")))
+     LEFT JOIN "public"."tooling_assignments" "a" ON ((("a"."tooling_equipment_id" = "td"."equipment_id") AND ("a"."status" = 'active'::"text"))));
+
+
+ALTER VIEW "public"."tooling_overview" OWNER TO "postgres";
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_usage_logs" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "entry_type" "text" NOT NULL,
+    "quantity" numeric NOT NULL,
+    "usage_unit" "text" NOT NULL,
+    "production_quantity" numeric,
+    "assignment_id" "uuid",
+    "cumulative_after" numeric NOT NULL,
+    "reason" "text",
+    "recorded_by" "uuid" NOT NULL,
+    "recorded_by_name" "text",
+    "recorded_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    CONSTRAINT "tooling_usage_logs_cumulative_check" CHECK (("cumulative_after" >= (0)::numeric)),
+    CONSTRAINT "tooling_usage_logs_production_check" CHECK ((("production_quantity" IS NULL) OR ("production_quantity" >= (0)::numeric))),
+    CONSTRAINT "tooling_usage_logs_quantity_check" CHECK ((("quantity" <> (0)::numeric) AND (("entry_type" = 'correction'::"text") OR ("quantity" > (0)::numeric)))),
+    CONSTRAINT "tooling_usage_logs_reason_check" CHECK ((("entry_type" = 'usage'::"text") OR ("length"("btrim"(COALESCE("reason", ''::"text"))) > 0))),
+    CONSTRAINT "tooling_usage_logs_type_check" CHECK (("entry_type" = ANY (ARRAY['usage'::"text", 'correction'::"text"]))),
+    CONSTRAINT "tooling_usage_logs_unit_check" CHECK (("usage_unit" = ANY (ARRAY['cycles'::"text", 'shots'::"text", 'strokes'::"text", 'pieces'::"text"])))
+);
+
+
+ALTER TABLE "public"."tooling_usage_logs" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_usage_logs" IS 'Append-only usage ledger (cycles/shots/strokes/pieces) including authorized corrections.';
+
+
+
+CREATE TABLE IF NOT EXISTS "public"."tooling_verifications" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "organization_id" "uuid" NOT NULL,
+    "tooling_equipment_id" "uuid" NOT NULL,
+    "verification_type" "text" NOT NULL,
+    "result" "text" NOT NULL,
+    "findings" "text",
+    "work_order_id" "uuid",
+    "maintenance_completed" boolean DEFAULT false NOT NULL,
+    "returned_to_service" boolean DEFAULT false NOT NULL,
+    "usability_before" "text" NOT NULL,
+    "usability_after" "text" NOT NULL,
+    "cumulative_usage_at" numeric NOT NULL,
+    "next_due" "date",
+    "inspected_by" "uuid" NOT NULL,
+    "inspected_by_name" "text",
+    "inspected_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "approved_by" "uuid",
+    "approved_by_name" "text",
+    "approved_at" timestamp with time zone,
+    CONSTRAINT "tooling_verifications_result_check" CHECK (("result" = ANY (ARRAY['pass'::"text", 'fail'::"text", 'conditional'::"text"]))),
+    CONSTRAINT "tooling_verifications_rts_check" CHECK (((NOT "returned_to_service") OR (("result" = 'pass'::"text") AND ("approved_by" IS NOT NULL) AND ("approved_at" IS NOT NULL)))),
+    CONSTRAINT "tooling_verifications_type_check" CHECK (("verification_type" = ANY (ARRAY['periodic'::"text", 'post_repair'::"text", 'incoming'::"text", 'first_article'::"text", 'other'::"text"])))
+);
+
+
+ALTER TABLE "public"."tooling_verifications" OWNER TO "postgres";
+
+
+COMMENT ON TABLE "public"."tooling_verifications" IS 'Inspection / verification records including return-to-service authorization.';
+
 
 
 CREATE TABLE IF NOT EXISTS "public"."user_dashboard_preferences" (
@@ -19205,6 +20524,36 @@ ALTER TABLE ONLY "public"."preventative_maintenance"
 
 
 
+ALTER TABLE ONLY "public"."product_parts"
+    ADD CONSTRAINT "product_parts_id_org_key" UNIQUE ("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."product_parts"
+    ADD CONSTRAINT "product_parts_org_number_key" UNIQUE ("organization_id", "part_number");
+
+
+
+ALTER TABLE ONLY "public"."product_parts"
+    ADD CONSTRAINT "product_parts_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."production_operations"
+    ADD CONSTRAINT "production_operations_id_org_key" UNIQUE ("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."production_operations"
+    ADD CONSTRAINT "production_operations_org_code_key" UNIQUE ("organization_id", "code");
+
+
+
+ALTER TABLE ONLY "public"."production_operations"
+    ADD CONSTRAINT "production_operations_pkey" PRIMARY KEY ("id");
+
+
+
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_pkey" PRIMARY KEY ("id");
 
@@ -19327,6 +20676,61 @@ ALTER TABLE ONLY "public"."ticket_comments"
 
 ALTER TABLE ONLY "public"."tickets"
     ADD CONSTRAINT "tickets_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_id_org_key" UNIQUE ("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_designs"
+    ADD CONSTRAINT "tooling_designs_id_org_key" UNIQUE ("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_designs"
+    ADD CONSTRAINT "tooling_designs_org_code_key" UNIQUE ("organization_id", "design_code");
+
+
+
+ALTER TABLE ONLY "public"."tooling_designs"
+    ADD CONSTRAINT "tooling_designs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_details"
+    ADD CONSTRAINT "tooling_details_id_org_key" UNIQUE ("equipment_id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_details"
+    ADD CONSTRAINT "tooling_details_pkey" PRIMARY KEY ("equipment_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_events"
+    ADD CONSTRAINT "tooling_events_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_usage_logs"
+    ADD CONSTRAINT "tooling_usage_logs_pkey" PRIMARY KEY ("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_verifications"
+    ADD CONSTRAINT "tooling_verifications_pkey" PRIMARY KEY ("id");
 
 
 
@@ -20151,6 +21555,90 @@ CREATE INDEX "idx_tickets_user_id" ON "public"."tickets" USING "btree" ("user_id
 
 
 
+CREATE INDEX "idx_tooling_assignments_compat" ON "public"."tooling_assignments" USING "btree" ("compatibility_id") WHERE ("compatibility_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_assignments_holder" ON "public"."tooling_assignments" USING "btree" ("issued_to_user_id") WHERE ("status" = 'active'::"text");
+
+
+
+CREATE INDEX "idx_tooling_assignments_machine" ON "public"."tooling_assignments" USING "btree" ("machine_equipment_id") WHERE ("machine_equipment_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_assignments_org_status" ON "public"."tooling_assignments" USING "btree" ("organization_id", "status");
+
+
+
+CREATE INDEX "idx_tooling_assignments_tool_issued" ON "public"."tooling_assignments" USING "btree" ("tooling_equipment_id", "issued_at" DESC);
+
+
+
+CREATE INDEX "idx_tooling_compatibility_machine" ON "public"."tooling_compatibility" USING "btree" ("machine_equipment_id") WHERE ("machine_equipment_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_compatibility_operation" ON "public"."tooling_compatibility" USING "btree" ("operation_id") WHERE ("operation_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_compatibility_org" ON "public"."tooling_compatibility" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_tooling_compatibility_product" ON "public"."tooling_compatibility" USING "btree" ("product_part_id");
+
+
+
+CREATE INDEX "idx_tooling_compatibility_tool" ON "public"."tooling_compatibility" USING "btree" ("tooling_equipment_id", "is_active");
+
+
+
+CREATE INDEX "idx_tooling_details_design" ON "public"."tooling_details" USING "btree" ("design_id") WHERE ("design_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_details_org_state" ON "public"."tooling_details" USING "btree" ("organization_id", "usability_state");
+
+
+
+CREATE INDEX "idx_tooling_events_assignment" ON "public"."tooling_events" USING "btree" ("assignment_id") WHERE ("assignment_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_events_org" ON "public"."tooling_events" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_tooling_events_tool" ON "public"."tooling_events" USING "btree" ("tooling_equipment_id", "created_at" DESC);
+
+
+
+CREATE INDEX "idx_tooling_usage_logs_assignment" ON "public"."tooling_usage_logs" USING "btree" ("assignment_id") WHERE ("assignment_id" IS NOT NULL);
+
+
+
+CREATE INDEX "idx_tooling_usage_logs_org" ON "public"."tooling_usage_logs" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_tooling_usage_logs_tool" ON "public"."tooling_usage_logs" USING "btree" ("tooling_equipment_id", "recorded_at" DESC);
+
+
+
+CREATE INDEX "idx_tooling_verifications_org" ON "public"."tooling_verifications" USING "btree" ("organization_id");
+
+
+
+CREATE INDEX "idx_tooling_verifications_tool" ON "public"."tooling_verifications" USING "btree" ("tooling_equipment_id", "inspected_at" DESC);
+
+
+
+CREATE INDEX "idx_tooling_verifications_work_order" ON "public"."tooling_verifications" USING "btree" ("work_order_id") WHERE ("work_order_id" IS NOT NULL);
+
+
+
 CREATE INDEX "idx_user_dashboard_preferences_organization_id" ON "public"."user_dashboard_preferences" USING "btree" ("organization_id");
 
 
@@ -20320,6 +21808,14 @@ CREATE INDEX "terms_acceptances_user_accepted_idx" ON "public"."terms_acceptance
 
 
 CREATE INDEX "terms_acceptances_versions_idx" ON "public"."terms_acceptances" USING "btree" ("terms_version_hash", "privacy_version_hash");
+
+
+
+CREATE UNIQUE INDEX "tooling_assignments_one_active_key" ON "public"."tooling_assignments" USING "btree" ("tooling_equipment_id") WHERE ("status" = 'active'::"text");
+
+
+
+CREATE UNIQUE INDEX "tooling_compatibility_active_combo_key" ON "public"."tooling_compatibility" USING "btree" ("tooling_equipment_id", "product_part_id", COALESCE("operation_id", '00000000-0000-0000-0000-000000000000'::"uuid"), COALESCE("machine_equipment_id", '00000000-0000-0000-0000-000000000000'::"uuid")) WHERE "is_active";
 
 
 
@@ -20567,6 +22063,30 @@ CREATE OR REPLACE TRIGGER "trg_prevent_used_equipment_group_delete" BEFORE DELET
 
 
 
+CREATE OR REPLACE TRIGGER "trg_product_parts_lock_org" BEFORE UPDATE OF "organization_id" ON "public"."product_parts" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_lock_master_org"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_product_parts_normalize" BEFORE INSERT OR UPDATE ON "public"."product_parts" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_normalize_master_code"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_product_parts_updated_at" BEFORE UPDATE ON "public"."product_parts" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_touch_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_production_operations_lock_org" BEFORE UPDATE OF "organization_id" ON "public"."production_operations" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_lock_master_org"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_production_operations_normalize" BEFORE INSERT OR UPDATE ON "public"."production_operations" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_normalize_master_code"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_production_operations_updated_at" BEFORE UPDATE ON "public"."production_operations" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_touch_updated_at"();
+
+
+
 CREATE OR REPLACE TRIGGER "trg_protect_equipment_group_code" BEFORE INSERT OR UPDATE OF "code" ON "public"."equipment_groups" FOR EACH ROW EXECUTE FUNCTION "public"."protect_equipment_group_code"();
 
 
@@ -20580,6 +22100,38 @@ CREATE OR REPLACE TRIGGER "trg_set_geocoded_locations_updated_at" BEFORE UPDATE 
 
 
 CREATE OR REPLACE TRIGGER "trg_sync_equipment_last_known_location_from_scan" AFTER INSERT ON "public"."scans" FOR EACH ROW EXECUTE FUNCTION "public"."sync_equipment_last_known_location_from_scan"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_assignments_validate" BEFORE INSERT OR UPDATE OF "machine_equipment_id", "organization_id" ON "public"."tooling_assignments" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_validate_equipment_refs"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_compatibility_updated_at" BEFORE UPDATE ON "public"."tooling_compatibility" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_touch_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_compatibility_validate" BEFORE INSERT OR UPDATE OF "machine_equipment_id", "organization_id" ON "public"."tooling_compatibility" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_validate_equipment_refs"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_designs_lock_org" BEFORE UPDATE OF "organization_id" ON "public"."tooling_designs" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_lock_master_org"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_designs_normalize" BEFORE INSERT OR UPDATE ON "public"."tooling_designs" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_normalize_master_code"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_designs_updated_at" BEFORE UPDATE ON "public"."tooling_designs" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_touch_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_details_updated_at" BEFORE UPDATE ON "public"."tooling_details" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_touch_updated_at"();
+
+
+
+CREATE OR REPLACE TRIGGER "trg_tooling_details_validate" BEFORE INSERT OR UPDATE ON "public"."tooling_details" FOR EACH ROW EXECUTE FUNCTION "public"."tooling_validate_equipment_refs"();
 
 
 
@@ -21358,6 +22910,16 @@ ALTER TABLE ONLY "public"."preventative_maintenance"
 
 
 
+ALTER TABLE ONLY "public"."product_parts"
+    ADD CONSTRAINT "product_parts_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."production_operations"
+    ADD CONSTRAINT "production_operations_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
@@ -21520,6 +23082,126 @@ ALTER TABLE ONLY "public"."ticket_comments"
 
 ALTER TABLE ONLY "public"."tickets"
     ADD CONSTRAINT "tickets_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_compatibility_id_fkey" FOREIGN KEY ("compatibility_id") REFERENCES "public"."tooling_compatibility"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_machine_equipment_id_fkey" FOREIGN KEY ("machine_equipment_id") REFERENCES "public"."equipment"("id") ON DELETE SET NULL;
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_operation_fk" FOREIGN KEY ("operation_id", "organization_id") REFERENCES "public"."production_operations"("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_product_fk" FOREIGN KEY ("product_part_id", "organization_id") REFERENCES "public"."product_parts"("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_assignments"
+    ADD CONSTRAINT "tooling_assignments_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_machine_equipment_id_fkey" FOREIGN KEY ("machine_equipment_id") REFERENCES "public"."equipment"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_operation_fk" FOREIGN KEY ("operation_id", "organization_id") REFERENCES "public"."production_operations"("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_product_fk" FOREIGN KEY ("product_part_id", "organization_id") REFERENCES "public"."product_parts"("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_compatibility"
+    ADD CONSTRAINT "tooling_compatibility_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_designs"
+    ADD CONSTRAINT "tooling_designs_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_details"
+    ADD CONSTRAINT "tooling_details_design_fk" FOREIGN KEY ("design_id", "organization_id") REFERENCES "public"."tooling_designs"("id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_details"
+    ADD CONSTRAINT "tooling_details_equipment_id_fkey" FOREIGN KEY ("equipment_id") REFERENCES "public"."equipment"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_details"
+    ADD CONSTRAINT "tooling_details_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_events"
+    ADD CONSTRAINT "tooling_events_assignment_id_fkey" FOREIGN KEY ("assignment_id") REFERENCES "public"."tooling_assignments"("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_events"
+    ADD CONSTRAINT "tooling_events_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_events"
+    ADD CONSTRAINT "tooling_events_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_usage_logs"
+    ADD CONSTRAINT "tooling_usage_logs_assignment_id_fkey" FOREIGN KEY ("assignment_id") REFERENCES "public"."tooling_assignments"("id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_usage_logs"
+    ADD CONSTRAINT "tooling_usage_logs_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_usage_logs"
+    ADD CONSTRAINT "tooling_usage_logs_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_verifications"
+    ADD CONSTRAINT "tooling_verifications_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE CASCADE;
+
+
+
+ALTER TABLE ONLY "public"."tooling_verifications"
+    ADD CONSTRAINT "tooling_verifications_tool_fk" FOREIGN KEY ("tooling_equipment_id", "organization_id") REFERENCES "public"."tooling_details"("equipment_id", "organization_id");
+
+
+
+ALTER TABLE ONLY "public"."tooling_verifications"
+    ADD CONSTRAINT "tooling_verifications_work_order_id_fkey" FOREIGN KEY ("work_order_id") REFERENCES "public"."work_orders"("id") ON DELETE SET NULL;
 
 
 
@@ -22722,6 +24404,44 @@ CREATE POLICY "preventative_maintenance_update_consolidated" ON "public"."preven
 
 
 
+ALTER TABLE "public"."product_parts" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "product_parts_admin_delete" ON "public"."product_parts" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "product_parts_admin_insert" ON "public"."product_parts" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "product_parts_admin_update" ON "public"."product_parts" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id")) WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "product_parts_members_select" ON "public"."product_parts" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."production_operations" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "production_operations_admin_delete" ON "public"."production_operations" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "production_operations_admin_insert" ON "public"."production_operations" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "production_operations_admin_update" ON "public"."production_operations" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id")) WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "production_operations_members_select" ON "public"."production_operations" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
 ALTER TABLE "public"."profiles" ENABLE ROW LEVEL SECURITY;
 
 
@@ -23071,6 +24791,67 @@ ALTER TABLE "public"."ticket_comments" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."tickets" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."tooling_assignments" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_assignments_members_select" ON "public"."tooling_assignments" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_compatibility" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_compatibility_members_select" ON "public"."tooling_compatibility" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_designs" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_designs_admin_delete" ON "public"."tooling_designs" FOR DELETE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "tooling_designs_admin_insert" ON "public"."tooling_designs" FOR INSERT TO "authenticated" WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "tooling_designs_admin_update" ON "public"."tooling_designs" FOR UPDATE TO "authenticated" USING ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id")) WITH CHECK ("public"."is_org_admin"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+CREATE POLICY "tooling_designs_members_select" ON "public"."tooling_designs" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_details" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_details_members_select" ON "public"."tooling_details" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_events" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_events_members_select" ON "public"."tooling_events" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_usage_logs" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_usage_logs_members_select" ON "public"."tooling_usage_logs" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
+
+
+ALTER TABLE "public"."tooling_verifications" ENABLE ROW LEVEL SECURITY;
+
+
+CREATE POLICY "tooling_verifications_members_select" ON "public"."tooling_verifications" FOR SELECT TO "authenticated" USING ("public"."is_org_member"(( SELECT "auth"."uid"() AS "uid"), "organization_id"));
+
 
 
 ALTER TABLE "public"."user_dashboard_preferences" ENABLE ROW LEVEL SECURITY;
@@ -23772,6 +25553,11 @@ GRANT ALL ON FUNCTION "public"."apply_pending_admin_grants_for_user"("p_user_id"
 
 
 
+REVOKE ALL ON FUNCTION "public"."approve_tooling"("p_tooling_id" "uuid", "p_note" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."approve_tooling"("p_tooling_id" "uuid", "p_note" "text") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."assert_inventory_read_access"("p_organization_id" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."assert_inventory_read_access"("p_organization_id" "uuid") TO "service_role";
 GRANT ALL ON FUNCTION "public"."assert_inventory_read_access"("p_organization_id" "uuid") TO "authenticated";
@@ -24072,6 +25858,11 @@ GRANT ALL ON FUNCTION "public"."convert_work_order_to_historical"("p_work_order_
 
 
 
+REVOKE ALL ON FUNCTION "public"."correct_tooling_usage"("p_tooling_id" "uuid", "p_delta" numeric, "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."correct_tooling_usage"("p_tooling_id" "uuid", "p_delta" numeric, "p_reason" "text") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."count_equipment_matching_pm_rules"("p_organization_id" "uuid", "p_rules" "jsonb") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."count_equipment_matching_pm_rules"("p_organization_id" "uuid", "p_rules" "jsonb") TO "service_role";
 GRANT ALL ON FUNCTION "public"."count_equipment_matching_pm_rules"("p_organization_id" "uuid", "p_rules" "jsonb") TO "authenticated";
@@ -24149,6 +25940,16 @@ GRANT ALL ON FUNCTION "public"."create_quick_form"("p_organization_id" "uuid", "
 REVOKE ALL ON FUNCTION "public"."create_quickbooks_oauth_session"("p_organization_id" "uuid", "p_redirect_url" "text", "p_origin_url" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."create_quickbooks_oauth_session"("p_organization_id" "uuid", "p_redirect_url" "text", "p_origin_url" "text") TO "service_role";
 GRANT ALL ON FUNCTION "public"."create_quickbooks_oauth_session"("p_organization_id" "uuid", "p_redirect_url" "text", "p_origin_url" "text") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."create_tooling"("p_organization_id" "uuid", "p_payload" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."create_tooling"("p_organization_id" "uuid", "p_payload" "jsonb") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."create_tooling_compatibility"("p_tooling_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_machine_equipment_id" "uuid", "p_drawing_revision" "text", "p_effective_from" "date", "p_effective_to" "date", "p_notes" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."create_tooling_compatibility"("p_tooling_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_machine_equipment_id" "uuid", "p_drawing_revision" "text", "p_effective_from" "date", "p_effective_to" "date", "p_notes" "text") TO "authenticated";
 
 
 
@@ -24707,6 +26508,11 @@ GRANT ALL ON FUNCTION "public"."is_work_order_team_manager"("p_user_id" "uuid", 
 
 
 
+REVOKE ALL ON FUNCTION "public"."issue_tooling"("p_tooling_id" "uuid", "p_issued_to_user_id" "uuid", "p_machine_equipment_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_issue_location" "text", "p_condition" "text", "p_notes" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."issue_tooling"("p_tooling_id" "uuid", "p_issued_to_user_id" "uuid", "p_machine_equipment_id" "uuid", "p_product_part_id" "uuid", "p_operation_id" "uuid", "p_issue_location" "text", "p_condition" "text", "p_notes" "text") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."latest_scans_for_equipment_ids"("p_organization_id" "uuid", "p_equipment_ids" "uuid"[]) FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."latest_scans_for_equipment_ids"("p_organization_id" "uuid", "p_equipment_ids" "uuid"[]) TO "service_role";
 GRANT ALL ON FUNCTION "public"."latest_scans_for_equipment_ids"("p_organization_id" "uuid", "p_equipment_ids" "uuid"[]) TO "authenticated";
@@ -24951,6 +26757,21 @@ GRANT ALL ON FUNCTION "public"."record_equipment_status_change"() TO "service_ro
 
 
 
+REVOKE ALL ON FUNCTION "public"."record_tooling_limit_disposition"("p_tooling_id" "uuid", "p_disposition" "text", "p_new_life_limit" numeric, "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."record_tooling_limit_disposition"("p_tooling_id" "uuid", "p_disposition" "text", "p_new_life_limit" numeric, "p_reason" "text") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."record_tooling_usage"("p_tooling_id" "uuid", "p_quantity" numeric, "p_production_quantity" numeric, "p_notes" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."record_tooling_usage"("p_tooling_id" "uuid", "p_quantity" numeric, "p_production_quantity" numeric, "p_notes" "text") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."record_tooling_verification"("p_tooling_id" "uuid", "p_verification_type" "text", "p_result" "text", "p_findings" "text", "p_work_order_id" "uuid", "p_maintenance_completed" boolean, "p_return_to_service" boolean, "p_next_due" "date") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."record_tooling_verification"("p_tooling_id" "uuid", "p_verification_type" "text", "p_result" "text", "p_findings" "text", "p_work_order_id" "uuid", "p_maintenance_completed" boolean, "p_return_to_service" boolean, "p_next_due" "date") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."refresh_quickbooks_tokens_manual"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."refresh_quickbooks_tokens_manual"() TO "service_role";
 GRANT ALL ON FUNCTION "public"."refresh_quickbooks_tokens_manual"() TO "authenticated";
@@ -25036,6 +26857,11 @@ GRANT ALL ON FUNCTION "public"."resubmit_workspace_access_request"() TO "authent
 
 
 
+REVOKE ALL ON FUNCTION "public"."return_tooling"("p_tooling_id" "uuid", "p_condition" "text", "p_return_location" "text", "p_usage_quantity" numeric, "p_notes" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."return_tooling"("p_tooling_id" "uuid", "p_condition" "text", "p_return_location" "text", "p_usage_quantity" numeric, "p_notes" "text") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."revert_pm_completion"("p_pm_id" "uuid", "p_reason" "text") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."revert_pm_completion"("p_pm_id" "uuid", "p_reason" "text") TO "service_role";
 GRANT ALL ON FUNCTION "public"."revert_pm_completion"("p_pm_id" "uuid", "p_reason" "text") TO "authenticated";
@@ -25096,6 +26922,21 @@ GRANT ALL ON FUNCTION "public"."set_team_permission_override"("p_organization_id
 
 
 
+REVOKE ALL ON FUNCTION "public"."set_tooling_compatibility_status"("p_compatibility_id" "uuid", "p_action" "text", "p_note" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."set_tooling_compatibility_status"("p_compatibility_id" "uuid", "p_action" "text", "p_note" "text") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."set_tooling_life_limits"("p_tooling_id" "uuid", "p_usage_unit" "text", "p_warning_limit" numeric, "p_life_limit" numeric, "p_maintenance_interval" numeric, "p_inspection_interval_days" integer, "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."set_tooling_life_limits"("p_tooling_id" "uuid", "p_usage_unit" "text", "p_warning_limit" numeric, "p_life_limit" numeric, "p_maintenance_interval" numeric, "p_inspection_interval_days" integer, "p_reason" "text") TO "authenticated";
+
+
+
+REVOKE ALL ON FUNCTION "public"."set_tooling_usability"("p_tooling_id" "uuid", "p_state" "text", "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."set_tooling_usability"("p_tooling_id" "uuid", "p_state" "text", "p_reason" "text") TO "authenticated";
+
+
+
 REVOKE ALL ON FUNCTION "public"."should_notify_user_for_work_order"("user_uuid" "uuid", "work_order_team_id" "uuid", "work_order_status" "text", "organization_uuid" "uuid") FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."should_notify_user_for_work_order"("user_uuid" "uuid", "work_order_team_id" "uuid", "work_order_status" "text", "organization_uuid" "uuid") TO "service_role";
 
@@ -25151,6 +26992,51 @@ GRANT ALL ON FUNCTION "public"."synthesize_historical_timeline_events"("p_histor
 
 
 
+REVOKE ALL ON FUNCTION "public"."tooling_actor_name"("p_user_id" "uuid") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_actor_name"("p_user_id" "uuid") TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_details" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_details" TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_apply_usage"("p_row" "public"."tooling_details", "p_quantity" numeric, "p_production_quantity" numeric, "p_assignment_id" "uuid", "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_apply_usage"("p_row" "public"."tooling_details", "p_quantity" numeric, "p_production_quantity" numeric, "p_assignment_id" "uuid", "p_reason" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_lock_for_actor"("p_tooling_id" "uuid", "p_tier" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_lock_for_actor"("p_tooling_id" "uuid", "p_tier" "text") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_lock_master_org"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_lock_master_org"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_log_event"("p_row" "public"."tooling_details", "p_event_type" "text", "p_from" "text", "p_to" "text", "p_assignment_id" "uuid", "p_reason" "text", "p_details" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_log_event"("p_row" "public"."tooling_details", "p_event_type" "text", "p_from" "text", "p_to" "text", "p_assignment_id" "uuid", "p_reason" "text", "p_details" "jsonb") TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_normalize_master_code"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_normalize_master_code"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_touch_updated_at"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_touch_updated_at"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."tooling_validate_equipment_refs"() FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."tooling_validate_equipment_refs"() TO "service_role";
+
+
+
 REVOKE ALL ON FUNCTION "public"."touch_equipment_group_updated_at"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."touch_equipment_group_updated_at"() TO "service_role";
 
@@ -25158,6 +27044,11 @@ GRANT ALL ON FUNCTION "public"."touch_equipment_group_updated_at"() TO "service_
 
 REVOKE ALL ON FUNCTION "public"."touch_updated_at"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."touch_updated_at"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."transfer_tooling_location"("p_tooling_id" "uuid", "p_to_location" "text", "p_reason" "text") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."transfer_tooling_location"("p_tooling_id" "uuid", "p_to_location" "text", "p_reason" "text") TO "authenticated";
 
 
 
@@ -25248,6 +27139,11 @@ GRANT ALL ON FUNCTION "public"."update_quickbooks_invoice_status_events_updated_
 
 REVOKE ALL ON FUNCTION "public"."update_quickbooks_team_customers_updated_at"() FROM PUBLIC;
 GRANT ALL ON FUNCTION "public"."update_quickbooks_team_customers_updated_at"() TO "service_role";
+
+
+
+REVOKE ALL ON FUNCTION "public"."update_tooling_details"("p_tooling_id" "uuid", "p_payload" "jsonb") FROM PUBLIC;
+GRANT ALL ON FUNCTION "public"."update_tooling_details"("p_tooling_id" "uuid", "p_payload" "jsonb") TO "authenticated";
 
 
 
@@ -25658,6 +27554,16 @@ GRANT ALL ON TABLE "public"."preventative_maintenance" TO "service_role";
 
 
 
+GRANT ALL ON TABLE "public"."product_parts" TO "authenticated";
+GRANT ALL ON TABLE "public"."product_parts" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."production_operations" TO "authenticated";
+GRANT ALL ON TABLE "public"."production_operations" TO "service_role";
+
+
+
 GRANT ALL ON TABLE "public"."profiles" TO "anon";
 GRANT ALL ON TABLE "public"."profiles" TO "authenticated";
 GRANT ALL ON TABLE "public"."profiles" TO "service_role";
@@ -25760,6 +27666,41 @@ GRANT ALL ON TABLE "public"."ticket_comments" TO "service_role";
 GRANT ALL ON TABLE "public"."tickets" TO "anon";
 GRANT ALL ON TABLE "public"."tickets" TO "authenticated";
 GRANT ALL ON TABLE "public"."tickets" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_assignments" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_assignments" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_compatibility" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_compatibility" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."tooling_designs" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_designs" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_events" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_events" TO "service_role";
+
+
+
+GRANT ALL ON TABLE "public"."tooling_overview" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_overview" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_usage_logs" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_usage_logs" TO "service_role";
+
+
+
+GRANT SELECT,REFERENCES,TRIGGER ON TABLE "public"."tooling_verifications" TO "authenticated";
+GRANT ALL ON TABLE "public"."tooling_verifications" TO "service_role";
 
 
 

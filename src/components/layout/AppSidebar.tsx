@@ -29,6 +29,7 @@ import {
   Search,
   Layers,
   Shield,
+  Wrench,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -64,6 +65,7 @@ const navigationGroups: NavigationGroup[] = [
       { translationKey: "navigation.items.equipment", url: "/dashboard/equipment", icon: Forklift },
       { translationKey: "navigation.items.fleetMap", url: "/dashboard/fleet-map", icon: Map },
       { translationKey: "navigation.items.facilityMap", url: "/dashboard/facility-map", icon: MapPinned },
+      { translationKey: "navigation.items.tooling", url: "/dashboard/tooling", icon: Wrench },
       { translationKey: "navigation.items.inventory", url: "/dashboard/inventory", icon: Warehouse, inventoryAccessRequired: true },
       { translationKey: "navigation.items.partLookup", url: "/dashboard/part-lookup", icon: Search, inventoryAccessRequired: true },
       { translationKey: "navigation.items.partAlternates", url: "/dashboard/alternate-groups", icon: Layers, inventoryAccessRequired: true },

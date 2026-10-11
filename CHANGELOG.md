@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.43.0] - 2026-10-11
+
+### Added
+
+- **Tooling management** - A new Tooling page manages jigs, fixtures, molds and dies as TL equipment with the same management code and QR: approved product / operation / machine compatibility, QR-friendly issue and return with double-checkout protection, cycle-based tool life with warning and hard limits, and inspection-gated return to service linked to work orders. Available in English, Vietnamese and Korean.
+
 ## [3.42.1] - 2026-10-11
 
 ### Fixed
