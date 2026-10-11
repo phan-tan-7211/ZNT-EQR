@@ -47,7 +47,7 @@ async function readProductionCsp(repoRoot: string): Promise<string> {
 
 /**
  * Serves docs/.vitepress/dist with the production CSP header applied to every
- * response, emulating equipqr.info hosting (including cleanUrls resolution).
+ * response, emulating eqrdocs.zinitek.com hosting (including cleanUrls resolution).
  * Requires a prior `npm run docs:build`.
  */
 export async function startDocsDistCspServer(): Promise<DocsCspServer> {

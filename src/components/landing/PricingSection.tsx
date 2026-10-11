@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { PricingCollageBackground } from '@/components/landing/pricing-collage/PricingCollageBackground';
 
-const DEMO_CALENDLY_URL = 'https://calendly.com/nicholas-king-columbiacloudworks/30min';
 const CONTACT_EMAIL = 'mailto:phantan7211@gmail.com';
 
 const PricingSection = () => {
@@ -52,10 +51,10 @@ const PricingSection = () => {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="text-lg px-6 py-6 w-full sm:w-auto">
-                <a href={DEMO_CALENDLY_URL} target="_blank" rel="noopener noreferrer">
+                <Link to="/support">
                   <Calendar className="mr-2 h-5 w-5" aria-hidden />
                   {t('landingSections.pricing.demo')}
-                </a>
+                </Link>
               </Button>
             </div>
 

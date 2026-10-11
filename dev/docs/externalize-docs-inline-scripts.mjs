@@ -2,7 +2,7 @@
 /**
  * After `vitepress build`, move every inline <script> body in docs/.vitepress/dist
  * into a content-addressed external file under assets/ and rewrite the HTML to
- * reference it. This lets the equipqr.info CSP stay a static `script-src 'self'`.
+ * reference it. This lets the eqrdocs.zinitek.com CSP stay a static `script-src 'self'`.
  *
  * Why not sha256 hashes in a committed headers file? Build-time hashes would
  * drift whenever VitePress changes its inline bootstrap. Any docs edit changed

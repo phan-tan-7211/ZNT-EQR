@@ -23,7 +23,7 @@ export function PrivacyContactSection() {
               </li>
               <li>
                 <strong>Company:</strong>{' '}
-                <ExternalLink href="https://columbiacloudworks.com" className="hover:text-foreground">
+                <ExternalLink href="https://eqrweb.zinitek.com" className="hover:text-foreground">
                   ZNT LLC
                 </ExternalLink>
               </li>

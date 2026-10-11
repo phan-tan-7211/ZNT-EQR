@@ -57,7 +57,7 @@ describe('parseZNTEQRTarget', () => {
   });
 
   it('rejects non-production hosted equipment URLs', () => {
-    const r = parseZNTEQRTarget('https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/qr/equipment/eq-p', LOCAL_ORIGIN);
+    const r = parseZNTEQRTarget('https://preview.eqr-zinitek.pages.dev/qr/equipment/eq-p', LOCAL_ORIGIN);
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe('external');
   });

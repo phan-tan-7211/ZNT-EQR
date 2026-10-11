@@ -98,7 +98,7 @@ describe('PrivacyPolicy', () => {
 
     const cloudWorksLinks = screen.getAllByText('ZNT LLC');
     cloudWorksLinks.forEach((link) => {
-      expect(link.closest('a')).toHaveAttribute('href', 'https://columbiacloudworks.com');
+      expect(link.closest('a')).toHaveAttribute('href', 'https://eqrweb.zinitek.com');
       expect(link.closest('a')).toHaveAttribute('target', '_blank');
       expect(link.closest('a')).toHaveAttribute('rel', 'noopener noreferrer');
     });

@@ -3,12 +3,12 @@
 This document is the canonical technical reference for ZNTEQR's work-order
 lifecycle, role capabilities, and status-transition rules. It is not the
 step-by-step walkthrough for end users — those live in the **ZNTEQR Help Center** at
-**`https://equipqr.info/support/`**. Signed-in users report issues at
+**`https://eqrdocs.zinitek.com/support/`**. Signed-in users report issues at
 **`https://eqr.zinitek.com/dashboard/support`**.
 
 ## Where to find user-facing walkthroughs
 
-- **Help Center** — `https://equipqr.info/support/` (primary source of truth for
+- **Help Center** — `https://eqrdocs.zinitek.com/support/` (primary source of truth for
   step-by-step guides, organized by role and workflow).
 - **[Image upload quick reference](../how-to/image-upload/quick-reference-card.md)**
   — single-page cheat sheet for technicians in the field.
@@ -123,7 +123,7 @@ management) see [Permissions](./permissions.md).
 
 ## Image Upload
 
-Image upload is documented step-by-step in the [Help Center](https://equipqr.info/support/technician-field-work/add-notes-and-photos)
+Image upload is documented step-by-step in the [Help Center](https://eqrdocs.zinitek.com/support/technician-field-work/add-notes-and-photos)
 under Technician Field Work. The
 technical contract for developers is:
 
@@ -158,7 +158,7 @@ technical contract for developers is:
   the device steady.
 
 For user-facing troubleshooting that the support team can send to customers,
-point them to the [Help Center](https://equipqr.info/support/) or the status
+point them to the [Help Center](https://eqrdocs.zinitek.com/support/) or the status
 page (`eqr.zinitek.com/support`). Signed-in users can report issues at
 `https://eqr.zinitek.com/dashboard/support`.
 
@@ -171,4 +171,4 @@ page (`eqr.zinitek.com/support`). Signed-in users can report issues at
 ---
 
 *Last reviewed: 2026-05-01. This document is a technical reference. Step-by-step
-user-facing walkthroughs live in the [Help Center](https://equipqr.info/support/).*
+user-facing walkthroughs live in the [Help Center](https://eqrdocs.zinitek.com/support/).*

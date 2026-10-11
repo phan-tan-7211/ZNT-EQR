@@ -91,4 +91,4 @@ To contribute code or docs:
 
 ---
 
-**ZNTEQR™** · [ZNT LLC](https://columbiacloudworks.com) · [Repository](https://github.com/phan-tan-7211/Equipment-Management)
+**ZNTEQR™** · [ZNT LLC](https://eqrweb.zinitek.com) · [Repository](https://github.com/phan-tan-7211/Equipment-Management)

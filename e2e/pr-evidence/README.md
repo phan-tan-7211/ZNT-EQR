@@ -92,7 +92,7 @@ Artifacts land under `tmp/pr-evidence/{flow}/` (gitignored). Screenshot URLs use
 
 ## Help Center demo methodology (`docs-demo-helpers.ts`)
 
-Issue #1161 standardizes equipqr.info walkthrough videos on desktop **and** mobile:
+Issue #1161 standardizes eqrdocs.zinitek.com walkthrough videos on desktop **and** mobile:
 
 1. **`settleForDemo`** — after navigation or a major state change, wait for spinners to clear, then hold the fully loaded view ~1s before the next step.
 2. **`focusAndClick` / `focusAndFill` / `focusControl`** — scroll the target control fully into view, assert frame quality via `evidence-frame-helpers.ts` (no horizontal overflow, control not clipped), play a dim/blur spotlight that converges on the control, hold ~0.5s, un-dim, then act.
@@ -111,7 +111,7 @@ await focusAndClick(page, page.getByRole('button', { name: /invite member/i }));
 
 ## Documentation media (`docs-media`)
 
-When updating equipqr.info articles, also publish capture artifacts to the public **`docs-media`** bucket (stable paths for docs, not branch-scoped PR paths):
+When updating eqrdocs.zinitek.com articles, also publish capture artifacts to the public **`docs-media`** bucket (stable paths for docs, not branch-scoped PR paths):
 
 ```powershell
 .\dev\docs-media\Publish-DocsMedia.ps1 `

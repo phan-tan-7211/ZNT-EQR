@@ -32,7 +32,7 @@ Register these exact URIs in Intuit and Google Cloud consoles:
 ## Supabase Edge secrets (preview + production branches)
 
 1. Set `PUBLIC_SITE_URL`:
-   - Preview: `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`
+   - Preview: `https://preview.eqr-zinitek.pages.dev`
    - Production: `https://eqr.zinitek.com`
 2. **Remove** if present:
    - `QB_OAUTH_REDIRECT_BASE_URL`

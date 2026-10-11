@@ -25,7 +25,6 @@ test.describe('PR evidence public image layout @pr-evidence', () => {
 
     await expectPublicImageOk(page, '/images/brand/icons/ZNTEQR-Icon-512.png');
     await expectPublicImageOk(page, '/images/brand/logos/3A-Equipment-Logo-Medium.png');
-    await expectPublicImageOk(page, '/images/brand/icons/Columbia-Cloudworks-Icon-Small.png');
     await expectPublicImageOk(page, '/images/equipment/excavator-svgrepo-com.svg');
     await expectPublicImageOk(page, '/favicon.ico');
 
@@ -42,16 +41,6 @@ test.describe('PR evidence public image layout @pr-evidence', () => {
       .toBeGreaterThan(0);
     await evidencePause(page, 300);
     await evidenceScreenshot(page, '02-landing-customer-logo', { target: customerLogo });
-
-    const footer = page.getByRole('contentinfo');
-    await footer.scrollIntoViewIfNeeded();
-    const partner = footer.locator('img[src="/images/brand/icons/Columbia-Cloudworks-Icon-Small.png"]');
-    await expect(partner).toBeVisible({ timeout: 15_000 });
-    await expect
-      .poll(async () => partner.evaluate((img: HTMLImageElement) => img.naturalWidth))
-      .toBeGreaterThan(0);
-    await evidencePause(page, 300);
-    await evidenceScreenshot(page, '03-landing-footer-partner-icon', { target: partner });
   });
 });
 

@@ -10,9 +10,9 @@ import {
 } from '@/components/ui/accordion';
 
 const CONTACT_EMAIL = 'mailto:phantan7211@gmail.com';
-const GITHUB_REPO_URL = 'https://github.com/phan-tan-7211/Equipment-Management';
+const GITHUB_REPO_URL = 'https://github.com/phan-tan-7211/ZNT-EQR';
 const ZNTEQR_APP_URL = 'https://eqr.zinitek.com';
-const COLUMBIA_CLOUDWORKS_URL = 'https://columbiacloudworks.com';
+const ZNT_WEB_URL = 'https://eqrweb.zinitek.com';
 
 interface FooterLinkItem {
   href: string;
@@ -52,7 +52,7 @@ const footerSections: FooterSection[] = [
     links: [
       { href: '#about', labelKey: 'about', type: 'hash' },
       {
-        href: COLUMBIA_CLOUDWORKS_URL,
+        href: ZNT_WEB_URL,
         label: 'ZNT',
         type: 'external',
       },
@@ -72,9 +72,9 @@ const footerSections: FooterSection[] = [
     titleKey: 'connect',
     links: [
       {
-        href: 'https://calendly.com/nicholas-king-columbiacloudworks/30min',
+        href: '/support',
         labelKey: 'demo',
-        type: 'external',
+        type: 'route',
       },
       { href: ZNTEQR_APP_URL, label: 'ZNTEQR™.app', type: 'external' },
       {
@@ -176,15 +176,10 @@ const LandingFooter = () => {
         <div className="mt-8 pt-6 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3 text-sm text-muted-foreground">
           <span>© {currentYear} ZNTEQR™</span>
           <ExternalLink
-            href={COLUMBIA_CLOUDWORKS_URL}
-            className={`flex items-center gap-1.5 ${footerLinkDecorationClassName}`}
+            href={ZNT_WEB_URL}
+            className={footerLinkDecorationClassName}
             showIcon={false}
           >
-            <img
-              src="/images/brand/icons/Columbia-Cloudworks-Icon-Small.png"
-              alt=""
-              className="w-5 h-5 rounded-sm opacity-90 ring-1 ring-background/10"
-            />
             ZNT LLC
           </ExternalLink>
         </div>

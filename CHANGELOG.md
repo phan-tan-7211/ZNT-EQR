@@ -11,9 +11,23 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.43.0] - 2026-10-11
+
 ### Added
 
-- **Tooling management** — A new Tooling page manages jigs, fixtures, molds and dies as TL equipment (same management code and QR): approved product / operation / machine compatibility, QR-friendly issue and return with double-checkout protection, cycle-based tool life with warning and hard limits, and inspection-gated return to service linked to existing work orders. Available in English, Vietnamese and Korean.
+- **Tooling management** - A new Tooling page manages jigs, fixtures, molds and dies as TL equipment with the same management code and QR: approved product / operation / machine compatibility, QR-friendly issue and return with double-checkout protection, cycle-based tool life with warning and hard limits, and inspection-gated return to service linked to work orders. Available in English, Vietnamese and Korean.
+
+## [3.42.1] - 2026-10-11
+
+### Fixed
+
+- **Help and website links** - Help Center links now open eqrdocs.zinitek.com, and company links point to eqrweb.zinitek.com instead of retired sites.
+- **Book a demo** - Demo buttons on the landing page now open the Support page.
+- **Legal contact** - The Terms of Service legal contact is now legal@zinitek.com.
+
+### Security
+
+- **Trusted origins** - Server functions no longer accept requests from a retired third-party preview host.
 
 ## [3.42.0] - 2026-10-11
 

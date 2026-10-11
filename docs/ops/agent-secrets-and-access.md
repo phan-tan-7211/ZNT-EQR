@@ -29,7 +29,7 @@ Load Google Business credentials for browser automation:
 op read op://mrviyowmjwrxv7syobdlhnmawa/ukvy6bzwb2ikq5cfeambgcq5u4/username
 ```
 
-Constants and helpers: `dev/op/columbia-cloudworks-agents-vault.ps1`.
+Constants and helpers: `dev/op/znt-agents-vault.ps1`.
 
 | Token env var | Service account | Permissions | Typical use |
 |---|---|---|---|

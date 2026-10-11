@@ -1,7 +1,7 @@
 # Cloud Agent Ephemeral Supabase Stack
 
 > Per-session hosted Supabase Database Branch + cloud-safe Quick Login for Cursor
-> Cloud Agents ([issue #1249](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/1249)).
+> Cloud Agents (issue #1249 (legacy tracker)).
 
 ## Decision
 

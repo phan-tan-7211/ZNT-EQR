@@ -25,7 +25,7 @@ Uploads images and short videos to Supabase Storage for use in documentation and
 
 2. **Supabase Storage Buckets** (each has its own migration — do not assume one migration creates both):
    - **`landing-page-images`** — PR evidence screenshots (`pr-evidence/{branch}/...`); created in `supabase/migrations/20260503180000_private_storage_buckets_and_policies.sql`
-   - **`docs-media`** — equipqr.info documentation screenshots and MP4/WebM demos (`support/{collection}/{variant}/...`); created in `supabase/migrations/20260704180000_create_docs_media_bucket.sql`
+   - **`docs-media`** — eqrdocs.zinitek.com documentation screenshots and MP4/WebM demos (`support/{collection}/{variant}/...`); created in `supabase/migrations/20260704180000_create_docs_media_bucket.sql`
    - After deploy, optionally verify `docs-media` public access: `.\dev\docs-media\Bootstrap-DocsMediaBucket.ps1` (reads `SUPABASE_URL` / `VITE_SUPABASE_URL` from the shell — see prerequisites above)
    - Buckets must be **public** with anonymous SELECT policies (service role uploads only)
 
@@ -45,7 +45,7 @@ npx tsx dev/upload-screenshot.ts tmp/demo.mp4 support/location-maps/desktop/demo
 
 - **file-path**: Local file path to upload (PNG, JPG, WEBP, GIF, AVIF, MP4, WebM)
 - **storage-path**: Path in Supabase Storage (e.g., `features/qr-code/hero.png` or `support/location-maps/desktop/01-equipment-location-source.png`)
-- **bucket-name**: Storage bucket name (default: `landing-page-images`; use `docs-media` for equipqr.info assets)
+- **bucket-name**: Storage bucket name (default: `landing-page-images`; use `docs-media` for eqrdocs.zinitek.com assets)
 
 ## Output
 

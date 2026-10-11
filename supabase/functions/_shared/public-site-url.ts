@@ -7,8 +7,11 @@
 
 export const DEFAULT_PUBLIC_SITE_URL = "https://eqr.zinitek.com";
 
+// Secrets that still hold a retired host resolve to the live app instead of
+// sending users to a dead domain (the old Vercel previews are gone).
 const RETIRED_PUBLIC_SITE_URLS: Record<string, string> = {
-  "https://preview.supabase.app": "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app",
+  "https://preview.supabase.app": DEFAULT_PUBLIC_SITE_URL,
+  "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app": DEFAULT_PUBLIC_SITE_URL,
 };
 
 export function resolvePublicSiteUrl(): string {

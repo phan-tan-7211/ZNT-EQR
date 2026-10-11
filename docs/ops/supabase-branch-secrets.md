@@ -44,8 +44,8 @@ once the cutover in `preview-persistent-branch.md` begins.
 
 | Secret Name | Required For | Example Value | Notes |
 |------------|--------------|---------------|-------|
-| `PUBLIC_SITE_URL` | `send-invitation-email`, OAuth callbacks | `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` | **Canonical public app origin for preview** |
-| `PRODUCTION_URL` | Legacy fallback for `PUBLIC_SITE_URL` | `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` | Deprecated — migrate to `PUBLIC_SITE_URL` |
+| `PUBLIC_SITE_URL` | `send-invitation-email`, OAuth callbacks | `https://preview.eqr-zinitek.pages.dev` | **Canonical public app origin for preview** |
+| `PRODUCTION_URL` | Legacy fallback for `PUBLIC_SITE_URL` | `https://preview.eqr-zinitek.pages.dev` | Deprecated — migrate to `PUBLIC_SITE_URL` |
 
 ### Email Service
 
@@ -92,7 +92,7 @@ OAuth callback URIs are derived from `SUPABASE_URL` — do **not** set `QB_OAUTH
 
 | Secret Name | Required For | Example Value | Notes |
 |------------|--------------|---------------|-------|
-| `GITHUB_PAT` | `create-ticket` | `github_pat_...` | GitHub Personal Access Token (fine-grained) with **Issues: Read and write** permission scoped to `Columbia-Cloudworks-LLC/ZNTEQR`. Generate at: [GitHub Settings > Fine-grained tokens](https://github.com/settings/tokens?type=beta) |
+| `GITHUB_PAT` | `create-ticket` | `github_pat_...` | GitHub Personal Access Token (fine-grained) with **Issues: Read and write** permission scoped to `phan-tan-7211/ZNT-EQR`. Generate at: [GitHub Settings > Fine-grained tokens](https://github.com/settings/tokens?type=beta) |
 | `GITHUB_WEBHOOK_SECRET` | `github-issue-webhook` | Random hex string | Shared secret for HMAC-SHA256 webhook signature verification. Must match the secret configured in GitHub repo Settings > Webhooks. Generate with: `openssl rand -hex 32` |
 
 ## Edge Functions and Their Required Secrets
@@ -235,7 +235,7 @@ SUPABASE_SERVICE_ROLE_KEY=<preview-branch-service-role-key>
 SUPABASE_ANON_KEY=<preview-branch-anon-key>
 
 # Application Configuration
-PUBLIC_SITE_URL=https://equip-qr-preview-columbia-cloudworks-llc.vercel.app
+PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev
 
 # Email Service
 RESEND_API_KEY=<your-resend-api-key>
@@ -278,7 +278,7 @@ After setting secrets, verify they're working:
 - **`SUPABASE_URL`**: Must be the persistent preview branch URL
   (`https://<persistent-preview-branch-ref>.supabase.co`), **not** the
   production URL
-- **`PUBLIC_SITE_URL`**: For preview branch, this should be `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app` (the preview deployment URL), NOT `https://eqr.zinitek.com`
+- **`PUBLIC_SITE_URL`**: For preview branch, this should be `https://preview.eqr-zinitek.pages.dev` (the preview deployment URL), NOT `https://eqr.zinitek.com`
 
 ### 🔄 Secrets Are Not Synced
 
@@ -310,7 +310,7 @@ Secrets are **not automatically synced** between branches. If you add a new secr
 
 1. Verify `PUBLIC_SITE_URL` (or legacy `PRODUCTION_URL`) is set correctly for the branch:
    - Production branch: `https://eqr.zinitek.com`
-   - Preview branch: `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`
+   - Preview branch: `https://preview.eqr-zinitek.pages.dev`
 
 ## Google Maps API key — HTTP referrer allowlist
 
@@ -324,7 +324,7 @@ In the browser DevTools console:
 - `Your site URL to be authorized: https://<that-domain>/dashboard/fleet-map`
 - Followed by `TypeError: Cannot read properties of undefined (reading 'get')` originating in `marker.js` — the downstream crash that occurs because Google Maps half-initializes before rejecting the key.
 
-In the ZNTEQR UI: the Fleet Map renders the in-app `MapsAuthFailureCard` diagnostic (after [issue #617 follow-up](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/issues/617)) listing the exact URL to authorize.
+In the ZNTEQR UI: the Fleet Map renders the in-app `MapsAuthFailureCard` diagnostic (after issue #617 follow-up (legacy tracker)) listing the exact URL to authorize.
 
 ### Required allowlist entries
 
@@ -333,7 +333,7 @@ Set the same allowlist on every Google Cloud API key referenced as `GOOGLE_MAPS_
 - `http://localhost:8080/*` (local dev)
 - `https://eqr.zinitek.com/*` (Production)
 - `https://eqr.zinitek.com/*` (covers `equip-qr-*.vercel.app` and any future custom subdomain alias)
-- `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/*` (explicit Preview entry — keep alongside the wildcard for clarity)
+- `https://preview.eqr-zinitek.pages.dev/*` (explicit Preview entry — keep alongside the wildcard for clarity)
 
 ### Operator steps
 
@@ -342,7 +342,7 @@ Set the same allowlist on every Google Cloud API key referenced as `GOOGLE_MAPS_
 3. Under **Application restrictions** → **HTTP referrers**, ensure all the entries above exist. Add any that are missing.
 4. Under **API restrictions**, verify only `Maps JavaScript API`, `Places API`, and `Places API (New)` are enabled.
 5. Click **Save**. Propagation typically completes within ~1 minute.
-6. Reload the affected URL (e.g. `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/dashboard/fleet-map`) and confirm the basemap renders without `RefererNotAllowedMapError` in the console.
+6. Reload the affected URL (e.g. `https://preview.eqr-zinitek.pages.dev/dashboard/fleet-map`) and confirm the basemap renders without `RefererNotAllowedMapError` in the console.
 
 ### Why this lives outside Supabase
 

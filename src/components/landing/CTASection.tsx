@@ -4,8 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-const DEMO_CALENDLY_URL = 'https://calendly.com/nicholas-king-columbiacloudworks/30min';
-
 const CTASection = () => {
   const { t } = useI18n();
   return (
@@ -28,15 +26,13 @@ const CTASection = () => {
             </Button>
             <p className="text-sm text-muted-foreground max-w-md">
               {t('landingSections.cta.walkthrough')}{' '}
-              <a
-                href={DEMO_CALENDLY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/support"
                 className="inline-flex items-center gap-1 font-medium text-primary underline-offset-4 hover:underline"
               >
                 <Calendar className="h-3.5 w-3.5" aria-hidden />
                 {t('landingSections.pricing.demo')}
-              </a>
+              </Link>
             </p>
           </div>
 

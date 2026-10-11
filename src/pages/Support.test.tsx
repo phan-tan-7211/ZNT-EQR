@@ -38,7 +38,7 @@ describe("Support Page", () => {
       ).toBeInTheDocument();
     });
 
-    it("links to the Help Center on equipqr.info", () => {
+    it("links to the Help Center on eqrdocs.zinitek.com", () => {
       render(<DashboardSupport />);
       const link = screen.getByRole("link", { name: /browse guides/i });
       expect(link).toHaveAttribute("href", "http://localhost:5174/support");

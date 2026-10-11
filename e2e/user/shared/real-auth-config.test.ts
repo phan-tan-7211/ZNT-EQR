@@ -33,9 +33,9 @@ describe('real-auth-config', () => {
     expect(isTruthyEnv(undefined)).toBe(false);
   });
 
-  it('defaults real-auth base URL to preview', () => {
+  it('defaults real-auth base URL to the live app', () => {
     delete process.env.E2E_REAL_AUTH_BASE_URL;
-    expect(resolveRealAuthBaseUrl()).toBe('https://equip-qr-preview-columbia-cloudworks-llc.vercel.app');
+    expect(resolveRealAuthBaseUrl()).toBe('https://eqr.zinitek.com');
   });
 
   it('defaults Google Workspace capture path when env is unset', () => {
@@ -53,8 +53,8 @@ describe('real-auth-config', () => {
   });
 
   it('strips trailing slashes from base URL', () => {
-    process.env.E2E_REAL_AUTH_BASE_URL = 'https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/';
-    expect(resolveRealAuthBaseUrl()).toBe('https://equip-qr-preview-columbia-cloudworks-llc.vercel.app');
+    process.env.E2E_REAL_AUTH_BASE_URL = 'https://preview.eqr-zinitek.pages.dev/';
+    expect(resolveRealAuthBaseUrl()).toBe('https://preview.eqr-zinitek.pages.dev');
   });
 
   it('builds production QuickBooks invoice URLs', () => {

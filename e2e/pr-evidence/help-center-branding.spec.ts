@@ -3,7 +3,7 @@ import { evidenceScreenshot, evidencePause } from './shared/evidence-helpers';
 import { startDocsDistCspServer, type DocsCspServer } from './shared/docs-csp-server';
 
 /**
- * Issue #1147 — equipqr.info served a front page whose links, theme toggle,
+ * Issue #1147 — eqrdocs.zinitek.com served a front page whose links, theme toggle,
  * and hero button did nothing because the production CSP (script-src 'self')
  * blocked the inline scripts VitePress needs to hydrate. The site also had no
  * ZNTEQR branding (no nav logo, no hero logo, favicon 404).

@@ -125,7 +125,7 @@ const HelpCenterCard: React.FC = () => {
 
 /**
  * Dashboard variant. Ticket hub for signed-in users (report issue, my tickets).
- * Documentation lives on equipqr.info.
+ * Documentation lives on eqrdocs.zinitek.com.
  */
 export const DashboardSupport: React.FC = () => {
   const { t } = useI18n();

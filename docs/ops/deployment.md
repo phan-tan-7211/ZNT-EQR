@@ -10,9 +10,9 @@ This guide covers all aspects of deploying ZNTEQR™, including build processes,
 
 ZNTEQR™ is designed as a modern single-page application (SPA) that can be deployed to various hosting platforms with minimal configuration.
 
-### Public documentation site (`equipqr.info`)
+### Public documentation site (`eqrdocs.zinitek.com`)
 
-Developer and operator documentation is published from this repository’s [`docs/`](https://github.com/Columbia-Cloudworks-LLC/ZNTEQR/tree/main/docs) directory as a **standalone VitePress** static site. It is deployed as a **separate Vercel project** with **Root Directory** set to `docs` (build: `npm run docs:build`, output: `.vitepress/dist`). Production hostname: **`https://equipqr.info`**. The product app remains on **`https://eqr.zinitek.com`**.
+Developer and operator documentation is published from this repository’s [`docs/`](https://github.com/phan-tan-7211/ZNT-EQR/tree/main/docs) directory as a **standalone VitePress** static site. It is deployed as a **separate Vercel project** with **Root Directory** set to `docs` (build: `npm run docs:build`, output: `.vitepress/dist`). Production hostname: **`https://eqrdocs.zinitek.com`**. The product app remains on **`https://eqr.zinitek.com`**.
 
 **Operational wiring (ZNT Vercel team):**
 
@@ -21,20 +21,20 @@ Developer and operator documentation is published from this repository’s [`doc
 | Docs project name | `equipqr-docs` |
 | Docs project ID | `prj_6QicTVywixyyAYc7sxCRDLnqwbM9` |
 | Production branch | `main` (same branch gate as `eqr.zinitek.com`) |
-| Domains on docs project | `equipqr.info` (apex), `www.equipqr.info` → apex redirect |
+| Domains on docs project | `eqrdocs.zinitek.com` (apex), `eqrdocs.zinitek.com` → apex redirect |
 | Preview deploys | Disabled — [`docs/vercel.json`](../vercel.json) `ignoreCommand` skips non-`main` builds |
 
-Keep **`equipqr.info` off the SPA project (`equipqr`)** — only the docs project should attach that hostname.
+Keep **`eqrdocs.zinitek.com` off the SPA project (`equipqr`)** — only the docs project should attach that hostname.
 
-**Stranded PWA service worker:** Visitors who loaded `equipqr.info` while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/vercel.json` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
+**Stranded PWA service worker:** Visitors who loaded `eqrdocs.zinitek.com` while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/vercel.json` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
 
 **Build note:** Vercel installs dependencies from `docs/package.json` only. Because the monorepo root still has [`postcss.config.js`](../../postcss.config.js), PostCSS can walk up and load the root config unless a scoped file exists. The docs project ships [`docs/postcss.config.js`](../postcss.config.js) (same plugin list as root) and pins `@tailwindcss/postcss`, `tailwindcss`, and `postcss` under [`docs/package.json`](../package.json). Tailwind is also wired in [`docs/.vitepress/config.ts`](../.vitepress/config.ts) for local dev.
 
-**Design tokens (app ↔ docs):** The product Mission Control palette lives in [`src/index.css`](../../src/index.css). The VitePress theme under [`docs/.vitepress/theme/`](../.vitepress/theme/) mirrors those HSL values into `znteqr-tokens.css` and maps them to VitePress `--vp-*` variables in `custom.css` (default appearance is dark). When you change primary, background, border, or semantic status colors in the app, update the matching `--eqr-*` values in `znteqr-tokens.css` in the same change (or immediately after) so equipqr.info stays visually continuous with eqr.zinitek.com. There is not yet a shared compiled token package — the mirror is intentional and documented.
+**Design tokens (app ↔ docs):** The product Mission Control palette lives in [`src/index.css`](../../src/index.css). The VitePress theme under [`docs/.vitepress/theme/`](../.vitepress/theme/) mirrors those HSL values into `znteqr-tokens.css` and maps them to VitePress `--vp-*` variables in `custom.css` (default appearance is dark). When you change primary, background, border, or semantic status colors in the app, update the matching `--eqr-*` values in `znteqr-tokens.css` in the same change (or immediately after) so eqrdocs.zinitek.com stays visually continuous with eqr.zinitek.com. There is not yet a shared compiled token package — the mirror is intentional and documented.
 
-**Local footer testing:** Run `.\dev\dev-start.bat` to start the product app and docs site together. In local Vite dev mode, the app footer’s Documentation link defaults to `http://localhost:5174`; production builds default to `https://equipqr.info`. Set `VITE_DOCUMENTATION_URL` when you need to test a different docs preview URL, such as `http://localhost:4173` after running `npm run docs:build` and then `npm run docs:preview`.
+**Local footer testing:** Run `.\dev\dev-start.bat` to start the product app and docs site together. In local Vite dev mode, the app footer’s Documentation link defaults to `http://localhost:5174`; production builds default to `https://eqrdocs.zinitek.com`. Set `VITE_DOCUMENTATION_URL` when you need to test a different docs preview URL, such as `http://localhost:4173` after running `npm run docs:build` and then `npm run docs:preview`.
 
-**Related domains:** During domain migration, **`equipqr.support`** / **`www.equipqr.support`** on the SPA project may temporarily redirect to **`eqr.zinitek.com`** instead of **`equipqr.info`** because Vercel only allows same-project redirect targets; revisit in the dashboard if those URLs should land on the public docs site again.
+**Related domains:** During domain migration, **`equipqr.support`** / **`www.equipqr.support`** on the SPA project may temporarily redirect to **`eqr.zinitek.com`** instead of **`eqrdocs.zinitek.com`** because Vercel only allows same-project redirect targets; revisit in the dashboard if those URLs should land on the public docs site again.
 
 ## Build Process
 
@@ -301,7 +301,7 @@ Policy: use one shared Google OAuth Web client for both Workspace callback and P
    - Restrict to HTTP referrers (for example localhost dev URL, equip-qr-*.vercel.app, eqr.zinitek.com)
    - Restrict API usage to Google Drive API
 4. Reuse the existing **Google Workspace Web application** OAuth client ID for browser token flow:
-   - Add Authorized JavaScript origins: localhost dev URL, `https://equip-qr-preview-columbia-cloudworks-llc.vercel.app`, `https://eqr.zinitek.com`
+   - Add Authorized JavaScript origins: localhost dev URL, `https://preview.eqr-zinitek.pages.dev`, `https://eqr.zinitek.com`
    - Keep Authorized redirect URIs for Workspace callback, including `/functions/v1/google-workspace-oauth-callback`
 5. Set the browser key as `VITE_GOOGLE_PICKER_API_KEY` in Vercel/local `.env`.
 6. Copy the project number from Project Settings and set it as `VITE_GOOGLE_PICKER_APP_ID`.

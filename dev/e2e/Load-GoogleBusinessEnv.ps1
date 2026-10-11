@@ -21,13 +21,13 @@ param()
 
 $ErrorActionPreference = 'Stop'
 
-. (Join-Path $PSScriptRoot '..\op\columbia-cloudworks-agents-vault.ps1')
+. (Join-Path $PSScriptRoot '..\op\znt-agents-vault.ps1')
 
-$env:GOOGLE_BUSINESS_EMAIL = Read-ColumbiaCloudworksOpField -ItemId $GoogleBusinessItemId -Field 'username'
-$env:GOOGLE_BUSINESS_PASSWORD = Read-ColumbiaCloudworksOpField -ItemId $GoogleBusinessItemId -Field 'password'
+$env:GOOGLE_BUSINESS_EMAIL = Read-ZntAgentsOpField -ItemId $GoogleBusinessItemId -Field 'username'
+$env:GOOGLE_BUSINESS_PASSWORD = Read-ZntAgentsOpField -ItemId $GoogleBusinessItemId -Field 'password'
 
 try {
-    $totp = (Read-ColumbiaCloudworksOpField -ItemId $GoogleBusinessItemId -Field 'totp' 2>$null)
+    $totp = (Read-ZntAgentsOpField -ItemId $GoogleBusinessItemId -Field 'totp' 2>$null)
     if ($totp) {
         $env:GOOGLE_BUSINESS_TOTP_SECRET = $totp
     }
@@ -36,7 +36,7 @@ try {
 }
 
 try {
-    $backupCodes = (Read-ColumbiaCloudworksOpField -ItemId $GoogleBusinessItemId -Field 'backup_codes' 2>$null)
+    $backupCodes = (Read-ZntAgentsOpField -ItemId $GoogleBusinessItemId -Field 'backup_codes' 2>$null)
     if ($backupCodes) {
         $env:GOOGLE_BUSINESS_BACKUP_CODES = $backupCodes
     }

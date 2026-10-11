@@ -1,4 +1,4 @@
-const PRODUCTION_DOCUMENTATION_URL = 'https://equipqr.info';
+const PRODUCTION_DOCUMENTATION_URL = 'https://eqrdocs.zinitek.com';
 const LOCAL_DOCUMENTATION_URL = 'http://localhost:5174';
 
 interface DocumentationUrlEnv {

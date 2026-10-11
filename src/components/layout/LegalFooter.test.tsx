@@ -17,7 +17,7 @@ describe('LegalFooter', () => {
 
     expect(screen.getByRole('link', { name: 'Help Center' })).toHaveAttribute(
       'href',
-      'https://equipqr.info/support',
+      'https://eqrdocs.zinitek.com/support',
     );
   });
 
