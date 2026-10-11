@@ -153,7 +153,7 @@ export type SketchDocument = {
 };
 
 export type SketchCreateTool = 'line' | 'polyline' | 'rect' | 'circle' | 'arc';
-export type SketchModifyTool = 'trim' | 'extend' | 'break' | 'offset';
+export type SketchModifyTool = 'trim' | 'extend' | 'break' | 'offset' | 'dimension';
 export type SketchTool = 'select' | SketchCreateTool | SketchModifyTool;
 export type SketchInteraction = 'idle' | 'creating' | 'dragging' | 'modifying';
 

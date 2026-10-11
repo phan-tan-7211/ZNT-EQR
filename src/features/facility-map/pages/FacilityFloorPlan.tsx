@@ -43,6 +43,7 @@ import {
 import { useI18n } from '@/i18n';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
+import { toast } from '@/hooks/use-toast';
 import InventorSketchOverlay from '@/features/facility-map/components/InventorSketchOverlay';
 import {
   cloneSketchDocument,
@@ -195,6 +196,7 @@ const PLAN_CACHE_KEY = 'znteqr:facility-floor-plan:dryrun:plans:v1';
 const HISTORY_KEY = 'znteqr:facility-floor-plan:dryrun:history:v1';
 const DRAWING_PRESET_KEY = 'znteqr:facility-floor-plan:drawing-presets:v1';
 
+// eslint-disable-next-line react-refresh/only-export-components -- pure plan helper shared with FacilityFloorPlan.sketchLock.test.ts
 export const planKey = (building: string, floor: string) => `${building}::${floor}`;
 
 // The original, single always-present sketch (backward compatible with
@@ -240,14 +242,36 @@ const isQuotaExceeded = (error: unknown): boolean =>
  * to the generic error boundary. Every write through here degrades to a
  * no-op on quota failure instead.
  */
-const safeSetLocalStorage = (key: string, value: string): boolean => {
+const safeSetLocalStorage = (
+  key: string,
+  value: string,
+  { notifyOnFailure = true }: { notifyOnFailure?: boolean } = {},
+): boolean => {
   try {
     localStorage.setItem(key, value);
     return true;
   } catch (error) {
-    if (isQuotaExceeded(error)) return false;
-    throw error;
+    if (!isQuotaExceeded(error)) throw error;
+    if (notifyOnFailure) reportSaveFailure();
+    return false;
   }
+};
+
+// Swallowing the quota error keeps the page alive, but a save that silently
+// didn't happen means work lost on the next reload. The mounted page
+// registers a notifier (it owns `t`); writes happen inside state updaters,
+// so the toast is deferred out of render and throttled so one burst of
+// failing writes shows a single notice.
+let saveFailureNotifier: (() => void) | null = null;
+let lastSaveFailureNoticeAt = 0;
+const SAVE_FAILURE_NOTICE_INTERVAL_MS = 5000;
+
+const reportSaveFailure = () => {
+  const now = Date.now();
+  if (!saveFailureNotifier || now - lastSaveFailureNoticeAt < SAVE_FAILURE_NOTICE_INTERVAL_MS) return;
+  lastSaveFailureNoticeAt = now;
+  const notify = saveFailureNotifier;
+  setTimeout(notify, 0);
 };
 
 /**
@@ -259,7 +283,8 @@ const safeSetLocalStorage = (key: string, value: string): boolean => {
 const persistHistory = (entries: PlanHistoryEntry[]): void => {
   let candidates = entries;
   while (candidates.length > 0) {
-    if (safeSetLocalStorage(HISTORY_KEY, JSON.stringify(candidates))) return;
+    // Shrinking history is expected degradation, not a failed save.
+    if (safeSetLocalStorage(HISTORY_KEY, JSON.stringify(candidates), { notifyOnFailure: false })) return;
     // `floor`, not `ceil` — at length 1, `ceil(1/2)` is still 1, which
     // would never shrink further and loop forever instead of terminating.
     candidates = candidates.slice(0, Math.floor(candidates.length / 2));
@@ -375,6 +400,7 @@ const statusTranslationKey = (status?: string | null) => {
   }
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- pure plan helper shared with FacilityFloorPlan.sketchLock.test.ts
 export const EMPTY_PLAN: FloorPlanState = {
   name: 'Plant 1 - Main Facility',
   building: 'Main Building',
@@ -477,6 +503,7 @@ const demoLayoutFor = (building: string, floor: string): FloorPlanState => {
   return base;
 };
 
+// eslint-disable-next-line react-refresh/only-export-components -- pure plan helper shared with FacilityFloorPlan.sketchLock.test.ts
 export const ensurePlanShape = (value: Partial<FloorPlanState>): FloorPlanState => ({
   ...EMPTY_PLAN,
   ...value,
@@ -550,6 +577,18 @@ function DemoBlueprint({ t }: { t: (key: string) => string }) {
 export default function FacilityFloorPlan() {
   const { formatDateTime } = useFormatTimestamp();
   const { t } = useI18n();
+
+  useEffect(() => {
+    saveFailureNotifier = () =>
+      toast({
+        variant: 'destructive',
+        title: t('facilityMap.saveFailedTitle'),
+        description: t('facilityMap.saveFailedDescription'),
+      });
+    return () => {
+      saveFailureNotifier = null;
+    };
+  }, [t]);
   const [plan, setPlan] = useState<FloorPlanState>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -801,6 +840,7 @@ export default function FacilityFloorPlan() {
     return Object.values(cache).sort((a, b) =>
       `${a.building} ${a.floor}`.localeCompare(`${b.building} ${b.floor}`),
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- planLibraryVersion is a cache-bust key: these read localStorage, which React can't track
   }, [plan, planLibraryVersion]);
 
   const plansByBuilding = useMemo(() => {
@@ -815,6 +855,7 @@ export default function FacilityFloorPlan() {
 
   const planHistory = useMemo(
     () => readHistory().filter((entry) => entry.key === planKey(plan.building, plan.floor)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- planLibraryVersion is a cache-bust key: these read localStorage, which React can't track
     [plan.building, plan.floor, planLibraryVersion],
   );
 
@@ -1152,6 +1193,7 @@ export default function FacilityFloorPlan() {
     isPanning,
     placeLayer,
     selectedEquipmentId,
+    setSingleSelection,
     toPercent,
     zoneStart,
   ]);
@@ -2022,6 +2064,11 @@ export default function FacilityFloorPlan() {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+      // In Sketch mode the overlay owns the keyboard (Esc, Ctrl+Z/Y, Delete,
+      // tool letters). Handling them here too ran plan-level undo on top of
+      // sketch undo, and plan undo re-seeds the sketch session — wiping the
+      // in-progress sketch and its redo stack. Only fit-view stays global.
+      if (sketchMode && (event.key.toLowerCase() !== 'f' || event.ctrlKey || event.metaKey)) return;
       if (event.key === 'Escape') {
         setSelectedEquipmentId('');
         setSelectedMarkerId('');
@@ -2044,7 +2091,7 @@ export default function FacilityFloorPlan() {
         redo();
         return;
       }
-      if (event.key.toLowerCase() === 'f') {
+      if (event.key.toLowerCase() === 'f' && !event.ctrlKey && !event.metaKey) {
         event.preventDefault();
         fitView();
         return;
@@ -2138,7 +2185,7 @@ export default function FacilityFloorPlan() {
                 else enterSketch();
               }}
               disabled={isMobileViewport}
-              title={isMobileViewport ? 'Sketch editing is read-only on mobile.' : undefined}
+              title={isMobileViewport ? t('facilityMap.sketchReadOnlyMobile') : undefined}
               className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50 ${
                 sketchMode ? 'border-sky-400 bg-sky-500/15 text-sky-300' : 'hover:bg-accent'
               }`}
@@ -2154,10 +2201,10 @@ export default function FacilityFloorPlan() {
             className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
               sketchVisible ? 'border-cyan-400/40 text-cyan-300' : 'text-muted-foreground'
             }`}
-            title="Show/hide sketch layer"
+            title={t('facilityMap.sketchToggleLayer')}
           >
             <Eye className="h-4 w-4" />
-            Sketch
+            {t('facilityMap.sketch')}
           </button>
 
           <button
@@ -2166,7 +2213,7 @@ export default function FacilityFloorPlan() {
             className={`inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm ${
               canvasHudVisible ? 'border-cyan-400/40 text-cyan-300' : 'text-muted-foreground'
             }`}
-            title="Show/hide floor tabs and info badges over the canvas"
+            title={t('facilityMap.canvasHudToggle')}
           >
             {canvasHudVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             HUD
@@ -3853,7 +3900,7 @@ export default function FacilityFloorPlan() {
                         })}
                       </div>
                       <div className="mt-1 text-[10px] text-muted-foreground">
-                        Sketch: {entry.snapshot.sketchDocument?.entities.length ?? 0} entities
+                        {t('facilityMap.sketchEntitiesSummary', { count: entry.snapshot.sketchDocument?.entities.length ?? 0 })}
                       </div>
                     </div>
                     <button
@@ -3883,12 +3930,12 @@ export default function FacilityFloorPlan() {
                   <div className="rounded bg-muted p-2">
                     <div className="font-medium">{t('facilityMap.currentVersion')}</div>
                     <div>{plan.pins.length} / {plan.overlayPins.length} / {plan.zones.length}</div>
-                    <div>Sketch: {plan.sketchDocument?.entities.length ?? 0}</div>
+                    <div>{t('facilityMap.sketchCountSummary', { count: plan.sketchDocument?.entities.length ?? 0 })}</div>
                   </div>
                   <div className="rounded bg-muted p-2">
                     <div className="font-medium">{t('facilityMap.savedVersion')}</div>
                     <div>{compareSnapshot.pins.length} / {compareSnapshot.overlayPins.length} / {compareSnapshot.zones.length}</div>
-                    <div>Sketch: {compareSnapshot.sketchDocument?.entities.length ?? 0}</div>
+                    <div>{t('facilityMap.sketchCountSummary', { count: compareSnapshot.sketchDocument?.entities.length ?? 0 })}</div>
                   </div>
                 </div>
               </div>

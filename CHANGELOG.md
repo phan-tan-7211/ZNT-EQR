@@ -11,6 +11,19 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.41.0] - 2026-10-11
+
+### Added
+
+- **Faster facility sketching** - Sketch tools now have Inventor-style shortcuts (L, C, R, A, D, X, O and more), the Line tool keeps drawing from the last point until you press Esc, and typing a number while drawing enters the length right away.
+- **Automatic sketch constraints** - Straight horizontal or vertical lines and connected corners stay that way when you edit them; hold Ctrl while clicking to skip this.
+- **Dimension tool** - Press D and click a line, circle or arc to type its size.
+
+### Fixed
+
+- **Sketch undo** - Ctrl+Z in a sketch now undoes only the last sketch step instead of also undoing the floor plan and discarding unsaved sketch work.
+- **Floor plan saving** - You now see a warning when browser storage is full and a change could not be saved, instead of losing it silently.
+
 ## [3.40.3] - 2026-10-10
 
 ### Fixed
