@@ -134,6 +134,26 @@ in the QuickBooks invoicing phase.
 
 Both grants are managed from the **Parts Access** panel on the Inventory page (or per member on Organization → Members). Only owners/admins can grant or revoke either role.
 
+### Tooling management
+
+Tools are equipment rows in the TL group, so equipment visibility rules still apply to the equipment record. Tooling-specific actions use two tiers: **owner/admin**, and **operate**, which is a team role holding the configurable `equipment.update` permission on the tool's team (managers and technicians by default).
+
+| Data / Action | Owner | Admin | Manager* | Technician* | Requestor | Viewer | Plain Member |
+| ------------- | ----- | ----- | -------- | ----------- | --------- | ------ | ------------ |
+| View tooling, compatibility, history | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Register / enroll tools, edit tooling details, approve for use | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Manage products, operations, designs; approve compatibility | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Issue, return, transfer location, record usage, record inspection, quarantine | ✅ | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Correct usage, set life limits, life-limit disposition, other out-of-service states | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+| Approve return to service, release drawing revisions | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
+
+\* Team roles on the tool's team, with the default `equipment.update` setting. Organization owners can change that setting per team role.
+
+**Enforcement layers:**
+
+- **Database.** Tooling history tables are read-only for clients. Every mutation goes through a SECURITY DEFINER RPC that checks the tier, locks the tool row, and writes history in the same transaction. Cross-organization links are rejected by composite foreign keys.
+- **Application.** `useToolingPermissions()` hides controls that the database would reject.
+
 ### Audit log visibility (#1122)
 
 The organization audit log is restricted to **owners and admins** at every layer: the page lives under **Organization → Audit Log** with an in-page role guard, `audit_log` SELECT RLS requires an active owner/admin membership, and the `get_audit_log_timeline` RPC re-checks `is_org_admin`. Audit entries never appear on operational pages (work order or inventory detail) and are never included in data exports outside the dedicated audit CSV/JSON export path, which notifies admins on every export.

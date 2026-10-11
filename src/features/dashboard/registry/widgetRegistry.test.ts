@@ -37,7 +37,7 @@ describe('widgetRegistry', () => {
     it('returns all registered widgets as an array', () => {
       const widgets = getAllWidgets();
       expect(widgets).toHaveLength(WIDGET_REGISTRY.size);
-      expect(widgets.length).toBe(9); // 5 original + 4 Phase 2
+      expect(widgets.length).toBe(10); // 5 original + 4 Phase 2 + tooling attention
     });
 
     it('each widget has required fields', () => {
@@ -72,6 +72,14 @@ describe('widgetRegistry', () => {
       const eq = getWidgetsByCategory('equipment');
       expect(eq.length).toBeGreaterThanOrEqual(2);
       expect(eq.every((w) => w.category === 'equipment')).toBe(true);
+    });
+
+    it('registers the tooling attention widget as an opt-in equipment widget', () => {
+      const widget = getWidget('tooling-attention');
+      expect(widget?.id).toBe('tooling-attention');
+      expect(widget?.category).toBe('equipment');
+      expect(getWidgetsByCategory('equipment').map((w) => w.id)).toContain('tooling-attention');
+      expect(DEFAULT_WIDGET_IDS).not.toContain('tooling-attention');
     });
 
     it('returns empty array for a category with no widgets', () => {

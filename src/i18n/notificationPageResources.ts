@@ -52,6 +52,9 @@ export const notificationPageResources = {
       "team_member_role_changed": "Team Role Changed",
       "audit_export": "Audit Export",
       "export_ready": "Export Ready",
+      "tooling_life_warning": "Tool Life Warning",
+      "tooling_life_limit": "Tool Life Limit",
+      "tooling_quarantined": "Tool Quarantined",
       "general": "General"
     }
   },
@@ -108,6 +111,9 @@ export const notificationPageResources = {
       "team_member_role_changed": "Đã đổi vai trò trong nhóm",
       "audit_export": "Xuất nhật ký kiểm tra",
       "export_ready": "Bản xuất đã sẵn sàng",
+      "tooling_life_warning": "Cảnh báo tuổi thọ dụng cụ",
+      "tooling_life_limit": "Dụng cụ đạt giới hạn tuổi thọ",
+      "tooling_quarantined": "Dụng cụ bị cách ly",
       "general": "Chung"
     }
   },
@@ -164,6 +170,9 @@ export const notificationPageResources = {
       "team_member_role_changed": "팀 역할 변경됨",
       "audit_export": "감사 기록 내보내기",
       "export_ready": "내보내기 파일 준비됨",
+      "tooling_life_warning": "치공구 수명 경고",
+      "tooling_life_limit": "치공구 수명 한계",
+      "tooling_quarantined": "치공구 격리",
       "general": "일반"
     }
   }

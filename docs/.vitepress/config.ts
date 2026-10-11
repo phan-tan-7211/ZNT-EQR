@@ -262,6 +262,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { text: "Workflows", link: "/guides/workflows" },
+            { text: "Tooling management", link: "/guides/tooling" },
             { text: "Image upload (overview)", link: "/how-to/image-upload/" },
             {
               text: "Technician image upload",
@@ -278,6 +279,7 @@ export default defineConfig({
           items: [
             { text: "Workflows", link: "/guides/workflows" },
             { text: "Permissions (RBAC)", link: "/guides/permissions" },
+            { text: "Tooling management", link: "/guides/tooling" },
           ],
         },
       ],

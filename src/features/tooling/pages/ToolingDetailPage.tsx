@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import QRCodeDisplay from '@/features/equipment/components/QRCodeDisplay';
 import { ToolingStatusBadges } from '@/features/tooling/components/ToolingStatusBadges';
+import { ToolingHistoryExportButton } from '@/features/tooling/components/reports/ToolingHistoryExportButton';
 import { ToolingOverviewTab } from '@/features/tooling/components/master/ToolingOverviewTab';
 import { ToolingDocumentsTab } from '@/features/tooling/components/master/ToolingDocumentsTab';
 import { ToolingHistoryTab } from '@/features/tooling/components/master/ToolingHistoryTab';
@@ -86,6 +87,7 @@ export default function ToolingDetailPage() {
           meta={<ToolingStatusBadges tool={tool} />}
           actions={
             <div className="flex flex-wrap gap-2">
+              <ToolingHistoryExportButton tool={tool} />
               <Button variant="outline" size="sm" onClick={() => setQrOpen(true)}>
                 <QrCode className="mr-2 h-4 w-4" aria-hidden="true" />
                 {t('tooling.showQr')}

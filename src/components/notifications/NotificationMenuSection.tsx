@@ -16,7 +16,7 @@ import { logger } from '@/utils/logger';
 import { useMarkAllNotificationsAsRead } from '@/hooks/useNotificationSettings';
 import { useMarkNotificationAsRead, type Notification } from '@/features/work-orders/hooks/useWorkOrderData';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { getNotificationEmoji } from '@/utils/notifications/notificationDisplay';
+import { getNotificationEmoji, localizeNotificationContent } from '@/utils/notifications/notificationDisplay';
 import {
   navigateForNotification,
   resolveNotificationDestination,
@@ -34,7 +34,7 @@ const NotificationMenuSection: React.FC<NotificationMenuSectionProps> = ({
   onClose,
 }) => {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { formatRelative } = useFormatTimestamp();
   const { switchOrganization } = useOrganization();
 
@@ -115,13 +115,13 @@ const NotificationMenuSection: React.FC<NotificationMenuSectionProps> = ({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium truncate">{notification.title}</p>
+                        <p className="text-sm font-medium truncate">{localizeNotificationContent(notification, t, language).title}</p>
                         {!notification.read && (
                           <div className="h-2 w-2 bg-primary rounded-full shrink-0 mt-1.5" />
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                        {notification.message}
+                        {localizeNotificationContent(notification, t, language).message}
                       </p>
                       <div className="flex items-center justify-between mt-0.5">
                         <p className="text-xs text-muted-foreground">

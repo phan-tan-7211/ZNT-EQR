@@ -376,7 +376,8 @@ SELECT is(
           'set_tooling_life_limits',
           'set_tooling_usability',
           'transfer_tooling_location',
-          'update_tooling_details'
+          'update_tooling_details',
+          'release_tooling_drawing_revision'
         ])
       )),
   0,

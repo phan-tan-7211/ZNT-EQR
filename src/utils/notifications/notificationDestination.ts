@@ -53,6 +53,17 @@ const VIEW = (detail: string): NotificationDestinationCta => ({
   detail,
 });
 
+/** Tooling alert types → the detail tab that resolves them. */
+const TOOLING_NOTIFICATION_TABS: ReadonlyMap<string, 'usage' | 'maintenance'> = new Map([
+  ['tooling_life_warning', 'usage'],
+  ['tooling_life_limit', 'usage'],
+  ['tooling_quarantined', 'maintenance'],
+]);
+
+function nonEmptyString(value: unknown): string | null {
+  return typeof value === 'string' && value.trim() !== '' ? value : null;
+}
+
 const DESTINATION_RULES: DestinationRule[] = [
   {
     match: (notification) => notification.type.startsWith('ownership_transfer'),
@@ -87,6 +98,20 @@ const DESTINATION_RULES: DestinationRule[] = [
   {
     match: (notification) => notification.type === 'export_ready',
     build: () => go('/dashboard/reports', null, VIEW('Click to view reports')),
+  },
+  {
+    match: (notification) => TOOLING_NOTIFICATION_TABS.has(notification.type),
+    build: (notification) => {
+      const toolingId =
+        nonEmptyString(notification.data.tooling_id) ?? nonEmptyString(notification.data.equipment_id);
+      const tab = TOOLING_NOTIFICATION_TABS.get(notification.type);
+      if (!toolingId || !tab) return null;
+      return go(
+        `/dashboard/tooling/${encodeURIComponent(toolingId)}?tab=${tab}`,
+        dataOrgSwitchId(notification.data),
+        VIEW('Click to view tool'),
+      );
+    },
   },
   {
     match: (notification) => notification.type === 'audit_export',

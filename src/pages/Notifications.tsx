@@ -26,6 +26,7 @@ import { logger } from '@/utils/logger';
 import {
   getNotificationEmoji,
   getNotificationTypeLabel,
+  localizeNotificationContent,
 } from '@/utils/notifications/notificationDisplay';
 import {
   navigateForNotification,
@@ -33,7 +34,7 @@ import {
 } from '@/utils/notifications/notificationDestination';
 
 const Notifications: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { formatDate, formatTime } = useFormatTimestamp();
   const { organizationId, switchOrganization } = useOrganization();
   const navigate = useNavigate();
@@ -197,7 +198,7 @@ const Notifications: React.FC = () => {
                       <div className="flex items-start justify-between gap-3 mb-2">
                         <div className="flex-1">
                           <h3 className="font-medium text-sm sm:text-base flex items-center gap-2">
-                            {notification.title}
+                            {localizeNotificationContent(notification, t, language).title}
                             {!notification.read && (
                               <div className="h-2 w-2 bg-primary rounded-full shrink-0" />
                             )}
@@ -218,7 +219,7 @@ const Notifications: React.FC = () => {
                       </div>
                       
                       <p className="text-sm text-muted-foreground mb-2">
-                        {notification.message}
+                        {localizeNotificationContent(notification, t, language).message}
                       </p>
                       
                       {dest.navigable && (

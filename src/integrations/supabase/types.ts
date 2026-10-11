@@ -4681,6 +4681,66 @@ export type Database = {
           },
         ]
       }
+      tooling_drawing_revisions: {
+        Row: {
+          change_description: string
+          drawing_number: string | null
+          effective_date: string | null
+          id: string
+          organization_id: string
+          released_at: string
+          released_by: string
+          released_by_name: string | null
+          revision: string
+          status: string
+          superseded_at: string | null
+          tooling_equipment_id: string
+        }
+        Insert: {
+          change_description: string
+          drawing_number?: string | null
+          effective_date?: string | null
+          id?: string
+          organization_id: string
+          released_at?: string
+          released_by: string
+          released_by_name?: string | null
+          revision: string
+          status?: string
+          superseded_at?: string | null
+          tooling_equipment_id: string
+        }
+        Update: {
+          change_description?: string
+          drawing_number?: string | null
+          effective_date?: string | null
+          id?: string
+          organization_id?: string
+          released_at?: string
+          released_by?: string
+          released_by_name?: string | null
+          revision?: string
+          status?: string
+          superseded_at?: string | null
+          tooling_equipment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tooling_drawing_revisions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tooling_drawing_revisions_tool_fk"
+            columns: ["tooling_equipment_id",  "organization_id"]
+            isOneToOne: false
+            referencedRelation: "tooling_details"
+            referencedColumns: ["equipment_id",  "organization_id"]
+          },
+        ]
+      }
       tooling_events: {
         Row: {
           actor_id: string | null
@@ -7155,6 +7215,16 @@ export type Database = {
       release_reserved_slot: {
         Args: { invitation_id: string; org_id: string }
         Returns: undefined
+      }
+      release_tooling_drawing_revision: {
+        Args: {
+          p_change_description: string
+          p_drawing_number?: string
+          p_effective_date?: string
+          p_revision: string
+          p_tooling_id: string
+        }
+        Returns: string
       }
       remove_organization_member: {
         Args: {
