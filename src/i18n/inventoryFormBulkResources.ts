@@ -107,6 +107,7 @@ export const inventoryFormBulkResources = {
       "unitCostCurrency": "Unit Cost ($)",
       "selectItem": "Select {{name}}",
       "gridLabel": "Inventory bulk edit",
+      "image": "Image",
       "selectAll": "Select all rows",
       "empty": "No inventory items to edit."
     }
@@ -219,6 +220,7 @@ export const inventoryFormBulkResources = {
       "unitCostCurrency": "Đơn giá ($)",
       "selectItem": "Chọn {{name}}",
       "gridLabel": "Chỉnh sửa tồn kho hàng loạt",
+      "image": "Hình ảnh",
       "selectAll": "Chọn tất cả dòng",
       "empty": "Không có vật tư tồn kho nào để chỉnh sửa."
     }
@@ -331,6 +333,7 @@ export const inventoryFormBulkResources = {
       "unitCostCurrency": "단가 ($)",
       "selectItem": "{{name}} 선택",
       "gridLabel": "재고 일괄 편집",
+      "image": "이미지",
       "selectAll": "모든 행 선택",
       "empty": "편집할 재고 품목이 없습니다."
     }
