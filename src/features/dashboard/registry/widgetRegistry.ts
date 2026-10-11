@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   DollarSign,
   Zap,
+  Wrench,
 } from 'lucide-react';
 import type { WidgetDefinition, WidgetCategory } from '@/features/dashboard/types/dashboard';
 
@@ -39,6 +40,9 @@ const CostTrendWidget = React.lazy(
 );
 const QuickActionsWidget = React.lazy(
   () => import('@/features/dashboard/components/widgets/QuickActionsWidget')
+);
+const ToolingAttentionWidget = React.lazy(
+  () => import('@/features/tooling/components/ToolingAttentionWidget')
 );
 
 /**
@@ -127,6 +131,15 @@ export const WIDGET_REGISTRY: Map<string, WidgetDefinition> = new Map([
     defaultSize: { w: 4, h: 3 },
     category: 'overview' as WidgetCategory,
   }],
+  ['tooling-attention', {
+    id: 'tooling-attention',
+    title: 'Tooling Attention',
+    description: 'Tools at their life limit, overdue for inspection, due for maintenance or out of service',
+    icon: Wrench,
+    component: ToolingAttentionWidget,
+    defaultSize: { w: 6, h: 5 },
+    category: 'equipment' as WidgetCategory,
+  }],
 ]);
 
 /**
@@ -166,6 +179,7 @@ export function getWidgetsByCategory(category: WidgetCategory): WidgetDefinition
 export const MOBILE_ACTIONABLE_WIDGET_PRIORITY: readonly string[] = [
   'high-priority-wo',
   'recent-work-orders',
+  'tooling-attention',
   'stats-grid',
   'recent-equipment',
   'equipment-by-status',

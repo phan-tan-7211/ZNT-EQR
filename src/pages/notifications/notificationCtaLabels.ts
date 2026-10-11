@@ -12,6 +12,7 @@ const detailKeys: Record<string, string> = {
   'Click to view team': 'team',
   'Click to view members': 'members',
   'Click to view work order': 'workOrder',
+  'Click to view tool': 'tool',
   'Click to go to dashboard': 'dashboard',
 };
 

@@ -14,6 +14,7 @@ export const notificationExtrasResources = {
     team: 'Click to view team',
     members: 'Click to view members',
     workOrder: 'Click to view work order',
+    tool: 'Click to view tool',
     dashboard: 'Click to go to dashboard',
   } },
   vi: { notificationExtras: {
@@ -31,6 +32,7 @@ export const notificationExtrasResources = {
     team: 'Nhấp để xem nhóm',
     members: 'Nhấp để xem thành viên',
     workOrder: 'Nhấp để xem lệnh công việc',
+    tool: 'Nhấp để xem dụng cụ',
     dashboard: 'Nhấp để mở bảng điều khiển',
   } },
   ko: { notificationExtras: {
@@ -48,6 +50,7 @@ export const notificationExtrasResources = {
     team: '클릭하여 팀 보기',
     members: '클릭하여 구성원 보기',
     workOrder: '클릭하여 작업 지시 보기',
+    tool: '클릭하여 치공구 보기',
     dashboard: '클릭하여 대시보드로 이동',
   } },
 } as const;

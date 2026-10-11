@@ -45,6 +45,7 @@ const WIDGET_KEYS: Record<string, { title: string; description: string }> = {
   'equipment-by-status': { title: 'dashboard.widgets.equipmentByStatusTitle', description: 'dashboard.widgets.equipmentByStatusDescription' },
   'cost-trend': { title: 'dashboard.widgets.costTrendTitle', description: 'dashboard.widgets.costTrendDescription' },
   'quick-actions': { title: 'dashboard.widgets.quickActionsTitle', description: 'dashboard.widgets.quickActionsDescription' },
+  'tooling-attention': { title: 'dashboard.widgets.toolingAttentionTitle', description: 'dashboard.widgets.toolingAttentionDescription' },
 };
 
 const CATEGORY_ORDER: WidgetCategory[] = ['overview', 'equipment', 'work-orders', 'team', 'inventory'];

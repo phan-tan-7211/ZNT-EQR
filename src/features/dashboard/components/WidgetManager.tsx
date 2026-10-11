@@ -30,6 +30,7 @@ const WIDGET_TITLE_KEYS: Record<string, string> = {
   'equipment-by-status': 'dashboard.widgets.equipmentByStatusTitle',
   'cost-trend': 'dashboard.widgets.costTrendTitle',
   'quick-actions': 'dashboard.widgets.quickActionsTitle',
+  'tooling-attention': 'dashboard.widgets.toolingAttentionTitle',
 };
 
 export const WidgetManager: React.FC<WidgetManagerProps> = ({

@@ -124,6 +124,38 @@ describe('resolveNotificationDestination', () => {
       expected: navigable('/dashboard/reports', null, view('Click to view reports')),
     },
     {
+      name: 'tooling_life_warning opens the tool on the usage tab',
+      notification: {
+        type: 'tooling_life_warning',
+        data: { tooling_id: 'tool-1', equipment_id: 'tool-1', cumulative_usage: 800 },
+      },
+      expected: navigable('/dashboard/tooling/tool-1?tab=usage', null, view('Click to view tool')),
+    },
+    {
+      name: 'tooling_life_limit opens the tool on the usage tab and switches when data org is present',
+      notification: {
+        type: 'tooling_life_limit',
+        data: { tooling_id: 'tool-2', organization_id: 'org-2' },
+      },
+      expected: navigable('/dashboard/tooling/tool-2?tab=usage', 'org-2', view('Click to view tool')),
+    },
+    {
+      name: 'tooling_quarantined opens the tool on the maintenance tab',
+      notification: {
+        type: 'tooling_quarantined',
+        data: { tooling_id: 'tool-3' },
+      },
+      expected: navigable('/dashboard/tooling/tool-3?tab=maintenance', null, view('Click to view tool')),
+    },
+    {
+      name: 'tooling alerts fall back to data.equipment_id',
+      notification: {
+        type: 'tooling_quarantined',
+        data: { equipment_id: 'tool-4' },
+      },
+      expected: navigable('/dashboard/tooling/tool-4?tab=maintenance', null, view('Click to view tool')),
+    },
+    {
       name: 'audit_export opens the audit log and switches when data org is present',
       notification: {
         type: 'audit_export',
@@ -209,6 +241,16 @@ describe('resolveNotificationDestination', () => {
     );
 
     expect(dest, 'missing team_id must fail closed').toEqual({ navigable: false });
+  });
+
+  it('is not navigable when a tooling alert has no tool id', () => {
+    const dest = resolveNotificationDestination(
+      buildNotification({ type: 'tooling_life_limit', data: { tooling_id: '  ', management_code: 'TL-1' } }),
+    );
+
+    expect(dest, 'tooling alerts without tooling_id / equipment_id must fail closed').toEqual({
+      navigable: false,
+    });
   });
 
   it('is not navigable when a work_order type has no work_order_id', () => {

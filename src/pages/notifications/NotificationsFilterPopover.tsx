@@ -61,6 +61,9 @@ const NotificationsFilterPopover: React.FC<NotificationsFilterPopoverProps> = ({
                 <SelectItem value="team_member_added">{t('notificationPage.team_member_added')}</SelectItem>
                 <SelectItem value="team_member_role_changed">{t('notificationPage.team_member_role_changed')}</SelectItem>
                 <SelectItem value="audit_export">{t('notificationPage.audit_export')}</SelectItem>
+                <SelectItem value="tooling_life_warning">{t('notificationPage.tooling_life_warning')}</SelectItem>
+                <SelectItem value="tooling_life_limit">{t('notificationPage.tooling_life_limit')}</SelectItem>
+                <SelectItem value="tooling_quarantined">{t('notificationPage.tooling_quarantined')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
