@@ -3,7 +3,7 @@ import { evidenceScreenshot, evidencePause } from './shared/evidence-helpers';
 import { startDocsDistCspServer, type DocsCspServer } from './shared/docs-csp-server';
 
 /**
- * Issue #1147 — eqrdocs.zinitek.com served a front page whose links, theme toggle,
+ * Issue #1147 — the Help Center (then on equipqr.info) served a front page whose links, theme toggle,
  * and hero button did nothing because the production CSP (script-src 'self')
  * blocked the inline scripts VitePress needs to hydrate. The site also had no
  * ZNTEQR branding (no nav logo, no hero logo, favicon 404).
@@ -19,8 +19,8 @@ import { startDocsDistCspServer, type DocsCspServer } from './shared/docs-csp-se
  * force-dark appearance (no light toggle), ZNTEQR (+ Docs) wordmark, and
  * Open App as a primary CTA so the help center reads as the same product family.
  *
- * This spec serves the built docs through the exact CSP shipped in
- * docs/vercel.json and proves hydration, navigation, branding assets, and
+ * This spec serves the built docs through the exact CSP shipped in the
+ * docs Cloudflare Pages `docs/public/_headers` file and proves hydration, navigation, branding assets, and
  * #1358 design-system alignment under that policy.
  */
 test.describe.serial('Help Center CSP hydration and branding @pr-evidence', () => {
@@ -97,7 +97,7 @@ test.describe.serial('Help Center CSP hydration and branding @pr-evidence', () =
     }
 
     await evidencePause(page, 600);
-    const brand = page.getByRole('link', { name: /equipqr/i }).first();
+    const brand = page.getByRole('link', { name: /znteqr/i }).first();
     await expect(brand).toBeVisible();
     await evidenceScreenshot(page, '01-homepage-branded-and-hydrated', { target: brand });
 
@@ -133,18 +133,18 @@ test.describe.serial('Help Center CSP hydration and branding @pr-evidence', () =
     await page.getByRole('link', { name: 'Browse Help Center' }).click();
     await expect(page).toHaveURL(/\/support\/$/);
     await expect(
-      page.getByRole('heading', { name: /equipqr help center/i }).first(),
+      page.getByRole('heading', { name: /znteqr help center/i }).first(),
     ).toBeVisible();
     await evidencePause(page, 600);
     await evidenceScreenshot(page, '03-browse-help-center-navigates', {
-      target: page.getByRole('heading', { name: /equipqr help center/i }).first(),
+      target: page.getByRole('heading', { name: /znteqr help center/i }).first(),
     });
 
     // force-dark: appearance switch is not offered (Mission Control is dark-only).
     await expect(page.locator('.VPSwitchAppearance')).toHaveCount(0);
     await expect(page.locator('html')).toHaveClass(/dark/);
     const helpCenterHeading = page
-      .getByRole('heading', { name: /equipqr help center/i })
+      .getByRole('heading', { name: /znteqr help center/i })
       .first();
     await expect(helpCenterHeading).toBeVisible();
     await evidencePause(page, 600);

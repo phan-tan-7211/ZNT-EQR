@@ -26,7 +26,7 @@ test.describe('PR evidence releases page @pr-evidence', () => {
     const heading = page.getByRole('heading', { name: 'Releases', level: 1 });
     await expect(heading).toBeVisible({ timeout: 20_000 });
     await expect(
-      page.getByText(/customer-facing changes in each published equipqr release/i),
+      page.getByText(/customer-facing changes in each published znteqr release/i),
     ).toBeVisible();
     await evidencePause(page, 300);
     await assertEvidenceFrameReady(page, heading);
@@ -55,7 +55,7 @@ test.describe('PR evidence releases page @pr-evidence', () => {
     await dismissCookieBannerIfPresent(page);
 
     const versionLink = page.getByRole('link', {
-      name: /view release notes for equipqr version/i,
+      name: /view release notes for znteqr version/i,
     });
     await expect(versionLink).toBeVisible({ timeout: 15_000 });
     await expect(versionLink).toHaveAttribute('href', '/releases');

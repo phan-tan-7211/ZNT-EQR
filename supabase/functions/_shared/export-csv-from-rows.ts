@@ -5,6 +5,7 @@
 
 import { escapeCSVValue } from "./csv-export.ts";
 import { formatDate } from "./export-formatters.ts";
+import { resolvePublicSiteUrl } from "./public-site-url.ts";
 
 export type ExportRow = Record<string, unknown>;
 
@@ -63,7 +64,7 @@ function formatCell(column: string, value: unknown): string {
 }
 
 export function buildEquipmentUrl(equipmentId: string, siteUrl?: string): string {
-  const base = siteUrl || Deno.env.get("PUBLIC_SITE_URL") || "https://app.equipqr.com";
+  const base = (siteUrl || resolvePublicSiteUrl()).replace(/\/+$/, "");
   return `${base}/dashboard/equipment/${equipmentId}`;
 }
 

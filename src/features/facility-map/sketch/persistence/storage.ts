@@ -8,6 +8,7 @@ import type {
   SketchParameter,
   SketchUnit,
 } from '../core/types';
+import { isQuotaExceeded, reportSaveFailure } from './saveFailure';
 
 export const SKETCH_STORAGE_PREFIX = 'znteqr:facility-sketch:v1:';
 
@@ -72,10 +73,22 @@ export function loadSketchDocument(storageKey: string): SketchDocument {
   }
 }
 
-export function saveSketchDocument(storageKey: string, document: SketchDocument): void {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(
-    `${SKETCH_STORAGE_PREFIX}${storageKey}`,
-    serializeSketchDocument(document),
-  );
+/**
+ * Persists a sketch document. Never throws: a full or blocked localStorage
+ * used to escape from the history effect and tear the editor down (and make
+ * Finish Sketch do nothing). Returns false when the write did not happen;
+ * quota failures also raise the shared "not saved" notice.
+ */
+export function saveSketchDocument(storageKey: string, document: SketchDocument): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    window.localStorage.setItem(
+      `${SKETCH_STORAGE_PREFIX}${storageKey}`,
+      serializeSketchDocument(document),
+    );
+    return true;
+  } catch (error) {
+    if (isQuotaExceeded(error)) reportSaveFailure();
+    return false;
+  }
 }

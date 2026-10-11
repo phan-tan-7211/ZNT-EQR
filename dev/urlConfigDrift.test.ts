@@ -14,6 +14,9 @@ const ALLOWLIST_SUFFIXES = [
   'supabase/functions/_shared/oauth-redirect-base.deno.test.ts',
   'docs/ops/playwright-real-auth-integrations.md',
   'docs/ops/url-config-external-cleanup.md',
+  // Historical record of the #1033/#1282 migration; keeps the host names of
+  // that time under a "retired" banner.
+  'docs/ops/preview-architecture-migration.md',
   'AGENTS.md',
   // This file defines RETIRED_HOST for the guard assertion itself.
   'dev/urlConfigDrift.test.ts',

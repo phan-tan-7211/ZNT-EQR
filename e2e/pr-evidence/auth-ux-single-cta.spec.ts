@@ -30,7 +30,7 @@ test.describe('PR evidence auth UX single CTA @pr-evidence', () => {
     await getStarted.click();
     await expect(page).toHaveURL(/\/auth\/?$/);
     await expect(page.getByRole('tab')).toHaveCount(0);
-    const signinTitle = page.getByRole('heading', { name: /sign in to equipqr/i });
+    const signinTitle = page.getByRole('heading', { name: /sign in to znteqr/i });
     await expect(signinTitle).toBeVisible({ timeout: 15_000 });
     await expect(page.getByRole('button', { name: /login with google/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /login with email & password/i })).toBeVisible();

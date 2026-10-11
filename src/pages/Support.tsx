@@ -7,7 +7,6 @@ import {
   Clock,
   ArrowRight,
   Bug,
-  Activity,
   BookOpen,
 } from "lucide-react";
 import { ExternalLink } from "@/components/ui/external-link";
@@ -54,14 +53,6 @@ const ContactSection: React.FC<ContactSectionProps> = ({
     <CardContent>
       <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-3">
-          <div className="flex items-center gap-2">
-            <Activity className="h-4 w-4 text-muted-foreground" />
-            <span>{t('support.checkOur')} </span>
-            <ExternalLink href="https://eqr.zinitek.com/support" className="text-primary">
-              {t('support.statusPage')}
-            </ExternalLink>
-            <span> {t('support.statusPageHelp')}</span>
-          </div>
           <div className="flex items-center gap-2">
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
             <span>{t('support.emailSupport')}: </span>

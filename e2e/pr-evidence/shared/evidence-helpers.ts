@@ -126,7 +126,7 @@ export async function assertDocsDevServerReady(
     response = await request.get(guideUrl);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Docs dev server unreachable at ${guideUrl}: ${message}`);
+    throw new Error(`Docs dev server unreachable at ${guideUrl}: ${message}`, { cause: error });
   }
 
   const body = await response.text();

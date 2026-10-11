@@ -39,7 +39,7 @@ export const landingSectionsResources = {
         "seats": "Unlimited user seats",
         "storage": "5 GB image storage included",
         "isolation": "Row-level security. Shops cannot see each other.",
-        "demo": "Schedule a demo",
+        "demo": "Request a demo",
         "questions": "Questions?",
         "email": "Email us"
       },
@@ -96,7 +96,7 @@ export const landingSectionsResources = {
         "seats": "Không giới hạn tài khoản người dùng",
         "storage": "Bao gồm 5 GB lưu trữ ảnh",
         "isolation": "Bảo mật ở cấp hàng. Các xưởng không thể xem dữ liệu của nhau.",
-        "demo": "Đặt lịch xem demo",
+        "demo": "Yêu cầu bản demo",
         "questions": "Bạn có câu hỏi?",
         "email": "Gửi email cho chúng tôi"
       },
@@ -153,7 +153,7 @@ export const landingSectionsResources = {
         "seats": "사용자 계정 무제한",
         "storage": "사진 저장 공간 5 GB 포함",
         "isolation": "행 수준 보안으로 사업장 간 데이터가 분리됩니다.",
-        "demo": "데모 예약",
+        "demo": "데모 요청",
         "questions": "궁금한 점이 있나요?",
         "email": "이메일 문의"
       },

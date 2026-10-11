@@ -13,7 +13,14 @@ const {
   MAX_TITLE_LENGTH,
   MIN_DESCRIPTION_LENGTH,
   MAX_DESCRIPTION_LENGTH,
+  GITHUB_REPO_OWNER,
+  GITHUB_REPO_NAME,
 } = __testables;
+
+Deno.test("bug reports target the live phan-tan-7211/ZNT-EQR repository", () => {
+  assertEquals(GITHUB_REPO_OWNER, "phan-tan-7211");
+  assertEquals(GITHUB_REPO_NAME, "ZNT-EQR");
+});
 
 Deno.test("coerceMetadataObject accepts omitted/null and rejects non-objects", () => {
   assertEquals(coerceMetadataObject(undefined), {});

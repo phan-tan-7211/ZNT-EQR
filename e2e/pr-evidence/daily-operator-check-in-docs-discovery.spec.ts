@@ -102,7 +102,7 @@ test.describe.serial('Daily operator check-in docs discovery @pr-evidence', () =
 
     const helpCenterPage = await page.context().newPage();
     await helpCenterPage.goto(`${DOCS_BASE}/support/`);
-    await expect(helpCenterPage.getByRole('heading', { name: /equipqr help center/i })).toBeVisible({
+    await expect(helpCenterPage.getByRole('heading', { name: /znteqr help center/i })).toBeVisible({
       timeout: 30_000,
     });
     await expect(helpCenterPage.getByRole('link', { name: /administration/i }).first()).toBeVisible({

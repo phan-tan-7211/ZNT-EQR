@@ -1,16 +1,16 @@
 # Better Stack Monitoring & Status Page
 
-> Operational reference for the ZNTEQR uptime monitors and public status page hosted by Better Stack.
+> Operational reference for the ZNTEQR uptime monitors hosted by Better Stack. ZNTEQR does **not** publish a customer-facing status page (see [Status page](#status-page-not-published)).
 
 ## Overview
 
-Better Stack provides two uptime monitors and a public status page for ZNTEQR:
+Better Stack provides two uptime monitors for ZNTEQR:
 
 | Component | Purpose |
 |---|---|
 | **Web Availability Monitor** | Proves the production SPA at `https://eqr.zinitek.com/` responds with HTTP 200 |
 | **Deep Health Monitor** | Proves the Supabase backend and database are reachable via the healthcheck edge function |
-| **Public Status Page** | Customer-facing uptime dashboard at `https://eqr.zinitek.com/support` |
+| **Status page** | Not published to customers. See [Status page](#status-page-not-published) |
 
 ## Monitors
 
@@ -56,35 +56,28 @@ The healthcheck endpoint returns JSON with the following contract:
 
 When the database check fails or times out, the endpoint returns HTTP 503 with `"ok": false` and an `error_code` field in `checks.db`.
 
-## Public Status Page
+## Status page (not published)
+
+ZNTEQR has no customer-facing status page. The former custom domain `status.equipqr.app` is retired, and the app no longer links to a status page. `https://eqr.zinitek.com/support` is the public **Support** page (contact email and response time) — it is not a status page and must not be pointed at Better Stack.
+
+If the Better Stack status page is still enabled, it is reachable only at its Better Stack subdomain and is for operators:
 
 | Field | Value |
 |---|---|
 | Status page title | ZNTEQR Status |
-| Status page URL | `https://eqr.zinitek.com/support` |
-| Better Stack subdomain | `equipqr.betteruptime.com` |
+| Better Stack subdomain | `equipqr.betteruptime.com` (legacy name) |
+| Custom domain | None (`status.equipqr.app` retired) |
 | Components shown | ZNTEQR Web, ZNTEQR API Health |
 | History / uptime chart | Enabled (90-day history) |
 
-## DNS / Custom Domain Setup
+### Publishing a custom domain (maintainer decision only)
 
-`eqr.zinitek.com/support` points to the Better Stack-hosted status page via a CNAME record.
+Do not attach a hostname to the status page or link it from the app without maintainer approval. If one is approved:
 
-### Steps
-
-1. In the Better Stack status page settings, enable the custom domain and note the **CNAME target** provided.
-2. In the **Vercel dashboard** (where `eqr.zinitek.com` DNS is managed):
-   - Navigate to the domain `eqr.zinitek.com` > DNS Records.
-   - Add a CNAME record:
-     - **Name:** `status`
-     - **Value:** `statuspage.betteruptime.com`
-     - **TTL:** Auto / 300
-3. Wait for DNS propagation (typically < 5 minutes on Vercel).
-4. Verify: `https://eqr.zinitek.com/support` should load the Better Stack status page.
-
-| DNS Record | Type | Name | Value |
-|---|---|---|---|
-| Status page CNAME | CNAME | `status` | `statuspage.betteruptime.com` |
+1. In the Better Stack status page settings, enable the custom domain and note the **CNAME target** provided (historically `statuspage.betteruptime.com`).
+2. At the DNS provider for `zinitek.com`, add a CNAME record for the approved subdomain pointing at that target.
+3. Wait for DNS propagation, then verify the hostname loads the Better Stack status page.
+4. Update this runbook, the Help Center article `docs/support/privacy-support/system-status.md`, and the app Support page in the same change.
 
 ## Alert Policy
 
@@ -107,7 +100,7 @@ When the database check fails or times out, the endpoint returns HTTP 503 with `
 
 - If the healthcheck endpoint changes its response contract, update the Better Stack keyword monitor to match.
 - If the Supabase project is migrated to a new ref, update the deep health monitor URL.
-- If `eqr.zinitek.com` DNS moves away from Vercel, recreate the `status` CNAME at the new provider.
+- If a status-page custom domain is ever published, record the hostname and its DNS provider in the table above.
 
 ## Better Stack MCP smoke check
 

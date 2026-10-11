@@ -363,6 +363,7 @@ export default function SketchGuideDialog({ open, onOpenChange, t }: SketchGuide
               <StepCard n={3} title={g('step3Title')} body={g('step3Body')} art={<ChainArt label={g('step3Title')} />} />
               <StepCard n={4} title={g('step4Title')} body={g('step4Body')} art={<FinishArt label={g('step4Title')} esc="Esc" finish={t('facilityMap.finishSketch')} />} />
             </ol>
+            <Tip>{g('mobileNote')}</Tip>
             <Tip>
               {g('reopenTip')} <Kbd>?</Kbd> / <Kbd>F1</Kbd>
             </Tip>

@@ -789,7 +789,7 @@ export function createJsonResponse<T>(
  *
  * When `opts.useValidatedOrigin` is false, the preflight response uses
  * the static production-origin fallback. Otherwise (default) it uses
- * `getCorsHeaders(req)` so preview, Vercel, and local origins work.
+ * `getCorsHeaders(req)` so Cloudflare Pages preview and local origins work.
  */
 export function handleCorsPreflightIfNeeded(
   req: Request,

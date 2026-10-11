@@ -140,19 +140,39 @@ describe('break/offset modify', () => {
     ]);
   });
 
-  it('returns null for unsupported offset entities', () => {
+  it('grows a rectangle when the click lands on or outside its border, shrinks it when inside', () => {
     const rect: SketchEntity = {
       ...style,
       id: 'rect',
       type: 'rect',
       x: 0,
       y: 0,
-      w: 10,
-      h: 10,
+      w: 40,
+      h: 20,
     };
-    expect(
-      createOffsetEntity(rect, 5, { x: 0, y: 10 }, 'offset'),
-    ).toBeNull();
+    expect(createOffsetEntity(rect, 5, { x: 0, y: 10 }, 'grown')).toMatchObject({
+      id: 'grown', type: 'rect', x: -5, y: -5, w: 50, h: 30,
+    });
+    expect(createOffsetEntity(rect, 5, { x: 20, y: 10 }, 'shrunk')).toMatchObject({
+      id: 'shrunk', type: 'rect', x: 5, y: 5, w: 30, h: 10,
+    });
+    // Shrinking past the short side would invert the rectangle.
+    expect(createOffsetEntity(rect, 10, { x: 20, y: 10 }, 'gone')).toBeNull();
+  });
+
+  it('normalises a rectangle drawn right-to-left before offsetting it', () => {
+    const rect: SketchEntity = {
+      ...style,
+      id: 'rect',
+      type: 'rect',
+      x: 40,
+      y: 20,
+      w: -40,
+      h: -20,
+    };
+    expect(createOffsetEntity(rect, 5, { x: 60, y: 10 }, 'grown')).toMatchObject({
+      x: -5, y: -5, w: 50, h: 30,
+    });
   });
 
   it('grows a circle when the click lands outside it, shrinks it when inside', () => {

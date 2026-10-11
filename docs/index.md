@@ -50,9 +50,9 @@ features:
     link: /support/admin-integrations/
     linkText: Admin guides
   - title: Privacy & Support
-    details: Privacy requests, audit log, system status, and in-app ticket help.
+    details: Privacy requests, audit log, support contact, and in-app ticket help.
     link: /support/privacy-support/
-    linkText: Privacy & status
+    linkText: Privacy & support
 ---
 
 ## Need help inside the app?
@@ -61,7 +61,7 @@ Signed-in users can **report issues and track tickets** on the ZNTEQR app suppor
 
 **[eqr.zinitek.com/dashboard/support](https://eqr.zinitek.com/dashboard/support)**
 
-For service availability, check **[eqr.zinitek.com/support](https://eqr.zinitek.com/support)**.
+Can't sign in? The public **[eqr.zinitek.com/support](https://eqr.zinitek.com/support)** page lists the support email and response time. ZNTEQR does not publish a separate status page.
 
 ## Reference guides
 

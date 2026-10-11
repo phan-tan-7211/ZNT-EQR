@@ -31,6 +31,6 @@ describe('PricingSection', () => {
       screen.getByRole('heading', { level: 2, name: /Unlimited seats\. 5 GB of photos\./i }),
     ).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /Get Started Free/i })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /Schedule a demo/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Request a demo/i })).toBeInTheDocument();
   });
 });

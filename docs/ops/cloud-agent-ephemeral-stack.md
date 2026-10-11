@@ -49,7 +49,7 @@ Password: set `CLOUD_AGENT_QUICK_LOGIN_PASSWORD` or `VITE_DEV_TEST_PASSWORD`, or
 
 Primary smoke persona: `owner@apex.test` — org upgraded with one team + `CAT 320 Excavator`.
 
-**Safety rails:** seed and env rewrite refuse parent project ref `wgynakhoppqkrutnslmv` and custom domain `wgynakhoppqkrutnslmv.supabase.co`. Teardown only deletes `agent-*` branches whose live metadata matches the session state file.
+**Safety rails:** seed and env rewrite refuse parent project ref `wgynakhoppqkrutnslmv` and the production API host `wgynakhoppqkrutnslmv.supabase.co`. Teardown only deletes `agent-*` branches whose live metadata matches the session state file.
 
 ## Manual commands
 

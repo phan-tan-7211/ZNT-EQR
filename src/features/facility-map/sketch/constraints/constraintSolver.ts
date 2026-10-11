@@ -2,13 +2,11 @@ import { distance } from '../core/geometry';
 import type {
   LineEntity,
   SketchConstraint,
+  SketchConstraintPointRef,
   SketchEntity,
+  SketchPoint,
 } from '../core/types';
-import {
-  applyCoincidentConstraint,
-  applyHorizontalConstraint,
-  applyVerticalConstraint,
-} from './basicConstraints';
+import { applyCoincidentConstraint } from './basicConstraints';
 import {
   applyConcentricConstraint,
   applyEqualConstraint,
@@ -187,19 +185,127 @@ const detectOverConstraints = (
   return duplicateIds;
 };
 
+/**
+ * Edit-aware solving context. The projection solver is sequential, so for a
+ * two-sided constraint one side has to give way. Without knowing what the
+ * user just edited it always moved the *second* entity, which made a
+ * chain-drawn profile rigid (dragging a later segment snapped straight back)
+ * and let a closed loop end up violating its own H/V constraints. With this
+ * context the entity the user edited — and anything the solver has already
+ * moved to follow it — stays put, and the untouched side follows, the way an
+ * Inventor sketch behaves.
+ */
+type SolveContext = {
+  previousById: Map<string, SketchEntity> | null;
+  moved: Set<string>;
+  fixedIds: Set<string>;
+  tolerance: number;
+};
+
+const findLine = (entities: SketchEntity[], id: string): LineEntity | null => {
+  const entity = entities.find((item) => item.id === id);
+  return entity && entity.type === 'line' ? entity : null;
+};
+
+const lineEndpoint = (line: LineEntity, point: SketchConstraintPointRef['point']): SketchPoint | null =>
+  point === 'start' ? { x: line.x1, y: line.y1 } : point === 'end' ? { x: line.x2, y: line.y2 } : null;
+
+const withLineEndpoint = (line: LineEntity, point: 'start' | 'end', target: SketchPoint): LineEntity =>
+  point === 'start'
+    ? { ...line, x1: target.x, y1: target.y }
+    : { ...line, x2: target.x, y2: target.y };
+
+const replaceEntity = (entities: SketchEntity[], next: SketchEntity): SketchEntity[] =>
+  entities.map((entity) => (entity.id === next.id ? next : entity));
+
+/** Which endpoint of an H/V line should stay put: the one the edit moved. */
+const axisAnchor = (line: LineEntity, ctx: SolveContext): 'start' | 'end' => {
+  const previous = ctx.previousById?.get(line.id);
+  if (!previous || previous.type !== 'line') return 'start';
+  const startMoved = Math.hypot(line.x1 - previous.x1, line.y1 - previous.y1) > ctx.tolerance;
+  const endMoved = Math.hypot(line.x2 - previous.x2, line.y2 - previous.y2) > ctx.tolerance;
+  return endMoved && !startMoved ? 'end' : 'start';
+};
+
+const applyAxisConstraint = (
+  entities: SketchEntity[],
+  constraint: SketchConstraint,
+  ctx: SolveContext,
+): SketchEntity[] | null => {
+  const line = findLine(entities, constraint.entityIds[0]);
+  if (!line) return null;
+  const anchorEnd = axisAnchor(line, ctx) === 'end';
+  const next: LineEntity = constraint.kind === 'horizontal'
+    ? anchorEnd ? { ...line, y1: line.y2 } : { ...line, y2: line.y1 }
+    : anchorEnd ? { ...line, x1: line.x2 } : { ...line, x2: line.x1 };
+  return replaceEntity(entities, next);
+};
+
+const applyCoincidentByRefs = (
+  entities: SketchEntity[],
+  constraint: SketchConstraint,
+  ctx: SolveContext,
+): SketchEntity[] | null => {
+  const [firstRef, secondRef] = constraint.pointRefs ?? [];
+  if (!firstRef || !secondRef) return null;
+  if ((firstRef.point !== 'start' && firstRef.point !== 'end') || (secondRef.point !== 'start' && secondRef.point !== 'end')) {
+    return null;
+  }
+  const first = findLine(entities, firstRef.entityId);
+  const second = findLine(entities, secondRef.entityId);
+  if (!first || !second || first.id === second.id) return null;
+
+  const firstFixed = ctx.fixedIds.has(first.id);
+  const secondFixed = ctx.fixedIds.has(second.id);
+  const secondLeads = secondFixed !== firstFixed
+    ? secondFixed
+    : ctx.moved.has(second.id) && !ctx.moved.has(first.id);
+
+  const [master, masterRef, slave, slaveRef] = secondLeads
+    ? [second, secondRef, first, firstRef]
+    : [first, firstRef, second, secondRef];
+  const target = lineEndpoint(master, masterRef.point);
+  if (!target) return null;
+  return replaceEntity(entities, withLineEndpoint(slave, slaveRef.point as 'start' | 'end', target));
+};
+
+/** Residual (distance from satisfied) for the constraint kinds auto-inference creates. */
+const constraintResidual = (entities: SketchEntity[], constraint: SketchConstraint): number => {
+  if (constraint.kind === 'horizontal' || constraint.kind === 'vertical') {
+    const line = findLine(entities, constraint.entityIds[0]);
+    if (!line) return 0;
+    return constraint.kind === 'horizontal' ? Math.abs(line.y2 - line.y1) : Math.abs(line.x2 - line.x1);
+  }
+  if (constraint.kind === 'coincident') {
+    const [firstRef, secondRef] = constraint.pointRefs ?? [];
+    if (!firstRef || !secondRef) return 0;
+    const first = findLine(entities, firstRef.entityId);
+    const second = findLine(entities, secondRef.entityId);
+    const a = first && lineEndpoint(first, firstRef.point);
+    const b = second && lineEndpoint(second, secondRef.point);
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  }
+  return 0;
+};
+
 const applyConstraint = (
   entities: SketchEntity[],
   constraint: SketchConstraint,
+  ctx: SolveContext,
 ): SketchEntity[] => {
   if (constraint.enabled === false || constraint.conflict) return entities;
 
+  if (constraint.kind === 'horizontal' || constraint.kind === 'vertical') {
+    return applyAxisConstraint(entities, constraint, ctx) ?? entities;
+  }
+  if (constraint.kind === 'coincident') {
+    const byRefs = applyCoincidentByRefs(entities, constraint, ctx);
+    if (byRefs) return byRefs;
+  }
+
   const [firstId, secondId] = constraint.entityIds;
   const result =
-    constraint.kind === 'horizontal'
-      ? applyHorizontalConstraint(entities, firstId, constraint.id)
-      : constraint.kind === 'vertical'
-        ? applyVerticalConstraint(entities, firstId, constraint.id)
-        : constraint.kind === 'coincident' && secondId
+    constraint.kind === 'coincident' && secondId
           ? applyCoincidentConstraint(entities, firstId, secondId, constraint.id)
           : constraint.kind === 'parallel' && secondId
             ? applyParallelConstraint(entities, firstId, secondId, constraint.id)
@@ -232,9 +338,16 @@ export const solveSketchConstraints = (
   options: {
     maxIterations?: number;
     tolerance?: number;
+    /**
+     * The entities as they were before the edit being solved. Entities that
+     * differ from (or are new compared to) this snapshot are treated as the
+     * user's edit and lead two-sided constraints; omit it for a neutral
+     * solve (e.g. a status readout).
+     */
+    previousEntities?: SketchEntity[];
   } = {},
 ): ConstraintSolveResult => {
-  const maxIterations = Math.max(1, options.maxIterations ?? 12);
+  const maxIterations = Math.max(1, options.maxIterations ?? 24);
   const tolerance = Math.max(1e-9, options.tolerance ?? 1e-6);
   const conflictIds = detectConflicts(
     entities,
@@ -291,10 +404,31 @@ export const solveSketchConstraints = (
   let converged = false;
   let iterations = 0;
 
+  const previousById = options.previousEntities
+    ? new Map(options.previousEntities.map((entity) => [entity.id, entity]))
+    : null;
+  const moved = new Set<string>();
+  if (previousById) {
+    current.forEach((entity) => {
+      const previous = previousById.get(entity.id);
+      if (!previous || entityDelta(previous, entity) > tolerance) moved.add(entity.id);
+    });
+  }
+  const ctx: SolveContext = { previousById, moved, fixedIds, tolerance };
+
   for (let index = 0; index < maxIterations; index += 1) {
     const before = structuredClone(current);
     markedConstraints.forEach((constraint) => {
-      current = applyConstraint(current, constraint);
+      const next = applyConstraint(current, constraint, ctx);
+      if (next !== current && previousById) {
+        // Anything a constraint just moved now follows the edit too, so the
+        // change keeps propagating outward instead of being pulled back.
+        next.forEach((entity, entityIndex) => {
+          const prior = current[entityIndex];
+          if (prior && entityDelta(prior, entity) > tolerance) moved.add(entity.id);
+        });
+      }
+      current = next;
     });
     current = restoreFixed(current);
     iterations = index + 1;
@@ -310,6 +444,16 @@ export const solveSketchConstraints = (
       converged = true;
       break;
     }
+  }
+
+  // An iteration that stops changing is not proof every constraint holds
+  // (two constraints can keep undoing each other to the same state), so
+  // only report convergence when the residuals are actually satisfied.
+  if (converged) {
+    const residualTolerance = Math.max(tolerance * 1000, 1e-6);
+    converged = markedConstraints
+      .filter((constraint) => constraint.enabled !== false && !constraint.conflict)
+      .every((constraint) => constraintResidual(current, constraint) <= residualTolerance);
   }
 
   const fullyConstrained =

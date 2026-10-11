@@ -109,7 +109,9 @@ export const inventoryFormBulkResources = {
       "gridLabel": "Inventory bulk edit",
       "image": "Image",
       "selectAll": "Select all rows",
-      "empty": "No inventory items to edit."
+      "empty": "No inventory items to edit.",
+      "failedItems": "Not saved: {{names}}",
+      "failedItemsMore": "{{names}} and {{count}} more"
     }
   },
   "vi": {
@@ -222,7 +224,9 @@ export const inventoryFormBulkResources = {
       "gridLabel": "Chỉnh sửa tồn kho hàng loạt",
       "image": "Hình ảnh",
       "selectAll": "Chọn tất cả dòng",
-      "empty": "Không có vật tư tồn kho nào để chỉnh sửa."
+      "empty": "Không có vật tư tồn kho nào để chỉnh sửa.",
+      "failedItems": "Chưa lưu: {{names}}",
+      "failedItemsMore": "{{names}} và {{count}} vật tư khác"
     }
   },
   "ko": {
@@ -335,7 +339,9 @@ export const inventoryFormBulkResources = {
       "gridLabel": "재고 일괄 편집",
       "image": "이미지",
       "selectAll": "모든 행 선택",
-      "empty": "편집할 재고 품목이 없습니다."
+      "empty": "편집할 재고 품목이 없습니다.",
+      "failedItems": "저장되지 않음: {{names}}",
+      "failedItemsMore": "{{names}} 외 {{count}}개"
     }
   }
 } as const;

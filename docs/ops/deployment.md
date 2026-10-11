@@ -1,8 +1,8 @@
 # Deployment Guide
 
-> **Current hosting (2026-09-28):** Vercel is retired. Deploy the frontend through
-> the existing Cloudflare Pages Git integration. The older Vercel sections below
-> are retained as migration history only and are not valid deployment steps.
+> **Current hosting (2026-09-28):** Vercel is retired. The frontend deploys through
+> the Cloudflare Pages Git integration (project `eqr-zinitek`). Remaining Vercel
+> mentions below are migration history only and are not valid deployment steps.
 
 This guide covers all aspects of deploying ZNTEQR™, including build processes, hosting platforms, runner management, and versioning.
 
@@ -12,29 +12,30 @@ ZNTEQR™ is designed as a modern single-page application (SPA) that can be depl
 
 ### Public documentation site (`eqrdocs.zinitek.com`)
 
-Developer and operator documentation is published from this repository’s [`docs/`](https://github.com/phan-tan-7211/ZNT-EQR/tree/main/docs) directory as a **standalone VitePress** static site. It is deployed as a **separate Vercel project** with **Root Directory** set to `docs` (build: `npm run docs:build`, output: `.vitepress/dist`). Production hostname: **`https://eqrdocs.zinitek.com`**. The product app remains on **`https://eqr.zinitek.com`**.
+Developer and operator documentation is published from this repository’s [`docs/`](https://github.com/phan-tan-7211/ZNT-EQR/tree/main/docs) directory as a **standalone VitePress** static site. It is deployed as a **separate Cloudflare Pages project** with **Root directory** set to `docs` (build: `npm run docs:build`, output: `.vitepress/dist`). Production hostname: **`https://eqrdocs.zinitek.com`**. The product app is on **`https://eqr.zinitek.com`** (Pages project `eqr-zinitek`).
 
-**Operational wiring (ZNT Vercel team):**
+**Operational wiring (Cloudflare Pages):**
 
 | Item | Value |
 |------|--------|
-| Docs project name | `equipqr-docs` |
-| Docs project ID | `prj_6QicTVywixyyAYc7sxCRDLnqwbM9` |
+| Root directory | `docs` |
+| Build command / output | `npm run docs:build` / `.vitepress/dist` |
 | Production branch | `main` (same branch gate as `eqr.zinitek.com`) |
-| Domains on docs project | `eqrdocs.zinitek.com` (apex), `eqrdocs.zinitek.com` → apex redirect |
-| Preview deploys | Disabled — [`docs/vercel.json`](../vercel.json) `ignoreCommand` skips non-`main` builds |
+| Custom domain on docs project | `eqrdocs.zinitek.com` |
+| Response headers | [`docs/public/_headers`](../public/_headers) (CSP with static `script-src 'self'`, `no-cache` on `/sw.js`) |
+| Retired | Vercel project `equipqr-docs` and the former `equipqr.info` / `www.equipqr.info` hostnames (the docs site was published at `equipqr.info` until the move to `zinitek.com` hosts) |
 
-Keep **`eqrdocs.zinitek.com` off the SPA project (`equipqr`)** — only the docs project should attach that hostname.
+Keep **`eqrdocs.zinitek.com` off the SPA Pages project (`eqr-zinitek`)** — only the docs project should attach that hostname.
 
-**Stranded PWA service worker:** Visitors who loaded `eqrdocs.zinitek.com` while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/vercel.json` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
+**Stranded PWA service worker:** Visitors who loaded the docs hostname (then `equipqr.info`) while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/public/_headers` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
 
-**Build note:** Vercel installs dependencies from `docs/package.json` only. Because the monorepo root still has [`postcss.config.js`](../../postcss.config.js), PostCSS can walk up and load the root config unless a scoped file exists. The docs project ships [`docs/postcss.config.js`](../postcss.config.js) (same plugin list as root) and pins `@tailwindcss/postcss`, `tailwindcss`, and `postcss` under [`docs/package.json`](../package.json). Tailwind is also wired in [`docs/.vitepress/config.ts`](../.vitepress/config.ts) for local dev.
+**Build note:** The docs Pages project installs dependencies from `docs/package.json` only. Because the monorepo root still has [`postcss.config.js`](../../postcss.config.js), PostCSS can walk up and load the root config unless a scoped file exists. The docs project ships [`docs/postcss.config.js`](../postcss.config.js) (same plugin list as root) and pins `@tailwindcss/postcss`, `tailwindcss`, and `postcss` under [`docs/package.json`](../package.json). Tailwind is also wired in [`docs/.vitepress/config.ts`](../.vitepress/config.ts) for local dev.
 
 **Design tokens (app ↔ docs):** The product Mission Control palette lives in [`src/index.css`](../../src/index.css). The VitePress theme under [`docs/.vitepress/theme/`](../.vitepress/theme/) mirrors those HSL values into `znteqr-tokens.css` and maps them to VitePress `--vp-*` variables in `custom.css` (default appearance is dark). When you change primary, background, border, or semantic status colors in the app, update the matching `--eqr-*` values in `znteqr-tokens.css` in the same change (or immediately after) so eqrdocs.zinitek.com stays visually continuous with eqr.zinitek.com. There is not yet a shared compiled token package — the mirror is intentional and documented.
 
 **Local footer testing:** Run `.\dev\dev-start.bat` to start the product app and docs site together. In local Vite dev mode, the app footer’s Documentation link defaults to `http://localhost:5174`; production builds default to `https://eqrdocs.zinitek.com`. Set `VITE_DOCUMENTATION_URL` when you need to test a different docs preview URL, such as `http://localhost:4173` after running `npm run docs:build` and then `npm run docs:preview`.
 
-**Related domains:** During domain migration, **`equipqr.support`** / **`www.equipqr.support`** on the SPA project may temporarily redirect to **`eqr.zinitek.com`** instead of **`eqrdocs.zinitek.com`** because Vercel only allows same-project redirect targets; revisit in the dashboard if those URLs should land on the public docs site again.
+**Retired domains:** During the earlier Vercel-era domain migration, **`equipqr.support`** / **`www.equipqr.support`** on the SPA project redirected to **`equipqr.app`** instead of **`equipqr.info`** because Vercel only allowed same-project redirect targets. Those hostnames, like `equipqr.app` and `equipqr.info`, are retired; the live hosts are `eqr.zinitek.com` (app), `eqrdocs.zinitek.com` (docs), and `eqrweb.zinitek.com` (company site).
 
 ## Build Process
 
@@ -163,38 +164,31 @@ passwords, Supabase keys, or session tokens.
 
 ## Hosting Platforms
 
-ZNTEQR™ is hosted on Vercel. The `main` branch promotes to `eqr.zinitek.com` after
-**Production Release Readiness** runs **`vercel promote`**. **`equip-qr-*.vercel.app`**
-is the stable pre-production hostname bound to git branch **`preview`** (integration
-train) — Vercel Preview deploys on merges/pushes to that branch. SSL, CDN, and custom
-domain routing are managed in the Vercel dashboard.
+ZNTEQR™ is hosted on **Cloudflare Pages** (project `eqr-zinitek`), connected to this repository through the Cloudflare Pages Git integration. There is no deploy CLI step and no promote step:
+
+| Git context | Cloudflare Pages environment | URL |
+|-------------|------------------------------|-----|
+| `main` | Production | `https://eqr.zinitek.com` |
+| `preview` (integration train) | Preview | Branch alias `https://preview.eqr-zinitek.pages.dev` |
+| Other branches / PRs | Preview | Per-deployment `https://<hash>.eqr-zinitek.pages.dev` (plus a branch alias), linked from the GitHub **Cloudflare Pages** check |
+
+SSL, CDN, and custom domains are managed in the Cloudflare dashboard.
+
+**Edge Function origin trust:** Supabase Edge Functions (CORS, Stripe return URLs, QuickBooks / Google Workspace OAuth redirect validation) accept `https://eqr.zinitek.com`, local dev origins, and Cloudflare Pages origins of this project only — `https://<label>.eqr-zinitek.pages.dev` (one label: deployment hash or branch alias, e.g. `preview`) and the project root `https://eqr-zinitek.pages.dev`. The project name comes from the `CLOUDFLARE_PAGES_PROJECT` edge secret (default `eqr-zinitek`); see [Edge origin allowlist](./agent-secrets-and-access.md#edge-origin-allowlist-cloudflare_pages_project). Other `*.pages.dev` projects are rejected.
 
 See **`docs/ops/git-and-deploy.md`** for the authoritative git/deploy loop.
 
-### Vercel Deployment
-```bash
-# From repo root (CLI version pinned in npm script — no global install required)
-npm ci
+### Cloudflare Pages configuration
 
-# Preview deploy (pinned CLI major/minor line; bump with releases if needed)
-npx --yes vercel@51.6.1
+- **Build**: `npm run build`, output directory `dist`.
+- **SPA routing**: [`public/_redirects`](../../public/_redirects) sends authenticated/app routes (`/dashboard/*`, `/auth/*`, `/qr/*`, …) and the catch-all to the empty SPA shell `/app-shell.html` (status 200); marketing routes are served from prerendered `index.html` files. Verify with `npm run verify:spa-routing`.
+- **Headers**: [`public/_headers`](../../public/_headers) sets HSTS, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, the Content-Security-Policy, `noindex` on app routes, and one-year immutable caching for `/assets/*`.
+- **Branch deployment**: Preview deployments for every non-`main` push; production deploys from `main`.
 
-# Production deploy (same as npm run deploy:vercel)
-npx --yes vercel@51.6.1 --prod
-```
-
-#### `vercel.json` Configuration
-The project includes a complete `vercel.json` configuration file with:
-- **Build Configuration**: Uses Vite framework with `npm run build`
-- **SPA Routing**: Non-static app routes rewritten to the empty SPA shell (`dist/app-shell.html`); marketing routes served from prerendered `index.html` files. Vercel (`vercel.json` + `cleanUrls`) rewrites extensionless paths to `/app-shell`; Netlify (`netlify.toml`, `public/_redirects`) targets `/app-shell.html` because that host lacks Vercel cleanUrls behavior.
-- **Security Headers**: X-Content-Type-Options, X-Frame-Options, Referrer-Policy
-- **Performance Headers**: Long-term caching for static assets
-- **Branch Deployment**: Automatic Preview deployments for PRs; Production builds on `main` (promoted automatically by Production Release Readiness)
-
-> **Adding a new domain alias?** When you bring a new Vercel alias / custom domain online (e.g. `equip-qr-*.vercel.app`, a new branch URL, or a tenant subdomain), the upstream Google Maps API key's HTTP-referrer allowlist must also be widened or the Fleet Map will fail at runtime with `RefererNotAllowedMapError`. See [Google Maps API key — HTTP referrer allowlist](./supabase-branch-secrets.md#google-maps-api-key--http-referrer-allowlist).
+> **Adding a new hostname?** When you bring a new Cloudflare Pages hostname or custom domain online (for example a new branch alias or a tenant subdomain), the upstream Google Maps API key's HTTP-referrer allowlist must also be widened or the Fleet Map will fail at runtime with `RefererNotAllowedMapError`. See [Google Maps API key — HTTP referrer allowlist](./supabase-branch-secrets.md#google-maps-api-key--http-referrer-allowlist).
 
 #### Environment Variables Setup
-Configure these environment variables in your Vercel project dashboard:
+Configure these environment variables in the Cloudflare Pages project (**Settings → Environment variables**, separately for Production and Preview):
 
 **Required:**
 - `VITE_SUPABASE_URL`: Your Supabase project URL
@@ -209,39 +203,32 @@ Configure these environment variables in your Vercel project dashboard:
 - `VITE_GOOGLE_PICKER_APP_ID`: Google Cloud project number (Picker App ID)
 - `VITE_GOOGLE_PICKER_CLIENT_ID`: Not used (do not set; Picker reuses `VITE_GOOGLE_WORKSPACE_CLIENT_ID`)
 
-> **Important**: Vercel env vars are build-time only (`VITE_*` prefix). Edge Function runtime secrets (e.g., `GOOGLE_MAPS_BROWSER_KEY`, OAuth secrets) must be set in the **Supabase Dashboard**, not Vercel. See [Secrets Checklist](#secrets-checklist) below.
+> **Important**: Cloudflare Pages env vars are build-time only (`VITE_*` prefix). Edge Function runtime secrets (e.g., `GOOGLE_MAPS_BROWSER_KEY`, OAuth secrets) must be set in the **Supabase Dashboard**, not Cloudflare Pages. See [Secrets Checklist](#secrets-checklist) below.
 
 #### Branch Configuration
-- **Production**: merges to `main` trigger Vercel production-environment builds for **eqr.zinitek.com**. Traffic stays on the prior deployment until **Production Release Readiness** runs `vercel promote` after migrations and schema drift pass.
-- **Preview / integration**: merges and pushes to git **`preview`** deploy to **`equip-qr-*.vercel.app`** (branch-bound custom domain). Feature PRs also get commit-specific `*.vercel.app` URLs. There is no `preview-domain-alias.yml` fast-forward from `main`.
+- **Production**: merges to `main` trigger the Cloudflare Pages production build for **eqr.zinitek.com**, which goes live when the build succeeds. **Production Release Readiness** runs in parallel for Supabase (migrations, schema drift, Edge Functions) and does not gate the frontend.
+- **Preview / integration**: merges and pushes to git **`preview`** deploy to **`https://preview.eqr-zinitek.pages.dev`** (Cloudflare Pages branch alias). Feature PRs also get per-deployment `*.eqr-zinitek.pages.dev` URLs. There is no `preview-domain-alias.yml` fast-forward from `main`.
 
 See `docs/ops/git-and-deploy.md` and `docs/ops/preview-architecture-migration.md` (#1033 history, #1282 train restore).
 
-### Production release readiness (Supabase + Vercel gate)
+### Production release readiness (Supabase)
 
 Pushes to `main` run **Production Release Readiness** (`.github/workflows/production-release-readiness.yml`). This workflow:
 
-1. Applies pending SQL migrations to the **production** Supabase project (`supabase link` + `supabase db push --include-all`).
-2. Re-runs the schema drift script in **strict** mode so `schema_migrations` matches `supabase/migrations/` by name.
-3. Polls the Vercel API until the **READY** deployment for the same `github.sha` on `main` exists for the SPA project (`prj_P9hRun4B2OdGy8ACCnb0f7jNG6UA`).
-4. Runs `vercel promote` for that deployment so **eqr.zinitek.com** serves the new build without a manual dashboard step.
-5. Deploys **all** Supabase Edge Functions to production (`supabase functions deploy`), including `verify_jwt` settings from `supabase/config.toml` — runs **after** promote so an earlier workflow failure cannot leave edge functions ahead of the live frontend.
+1. Loads the production Supabase project ref from `.github/deployment-targets.json`.
+2. Applies pending SQL migrations to the **production** Supabase project (`supabase link` + `supabase db push --include-all`).
+3. Re-runs the schema drift script in **strict** mode so `schema_migrations` matches `supabase/migrations/` by name.
+4. Deploys **all** Supabase Edge Functions to production (`supabase functions deploy`), including `verify_jwt` settings from `supabase/config.toml`.
 
-When this workflow is green, production traffic should already match the merged commit.
+The frontend is not part of this workflow: Cloudflare Pages deploys `main` on its own. After a promote merge, confirm both this workflow and the GitHub **Cloudflare Pages** check are green.
 
-**GitHub / 1Password:** `OP_SERVICE_ACCOUNT_TOKEN` must remain a repo-level secret. The workflow loads:
+**GitHub secrets:** the workflow reads `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` from the GitHub `production` environment (no 1Password in the release path; see [`production-config.md`](./production-config.md)). The former `VERCEL_TOKEN` is no longer used.
 
-| Variable | 1Password reference |
-|----------|---------------------|
-| `SUPABASE_ACCESS_TOKEN` | `op://ZNTEQR Agents/supabase-write/SUPABASE_ACCESS_TOKEN` |
-| `SUPABASE_DB_PASSWORD` | `op://ZNTEQR Agents/supabase-write/prod_db_password` |
-| `VERCEL_TOKEN` | `op://ZNTEQR Agents/vercel-write/VERCEL_TOKEN` |
-
-Keep these database passwords on the `supabase-write` item in sync with **Supabase Dashboard → Project Settings → Database** (the Postgres password) for each project:
+For agent and maintainer use outside CI, keep these database passwords on the `supabase-write` 1Password item in sync with **Supabase Dashboard → Project Settings → Database** (the Postgres password) for each project:
 
 | 1Password field | Supabase project | Typical use |
 |-----------------|------------------|-------------|
-| `prod_db_password` | Production (`wgynakhoppqkrutnslmv`) | **Production Release Readiness** maps this to `SUPABASE_DB_PASSWORD` for `supabase link` / `db push` after merge to `main`. |
+| `prod_db_password` | Production (`wgynakhoppqkrutnslmv`) | Same value as the GitHub `production` secret `SUPABASE_DB_PASSWORD` that **Production Release Readiness** uses for `supabase link` / `db push` after merge to `main`; update both on rotation. |
 | `preview_db_password` | Reserved for the persistent preview branch target | Populate only when the cutover in `docs/ops/preview-persistent-branch.md` is implemented. Do not reuse retired branch `olsdirkvvfegvclbpgrg`. |
 
 Release PRs (`preview` → `main`) run **Schema Drift Check** as a **hard gate** that blocks merge when any of the following conditions exist:
@@ -254,11 +241,11 @@ After merge, **Production Release Readiness** applies any remaining SQL via `sup
 
 ### Secrets Checklist
 
-ZNTEQR runs on **two independent platforms** — Vercel (frontend build) and Supabase (backend / Edge Functions). Each has its own secrets store. Redeploying one does **not** update the other.
+ZNTEQR runs on **two independent platforms** — Cloudflare Pages (frontend build) and Supabase (backend / Edge Functions). Each has its own secrets store. Redeploying one does **not** update the other.
 
 When rotating keys or deploying a new environment, verify secrets in **both** dashboards:
 
-#### Vercel Environment Variables (build-time, `VITE_*` prefix)
+#### Cloudflare Pages Environment Variables (build-time, `VITE_*` prefix)
 
 | Variable | Purpose |
 |---|---|
@@ -283,6 +270,7 @@ When rotating keys or deploying a new environment, verify secrets in **both** da
 | `GITHUB_PAT` / `GITHUB_WEBHOOK_SECRET` | `create-ticket`, `github-issue-webhook` | Bug reporting |
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` | `send-push-notification` | Web Push |
 | `PRODUCTION_URL` | `send-invitation-email` | Invite link base URL |
+| `CLOUDFLARE_PAGES_PROJECT` | `_shared/origin-validation.ts` (CORS, OAuth redirect checks) | Cloudflare Pages project whose `*.pages.dev` origins are trusted (default `eqr-zinitek`; set explicitly) |
 
 ### Google Picker Setup (Google Cloud Console)
 
@@ -298,15 +286,15 @@ Policy: use one shared Google OAuth Web client for both Workspace callback and P
    - Admin SDK API (existing directory sync)
 3. Create a browser API key:
    - Google Cloud Console -> APIs & Services -> Credentials -> Create Credentials -> API key
-   - Restrict to HTTP referrers (for example localhost dev URL, equip-qr-*.vercel.app, eqr.zinitek.com)
+   - Restrict to HTTP referrers (for example localhost dev URL, `https://*.eqr-zinitek.pages.dev/*`, `https://eqr.zinitek.com/*`)
    - Restrict API usage to Google Drive API
 4. Reuse the existing **Google Workspace Web application** OAuth client ID for browser token flow:
    - Add Authorized JavaScript origins: localhost dev URL, `https://preview.eqr-zinitek.pages.dev`, `https://eqr.zinitek.com`
    - Keep Authorized redirect URIs for Workspace callback, including `/functions/v1/google-workspace-oauth-callback`
-5. Set the browser key as `VITE_GOOGLE_PICKER_API_KEY` in Vercel/local `.env`.
+5. Set the browser key as `VITE_GOOGLE_PICKER_API_KEY` in the Cloudflare Pages environment variables and local `.env`.
 6. Copy the project number from Project Settings and set it as `VITE_GOOGLE_PICKER_APP_ID`.
 7. Set OAuth client ID as `VITE_GOOGLE_WORKSPACE_CLIENT_ID` (single shared client path).
-8. If present, remove `VITE_GOOGLE_PICKER_CLIENT_ID` from Vercel and any setup docs/scripts.
+8. If present, remove `VITE_GOOGLE_PICKER_CLIENT_ID` from the Cloudflare Pages environment variables and any setup docs/scripts.
 
 ### Google Workspace Scope Matrix
 
@@ -333,7 +321,7 @@ Register this endpoint in **Google Cloud Console → Google Auth Platform → Pr
 Expected verification signal after registration: Google posts a RISC **verification** event and Project Checkup marks Cross-Account Protection as configured (may take a re-scan after deploy).
 
 > **Workspace OAuth audit logs**: Failures in the Workspace OAuth flow (consent, token exchange, Admin SDK directory reads) are captured by the Workspace tenant, not the `equipqr-prod` Cloud project. To make those logs queryable via Cloud Logging at the org tier, see [`docs/ops/observability.md`](observability.md) — it documents the Admin Console toggle, the org-level `gcloud logging read` queries, and the IAM grants required for agent-driven verification.
-> **Common mistake**: Setting a secret in Vercel when it should be in Supabase (or vice versa). The `GOOGLE_MAPS_BROWSER_KEY` is a frequent offender — it is served by a Supabase Edge Function at runtime, not baked into the Vercel build.
+> **Common mistake**: Setting a secret in Cloudflare Pages when it should be in Supabase (or vice versa). The `GOOGLE_MAPS_BROWSER_KEY` is a frequent offender — it is served by a Supabase Edge Function at runtime, not baked into the frontend build.
 
 ### Netlify Deployment
 ```bash
@@ -362,7 +350,7 @@ netlify deploy --prod --dir=dist
     Cache-Control = "public, max-age=31536000, immutable"
 ```
 
-> **Netlify vs Vercel:** Netlify has no `cleanUrls` equivalent, so the catch-all redirect must target the literal build artifact `/app-shell.html`. Vercel uses `cleanUrls: true` and rewrites extensionless paths to `/app-shell`. Marketing routes are prerendered to per-route `index.html` files on both hosts; only authenticated/app routes fall through to the empty SPA shell.
+> **Netlify vs Cloudflare Pages:** both hosts read `public/_redirects`, and the catch-all must target the literal build artifact `/app-shell.html`. Marketing routes are prerendered to per-route `index.html` files; only authenticated/app routes fall through to the empty SPA shell.
 
 ### AWS S3 + CloudFront
 ```bash
@@ -816,8 +804,8 @@ self.addEventListener('install', (event) => {
 
 ### Content Security Policy
 ```html
-<!-- Use the exact Content-Security-Policy value from `vercel.json` -->
-<meta http-equiv="Content-Security-Policy" content="(see vercel.json -> headers -> Content-Security-Policy -> value)">
+<!-- Use the exact Content-Security-Policy value from `public/_headers` -->
+<meta http-equiv="Content-Security-Policy" content="(see public/_headers -> /* -> Content-Security-Policy)">
 ```
 
 ### HTTPS Configuration
@@ -831,7 +819,7 @@ Ensure all deployments use HTTPS:
 ### Supabase Integration (Recommended)
 ZNTEQR™ is designed to work with Supabase for backend functionality:
 
-1. **Connect Supabase**: Configure project credentials via Vercel environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`)
+1. **Connect Supabase**: Configure project credentials via Cloudflare Pages environment variables (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`)
 2. **Database Setup**: Create tables for equipment, work orders, teams
 3. **Authentication**: Configure Supabase Auth for user management
 4. **Real-time Updates**: Enable real-time subscriptions for live data
@@ -844,12 +832,12 @@ single production project for cloud runtime:
 - **Production:** `wgynakhoppqkrutnslmv` — API `https://wgynakhoppqkrutnslmv.supabase.co`
 - **Current live preview app:** still uses the production project above
 - **Approved target preview backend:** a new persistent dataless branch for
-  `equip-qr-*.vercel.app` (not yet cut over; see
+  `preview.eqr-zinitek.pages.dev` (not yet cut over; see
   `docs/ops/preview-persistent-branch.md`)
 - **Ephemeral PR branches:** Auto-created when `supabase/**` changes on a PR
 - **Retired persistent preview branch:** `olsdirkvvfegvclbpgrg` — decommission after #1033 cutover
 
-`equip-qr-*.vercel.app` (Vercel Preview) currently uses
+`preview.eqr-zinitek.pages.dev` (Cloudflare Pages Preview) currently uses
 **`VITE_SUPABASE_URL=https://wgynakhoppqkrutnslmv.supabase.co`** from
 `app-env-preview-public`, not the retired `olsdirk` project URL. The approved
 replacement is the persistent preview branch above, once its cutover checklist

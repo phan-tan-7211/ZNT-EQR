@@ -34,7 +34,3 @@ export function endSketchInteraction(state: SketchCommandState): SketchCommandSt
     interaction: 'idle',
   };
 }
-
-export function cancelSketchCommand(): SketchCommandState {
-  return createSketchCommandState('select');
-}

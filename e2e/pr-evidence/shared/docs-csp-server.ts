@@ -2,6 +2,7 @@ import fs from 'fs/promises';
 import http from 'http';
 import path from 'path';
 import type { AddressInfo } from 'net';
+import { extractCspFromCloudflareHeaders } from '../../../dev/csp';
 
 const CONTENT_TYPES: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
@@ -17,11 +18,6 @@ const CONTENT_TYPES: Record<string, string> = {
   '.webmanifest': 'application/manifest+json',
 };
 
-interface VercelHeaderRule {
-  source: string;
-  headers: { key: string; value: string }[];
-}
-
 export interface DocsCspServer {
   baseUrl: string;
   cspHeader: string;
@@ -29,18 +25,15 @@ export interface DocsCspServer {
 }
 
 /**
- * Reads the production Content-Security-Policy from docs/vercel.json so the
- * evidence run always exercises the shipped policy, never a stale copy.
+ * Reads the production Content-Security-Policy from the `/*` block of the docs
+ * Cloudflare Pages `docs/public/_headers` file so the evidence run always
+ * exercises the shipped policy, never a stale copy.
  */
 async function readProductionCsp(repoRoot: string): Promise<string> {
-  const vercelConfigPath = path.join(repoRoot, 'docs', 'vercel.json');
-  const config = JSON.parse(await fs.readFile(vercelConfigPath, 'utf8')) as {
-    headers?: VercelHeaderRule[];
-  };
-  const catchAll = config.headers?.find((rule) => rule.source === '/(.*)');
-  const csp = catchAll?.headers.find((h) => h.key === 'Content-Security-Policy')?.value;
+  const headersPath = path.join(repoRoot, 'docs', 'public', '_headers');
+  const csp = extractCspFromCloudflareHeaders(await fs.readFile(headersPath, 'utf8'));
   if (!csp) {
-    throw new Error(`Content-Security-Policy not found in ${vercelConfigPath}`);
+    throw new Error(`Content-Security-Policy not found in the /* block of ${headersPath}`);
   }
   return csp;
 }

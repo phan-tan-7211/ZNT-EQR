@@ -53,7 +53,7 @@ test.describe('PR evidence landing footer link style @pr-evidence', () => {
     const accordion = footer.locator('.rounded-2xl');
     await expect(accordion.getByRole('link', { name: 'About' })).toBeVisible();
     await expect(accordion.getByRole('link', { name: 'ZNT', exact: true })).toBeVisible();
-    await expect(accordion.getByRole('link', { name: 'Schedule a Demo' })).toBeVisible();
+    await expect(accordion.getByRole('link', { name: 'Request a Demo' })).toBeVisible();
     await expectFooterLinksHaveNoRestUnderline(accordion);
 
     await evidencePause(page, 400);
