@@ -215,3 +215,60 @@ describe('InventoryBulkGrid — dirty cell indicator', () => {
     expect(rows.length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe('InventoryBulkGrid — pagination and thumbnails', () => {
+  const manyRows = Array.from({ length: 30 }, (_, index) =>
+    buildRow(`i-${String(index + 1).padStart(2, '0')}`),
+  );
+  const visibleRowCount = () =>
+    within(screen.getByTestId('virtual-list')).getAllByRole('row').length;
+
+  it('shows 25 rows per page with a footer, and pages through every item', () => {
+    renderGrid({ rows: manyRows });
+    expect(visibleRowCount()).toBe(25);
+    expect(screen.getByTestId('inventory-bulk-pagination-footer')).toBeInTheDocument();
+
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    expect(visibleRowCount()).toBe(5);
+    expect(screen.getByRole('checkbox', { name: /Select Item i-30/i })).toBeInTheDocument();
+  });
+
+  it('clears the selection when changing page so bulk apply never hits hidden rows', () => {
+    const onClearSelection = vi.fn();
+    renderGrid({ rows: manyRows, onClearSelection });
+    fireEvent.click(screen.getAllByRole('button', { name: /next/i })[0]);
+    expect(onClearSelection).toHaveBeenCalled();
+  });
+
+  it('select-all selects only the rows on the current page', () => {
+    const onSelectAll = vi.fn();
+    renderGrid({ rows: manyRows, onSelectAll });
+    fireEvent.click(screen.getByRole('checkbox', { name: /select all/i }));
+    expect(onSelectAll).toHaveBeenCalledTimes(1);
+    expect(onSelectAll.mock.calls[0][0]).toHaveLength(25);
+  });
+
+  it('renders an image column with a thumbnail per row', () => {
+    renderGrid({ rows: manyRows.slice(0, 3) });
+    expect(screen.getByRole('columnheader', { name: 'Image' })).toBeInTheDocument();
+    const firstRow = screen.getByRole('checkbox', { name: /Select Item i-01/i }).closest('[role="row"]')!;
+    expect(firstRow.querySelectorAll('[role="gridcell"]')[1].childElementCount).toBeGreaterThan(0);
+  });
+
+  it('drops selected rows that are not on the current page (e.g. moved by a refetch)', () => {
+    const onSelectAll = vi.fn();
+    renderGrid({ rows: manyRows, onSelectAll, selectedRowIds: new Set(['i-01', 'i-30']) });
+    expect(onSelectAll).toHaveBeenCalledWith(['i-01']);
+  });
+
+  it('leaves the selection alone when every selected row is visible', () => {
+    const onSelectAll = vi.fn();
+    renderGrid({ rows: manyRows, onSelectAll, selectedRowIds: new Set(['i-01', 'i-02']) });
+    expect(onSelectAll).not.toHaveBeenCalled();
+  });
+
+  it('hides the footer when there is nothing to edit', () => {
+    renderGrid({ rows: [] });
+    expect(screen.queryByTestId('inventory-bulk-pagination-footer')).not.toBeInTheDocument();
+  });
+});

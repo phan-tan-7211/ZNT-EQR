@@ -35,6 +35,7 @@ import {
   Unlock,
   Undo2,
   Ruler,
+  CircleHelp,
   Eraser,
   Wrench,
   ZoomIn,
@@ -45,6 +46,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
 import { toast } from '@/hooks/use-toast';
 import InventorSketchOverlay from '@/features/facility-map/components/InventorSketchOverlay';
+import SketchGuideDialog from '@/features/facility-map/components/SketchGuideDialog';
 import {
   cloneSketchDocument,
   createSketchDocument,
@@ -228,6 +230,8 @@ const readHistory = (): PlanHistoryEntry[] => {
     return [];
   }
 };
+
+const SKETCH_GUIDE_SEEN_KEY = 'znteqr.facilityMap.sketchGuideSeen';
 
 const isQuotaExceeded = (error: unknown): boolean =>
   error instanceof DOMException &&
@@ -589,6 +593,26 @@ export default function FacilityFloorPlan() {
       saveFailureNotifier = null;
     };
   }, [t]);
+
+  // Self-serve sketch guide. The button shows a dot until the guide has been
+  // opened once on this browser, so first-time users notice it.
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [guideSeen, setGuideSeen] = useState(() => {
+    try {
+      return localStorage.getItem(SKETCH_GUIDE_SEEN_KEY) === 'true';
+    } catch {
+      return true;
+    }
+  });
+  const openGuide = useCallback(() => {
+    setGuideOpen(true);
+    setGuideSeen(true);
+    try {
+      localStorage.setItem(SKETCH_GUIDE_SEEN_KEY, 'true');
+    } catch {
+      // Private mode / blocked storage: the dot just shows again next visit.
+    }
+  }, []);
   const [plan, setPlan] = useState<FloorPlanState>(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -2064,6 +2088,7 @@ export default function FacilityFloorPlan() {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+      if (target?.closest('[role="dialog"]')) return;
       // In Sketch mode the overlay owns the keyboard (Esc, Ctrl+Z/Y, Delete,
       // tool letters). Handling them here too ran plan-level undo on top of
       // sketch undo, and plan undo re-seeds the sketch session — wiping the
@@ -2194,6 +2219,19 @@ export default function FacilityFloorPlan() {
               {sketchMode ? t('facilityMap.finishSketch') : t('facilityMap.enterSketch')}
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={openGuide}
+            className="relative inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-accent"
+            title={`${t('facilityMap.guide.title')} (F1)`}
+          >
+            <CircleHelp className="h-4 w-4" />
+            {t('facilityMap.openGuide')}
+            {!guideSeen && (
+              <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-sky-500 ring-2 ring-background" aria-hidden="true" />
+            )}
+          </button>
 
           <button
             type="button"
@@ -3318,6 +3356,8 @@ export default function FacilityFloorPlan() {
                     onFinish={finishSketch}
                     onCancel={cancelSketch}
                     toolbarPortalTarget={sketchChromeHost}
+                    onOpenGuide={openGuide}
+                    guideUnseen={!guideSeen}
                   />
                 );
               })}
@@ -4023,6 +4063,7 @@ export default function FacilityFloorPlan() {
         }
       `}</style>
 
+      <SketchGuideDialog open={guideOpen} onOpenChange={setGuideOpen} t={t} />
     </div>
   );
 }

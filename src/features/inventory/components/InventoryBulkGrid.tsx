@@ -22,6 +22,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { handleKeyboardActivation } from '@/components/a11y/keyboard';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
+import { InventoryItemThumbnail } from '@/features/inventory/components/InventoryItemThumbnail';
+import ListPaginationFooter from '@/components/common/ListPaginationFooter';
+import { clampListPage, paginateListItems } from '@/utils/listPagination';
+import {
+  DEFAULT_INVENTORY_DESKTOP_PAGE_SIZE,
+  INVENTORY_DESKTOP_PAGE_SIZE_OPTIONS,
+} from '@/features/inventory/utils/inventoryListPagination';
 
 import {
   BulkEditableCell,
@@ -38,6 +45,7 @@ import type {
 
 const COL = {
   select: 48,
+  thumbnail: 56,
   name: 220,
   sku: 120,
   external_id: 130,
@@ -49,7 +57,6 @@ const COL = {
 
 const TOTAL_COL_WIDTH = Object.values(COL).reduce((a, b) => a + b, 0);
 const ROW_HEIGHT = 44;
-const MAX_VISIBLE_ROWS = 14;
 
 
 type InventoryBulkListRowProps = {
@@ -114,6 +121,13 @@ function InventoryBulkListRow({
           aria-label={t('inventoryBulk.selectItem', { name: row.name })}
           onClick={(e) => e.stopPropagation()}
         />
+      </div>
+      <div
+        style={{ width: COL.thumbnail, flexShrink: 0 }}
+        className="flex items-center justify-center px-1"
+        role="gridcell"
+      >
+        <InventoryItemThumbnail item={row} size="sm" />
       </div>
       <div
         style={{ width: COL.name, flexShrink: 0 }}
@@ -298,17 +312,68 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
     [t]
   );
 
+  // Pages are cut client-side from the full, sorted list (every item is
+  // already loaded), matching the inventory list page. Before this the grid
+  // put all rows in one fixed 14-row scroll box with no paging controls.
+  // Pending edits live in `dirtyRows` keyed by id, so they survive paging;
+  // the selection is cleared on page/sort changes so a bulk apply never
+  // reaches rows the user can no longer see.
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_INVENTORY_DESKTOP_PAGE_SIZE);
+
   const table = useReactTable({
     data: rows,
     columns,
     state: { sorting },
-    onSortingChange: setSorting,
+    onSortingChange: (updater) => {
+      cancelPendingSelection();
+      setSorting(updater);
+      setPage(1);
+      onClearSelection();
+    },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
   });
 
   const sortedRows = table.getRowModel().rows.map((r) => r.original);
+  const safePage = clampListPage(page, sortedRows.length, pageSize);
+  const pageRows = useMemo(
+    () => paginateListItems(sortedRows, safePage, pageSize),
+    [sortedRows, safePage, pageSize],
+  );
+
+  // Keep the stored page in range when the list shrinks (e.g. after a
+  // commit refetch), so it doesn't jump back if the list grows again.
+  useEffect(() => {
+    if (page !== safePage) setPage(safePage);
+  }, [page, safePage]);
+
+  // Selection must only ever contain rows on the current page. A commit
+  // refetch or a background refresh can re-sort or shift rows onto another
+  // page while they stay selected; drop those so "apply to selected" can
+  // never write to rows the user cannot see.
+  useEffect(() => {
+    if (selectedRowIds.size === 0) return;
+    const pageIds = new Set(pageRows.map((r) => r.id));
+    const visibleSelection = [...selectedRowIds].filter((id) => pageIds.has(id));
+    if (visibleSelection.length !== selectedRowIds.size) onSelectAll(visibleSelection);
+  }, [pageRows, selectedRowIds, onSelectAll]);
+
+  const handlePageChange = (nextPage: number) => {
+    // A row click toggles selection after a short debounce; cancel it so a
+    // click right before paging can't select a row on the page being left.
+    cancelPendingSelection();
+    onClearSelection();
+    setPage(nextPage);
+  };
+
+  const handlePageSizeChange = (nextPageSize: number) => {
+    cancelPendingSelection();
+    onClearSelection();
+    setPageSize(nextPageSize);
+    setPage(1);
+  };
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -367,8 +432,8 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
 
   // ── All-selected state for header checkbox ─────────────────────────────────
 
-  const allSelected = sortedRows.length > 0 && sortedRows.every((r) => selectedRowIds.has(r.id));
-  const someSelected = sortedRows.some((r) => selectedRowIds.has(r.id));
+  const allSelected = pageRows.length > 0 && pageRows.every((r) => selectedRowIds.has(r.id));
+  const someSelected = pageRows.some((r) => selectedRowIds.has(r.id));
   const headerCheckboxState: boolean | 'indeterminate' = allSelected
     ? true
     : someSelected
@@ -377,7 +442,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
 
   const bulkListRowProps: InventoryBulkListRowProps = useMemo(
     () => ({
-      sortedRows,
+      sortedRows: pageRows,
       selectedRowIds,
       dirtyRows,
       editableTextCell,
@@ -386,7 +451,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
       onToggleSelected,
     }),
     [
-      sortedRows,
+      pageRows,
       selectedRowIds,
       dirtyRows,
       editableTextCell,
@@ -398,8 +463,8 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
 
   // ── Grid height ────────────────────────────────────────────────────────────
 
-  const bodyHeight =
-    sortedRows.length === 0 ? ROW_HEIGHT : Math.min(sortedRows.length * ROW_HEIGHT, MAX_VISIBLE_ROWS * ROW_HEIGHT);
+  // The whole page is shown (no inner scroll box); paging limits the height.
+  const bodyHeight = Math.max(pageRows.length, 1) * ROW_HEIGHT;
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
@@ -410,7 +475,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
         className="rounded-md border bg-card overflow-x-auto"
         role="grid"
         aria-label={t('inventoryBulk.gridLabel')}
-        aria-rowcount={sortedRows.length}
+        aria-rowcount={pageRows.length}
       >
         {/* ── Sticky header ── */}
         <div
@@ -430,11 +495,18 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
             <Checkbox
               checked={headerCheckboxState}
               onCheckedChange={(value) => {
-                if (value === true) onSelectAll(sortedRows.map((r) => r.id));
+                if (value === true) onSelectAll(pageRows.map((r) => r.id));
                 else onClearSelection();
               }}
               aria-label={t('inventoryBulk.selectAll')}
             />
+          </div>
+          <div
+            style={{ width: COL.thumbnail, flexShrink: 0 }}
+            className="flex items-center justify-center h-[38px] px-1 text-xs font-medium text-muted-foreground"
+            role="columnheader"
+          >
+            {t('inventoryBulk.image')}
           </div>
 
           {/* Column headers from TanStack table */}
@@ -480,7 +552,7 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
           <div role="rowgroup">
             <List
               rowComponent={InventoryBulkListRow}
-              rowCount={sortedRows.length}
+              rowCount={pageRows.length}
               rowHeight={ROW_HEIGHT}
               rowProps={bulkListRowProps}
               style={{ height: bodyHeight, width: listWidth, overflowX: 'hidden' }}
@@ -488,6 +560,19 @@ export const InventoryBulkGrid: React.FC<InventoryBulkGridProps> = ({
           </div>
         )}
       </div>
+
+      {sortedRows.length > 0 && (
+        <ListPaginationFooter
+          testId="inventory-bulk-pagination-footer"
+          totalItems={sortedRows.length}
+          page={safePage}
+          pageSize={pageSize}
+          pageSizeOptions={INVENTORY_DESKTOP_PAGE_SIZE_OPTIONS}
+          itemLabel={t('inventoryList.itemLabel')}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
+        />
+      )}
 
       {/* Bulk-apply confirmation dialog */}
       <BulkPendingApplyDialog

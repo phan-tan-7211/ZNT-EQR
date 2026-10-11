@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   Check,
+  CircleHelp,
   Circle as CircleIcon,
   Copy,
   ArrowUpRight,
@@ -332,6 +333,10 @@ export type InventorSketchOverlayProps = {
    * of panning/scaling along with the drawing underneath them.
    */
   toolbarPortalTarget?: HTMLElement | null;
+  /** Opens the sketch guide; shows a "?" toolbar button and binds ? / F1. */
+  onOpenGuide?: () => void;
+  /** Highlights the guide button until a user has opened it once. */
+  guideUnseen?: boolean;
 };
 
 export default function InventorSketchOverlay({
@@ -353,6 +358,8 @@ export default function InventorSketchOverlay({
   onFinish,
   onCancel,
   toolbarPortalTarget,
+  onOpenGuide,
+  guideUnseen = false,
 }: InventorSketchOverlayProps) {
   const sketchHistory = useSketchDocumentHistory(storageKey, {
     initialDocument,
@@ -1299,6 +1306,18 @@ export default function InventorSketchOverlay({
     keyHandlerRef.current = (event: KeyboardEvent) => {
       const target = event.target instanceof HTMLElement ? event.target : null;
       if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+      // A dialog (the guide, a confirm) owns the keyboard while it is open.
+      // F1 is still swallowed there so the browser's own help never opens.
+      if (target?.closest('[role="dialog"]')) {
+        if (event.key === 'F1') event.preventDefault();
+        return;
+      }
+
+      if (onOpenGuide && (event.key === 'F1' || (event.key === '?' && !event.ctrlKey && !event.metaKey))) {
+        event.preventDefault();
+        onOpenGuide();
+        return;
+      }
 
       if (event.key === 'Escape') {
         // Inventor-style two-stage Esc: first ends the shape/chain being
@@ -1943,6 +1962,20 @@ export default function InventorSketchOverlay({
             >
               {showDimensions ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </button>
+            {onOpenGuide && (
+              <button
+                type="button"
+                onClick={onOpenGuide}
+                className="relative rounded-md p-2 hover:bg-white/10"
+                title={`${t('facilityMap.guide.title')} (F1)`}
+                aria-label={t('facilityMap.guide.title')}
+              >
+                <CircleHelp className="h-4 w-4" />
+                {guideUnseen && (
+                  <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-sky-400 ring-2 ring-slate-950" aria-hidden="true" />
+                )}
+              </button>
+            )}
             <span className="mx-1 h-5 w-px bg-white/15" />
             <button
               type="button"
