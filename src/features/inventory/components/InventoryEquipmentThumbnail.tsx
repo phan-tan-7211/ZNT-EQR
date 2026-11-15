@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Forklift } from 'lucide-react';
 import {
   batchResolveEquipmentDisplayImageUrls,
   displayableImageSrc,
 } from '@/services/imageUploadService';
-import { getImageHoverPosition } from '@/features/equipment/utils/equipmentImageHover';
+import { useInventoryThumbnailImageHover } from '@/features/inventory/components/useInventoryThumbnailImageHover';
 
 export type InventoryEquipmentThumbnailItem = {
   id: string;
@@ -19,16 +19,9 @@ type PendingThumbnailResolution = {
   resolve: (url: string | null) => void;
 };
 
-type EquipmentImageHover = {
-  x: number;
-  y: number;
-  size: number;
-};
-
 const thumbnailResolutionCache = new Map<string, Promise<string | null>>();
 const pendingThumbnailResolutions = new Map<string, PendingThumbnailResolution>();
 let thumbnailFlushScheduled = false;
-const IMAGE_HOVER_TRANSITION_MS = 140;
 
 function thumbnailCacheKey(equipmentId: string, storedRef: string): string {
   return `${equipmentId}:${storedRef}`;
@@ -95,9 +88,6 @@ export function InventoryEquipmentThumbnail({
 }) {
   const storedRef = equipment.image_url ?? null;
   const [imageSrc, setImageSrc] = useState<string | null>(() => displayableImageSrc(storedRef));
-  const [imageHover, setImageHover] = useState<EquipmentImageHover | null>(null);
-  const [imageHoverVisible, setImageHoverVisible] = useState(false);
-  const imageHoverCloseTimer = useRef<number | null>(null);
 
   useEffect(() => {
     const immediatelyDisplayable = displayableImageSrc(storedRef);
@@ -115,38 +105,8 @@ export function InventoryEquipmentThumbnail({
     };
   }, [equipment.id, storedRef]);
 
-  useEffect(() => () => {
-    if (imageHoverCloseTimer.current !== null) {
-      window.clearTimeout(imageHoverCloseTimer.current);
-      imageHoverCloseTimer.current = null;
-    }
-  }, []);
-
-  const clearImageHoverCloseTimer = () => {
-    if (imageHoverCloseTimer.current === null) return;
-    window.clearTimeout(imageHoverCloseTimer.current);
-    imageHoverCloseTimer.current = null;
-  };
-
-  const closeImageHover = () => {
-    setImageHoverVisible(false);
-    if (imageHoverCloseTimer.current !== null) return;
-    imageHoverCloseTimer.current = window.setTimeout(() => {
-      setImageHover(null);
-      imageHoverCloseTimer.current = null;
-    }, IMAGE_HOVER_TRANSITION_MS);
-  };
-
-  const openImageHover = (clientX: number, clientY: number) => {
-    if (!imageSrc || !window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-      closeImageHover();
-      return;
-    }
-
-    clearImageHoverCloseTimer();
-    setImageHover(getImageHoverPosition(clientX, clientY));
-    setImageHoverVisible(true);
-  };
+  const { imageHover, imageHoverVisible, openImageHover, closeImageHover } =
+    useInventoryThumbnailImageHover(Boolean(imageSrc));
 
   return (
     <>

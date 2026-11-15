@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Package } from 'lucide-react';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
@@ -13,7 +13,7 @@ import {
   getInventoryItemDisplayImageUrl,
 } from '@/services/imageUploadService';
 import { isDisplayImageV2Ref } from '@/services/displayImageStorageService';
-import { getImageHoverPosition } from '@/features/equipment/utils/equipmentImageHover';
+import { useInventoryThumbnailImageHover } from '@/features/inventory/components/useInventoryThumbnailImageHover';
 import { cn } from '@/lib/utils';
 
 type InventoryThumbnailItem = Pick<InventoryItem, 'id' | 'organization_id' | 'image_url'>;
@@ -35,19 +35,12 @@ type PendingThumbnailResolution = {
   resolve: (urls: InventoryThumbnailUrls) => void;
 };
 
-type ImageHover = {
-  x: number;
-  y: number;
-  size: number;
-};
-
 const thumbnailResolutionCache = new Map<
   string,
   Promise<InventoryThumbnailUrls> | ResolvedThumbnailCacheEntry
 >();
 const pendingThumbnailResolutions = new Map<string, PendingThumbnailResolution>();
 let thumbnailFlushScheduled = false;
-const IMAGE_HOVER_TRANSITION_MS = 140;
 const LEGACY_THUMBNAIL_CACHE_TTL_MS = 15 * 60 * 1000 - 30 * 1000;
 const V2_THUMBNAIL_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
@@ -180,11 +173,8 @@ export function InventoryItemThumbnail({
       image_url: legacyImageUrl,
     }),
   );
-  const [imageHover, setImageHover] = useState<ImageHover | null>(null);
   const imageSrc = imageUrls?.src ?? null;
   const imageHoverSrc = imageUrls?.hoverSrc ?? imageSrc;
-  const [imageHoverVisible, setImageHoverVisible] = useState(false);
-  const imageHoverCloseTimer = useRef<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -211,42 +201,8 @@ export function InventoryItemThumbnail({
     };
   }, [itemId, organizationId, legacyImageUrl]);
 
-  useEffect(() => () => {
-    if (imageHoverCloseTimer.current !== null) {
-      window.clearTimeout(imageHoverCloseTimer.current);
-      imageHoverCloseTimer.current = null;
-    }
-  }, []);
-
-  const clearImageHoverCloseTimer = () => {
-    if (imageHoverCloseTimer.current === null) return;
-    window.clearTimeout(imageHoverCloseTimer.current);
-    imageHoverCloseTimer.current = null;
-  };
-
-  const closeImageHover = () => {
-    setImageHoverVisible(false);
-    if (imageHoverCloseTimer.current !== null) return;
-    imageHoverCloseTimer.current = window.setTimeout(() => {
-      setImageHover(null);
-      imageHoverCloseTimer.current = null;
-    }, IMAGE_HOVER_TRANSITION_MS);
-  };
-
-  const openImageHover = (clientX: number, clientY: number) => {
-    if (
-      !enableHover ||
-      !imageSrc ||
-      !window.matchMedia('(hover: hover) and (pointer: fine)').matches
-    ) {
-      closeImageHover();
-      return;
-    }
-
-    clearImageHoverCloseTimer();
-    setImageHover(getImageHoverPosition(clientX, clientY));
-    setImageHoverVisible(true);
-  };
+  const { imageHover, imageHoverVisible, openImageHover, closeImageHover } =
+    useInventoryThumbnailImageHover(enableHover && Boolean(imageSrc));
 
   return (
     <>
