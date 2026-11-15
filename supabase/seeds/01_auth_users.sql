@@ -281,7 +281,7 @@ INSERT INTO auth.users (
   ''
 ) ON CONFLICT (id) DO NOTHING;
 
--- User 8: multi@equipqr.test - Member of ALL organizations (multi-org tester)
+-- User 8: multi@znteqr.test - Member of ALL organizations (multi-org tester)
 INSERT INTO auth.users (
   id,
   instance_id,
@@ -302,7 +302,7 @@ INSERT INTO auth.users (
 ) VALUES (
   'bb0e8400-e29b-41d4-a716-446655440008'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'multi@equipqr.test',
+  'multi@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),

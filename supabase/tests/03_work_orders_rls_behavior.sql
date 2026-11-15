@@ -29,7 +29,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '10000000-0000-0000-0000-000000000001'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-admin@equipqr.test',
+  'pgtap-admin@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -65,7 +65,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '10000000-0000-0000-0000-000000000002'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-member@equipqr.test',
+  'pgtap-member@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -101,7 +101,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '10000000-0000-0000-0000-000000000003'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-outsider@equipqr.test',
+  'pgtap-outsider@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -124,9 +124,9 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.profiles (id, email, name)
 VALUES
-  ('10000000-0000-0000-0000-000000000001'::uuid, 'pgtap-admin@equipqr.test', 'pgTAP Admin'),
-  ('10000000-0000-0000-0000-000000000002'::uuid, 'pgtap-member@equipqr.test', 'pgTAP Member'),
-  ('10000000-0000-0000-0000-000000000003'::uuid, 'pgtap-outsider@equipqr.test', 'pgTAP Outsider')
+  ('10000000-0000-0000-0000-000000000001'::uuid, 'pgtap-admin@znteqr.test', 'pgTAP Admin'),
+  ('10000000-0000-0000-0000-000000000002'::uuid, 'pgtap-member@znteqr.test', 'pgTAP Member'),
+  ('10000000-0000-0000-0000-000000000003'::uuid, 'pgtap-outsider@znteqr.test', 'pgTAP Outsider')
 ON CONFLICT (id) DO NOTHING;
 
 -- Register org context

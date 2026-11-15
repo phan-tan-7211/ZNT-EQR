@@ -137,7 +137,7 @@ function Remove-NodeModulesTree {
         Write-Host "        WARN: Remove-Item failed for $NodeModulesPath : $_"
     }
 
-    $emptyDir = Join-Path $env:TEMP ("equipqr-empty-{0}" -f [guid]::NewGuid().ToString('N'))
+    $emptyDir = Join-Path $env:TEMP ("znteqr-empty-{0}" -f [guid]::NewGuid().ToString('N'))
     try {
         New-Item -ItemType Directory -Path $emptyDir -Force | Out-Null
         $robocopyExit = (Start-Process -FilePath 'robocopy.exe' `
@@ -174,7 +174,7 @@ function Remove-LockedNodeModules {
         return
     }
 
-    $scrapRoot = Join-Path $env:TEMP 'equipqr-nm-scrap'
+    $scrapRoot = Join-Path $env:TEMP 'znteqr-nm-scrap'
     if (-not (Test-Path -LiteralPath $scrapRoot)) {
         New-Item -ItemType Directory -Path $scrapRoot -Force | Out-Null
     }

@@ -32,14 +32,14 @@ SELECT u.id, '00000000-0000-0000-0000-000000000000'::uuid, u.email, extensions.c
   NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, jsonb_build_object('name', u.email),
   false, 'authenticated', 'authenticated', '', '', '', ''
 FROM (VALUES
-  ('37000000-0000-0000-0000-000000000001'::uuid, 'perm-owner@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000002'::uuid, 'perm-admin@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000003'::uuid, 'perm-manager@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000004'::uuid, 'perm-tech@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000005'::uuid, 'perm-requestor@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000006'::uuid, 'perm-viewer@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000007'::uuid, 'perm-plain@equipqr.test'),
-  ('37000000-0000-0000-0000-000000000008'::uuid, 'perm-outsider@equipqr.test')
+  ('37000000-0000-0000-0000-000000000001'::uuid, 'perm-owner@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000002'::uuid, 'perm-admin@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000003'::uuid, 'perm-manager@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000004'::uuid, 'perm-tech@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000005'::uuid, 'perm-requestor@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000006'::uuid, 'perm-viewer@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000007'::uuid, 'perm-plain@znteqr.test'),
+  ('37000000-0000-0000-0000-000000000008'::uuid, 'perm-outsider@znteqr.test')
 ) AS u(id, email)
 ON CONFLICT (id) DO NOTHING;
 

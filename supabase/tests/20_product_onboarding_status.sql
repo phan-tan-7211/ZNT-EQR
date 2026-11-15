@@ -33,7 +33,7 @@ INSERT INTO auth.users (
   (
     '12000000-0000-0000-0000-000000000001'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'pgtap-onboarding-owner@equipqr.test',
+    'pgtap-onboarding-owner@znteqr.test',
     extensions.crypt('password123', extensions.gen_salt('bf')),
     NOW(),
     NOW(),
@@ -51,7 +51,7 @@ INSERT INTO auth.users (
   (
     '12000000-0000-0000-0000-000000000002'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'pgtap-onboarding-member@equipqr.test',
+    'pgtap-onboarding-member@znteqr.test',
     extensions.crypt('password123', extensions.gen_salt('bf')),
     NOW(),
     NOW(),
@@ -76,8 +76,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.profiles (id, email, name)
 VALUES
-  ('12000000-0000-0000-0000-000000000001'::uuid, 'pgtap-onboarding-owner@equipqr.test', 'pgTAP Onboarding Owner'),
-  ('12000000-0000-0000-0000-000000000002'::uuid, 'pgtap-onboarding-member@equipqr.test', 'pgTAP Onboarding Member')
+  ('12000000-0000-0000-0000-000000000001'::uuid, 'pgtap-onboarding-owner@znteqr.test', 'pgTAP Onboarding Owner'),
+  ('12000000-0000-0000-0000-000000000002'::uuid, 'pgtap-onboarding-member@znteqr.test', 'pgTAP Onboarding Member')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO onboarding_test_context (label, org_id, owner_id, member_id)
@@ -214,7 +214,7 @@ INSERT INTO public.organization_invitations (
 ) VALUES (
   '12000000-0000-0000-0000-000000000099'::uuid,
   '91000000-0000-0000-0000-000000000002'::uuid,
-  'pgtap-onboarding-owner@equipqr.test',
+  'pgtap-onboarding-owner@znteqr.test',
   'member',
   '12000000-0000-0000-0000-000000000002'::uuid,
   'pending',

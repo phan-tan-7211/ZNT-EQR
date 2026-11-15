@@ -45,7 +45,7 @@ The CLI version is pinned in root `package.json` as a devDependency (patch semve
 ```bash
 # Clone the repository (if not already done)
 git clone <repository-url>
-cd equipqr
+cd ZNT-EQR
 
 # Install all dependencies including Supabase CLI
 npm ci

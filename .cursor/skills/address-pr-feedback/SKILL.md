@@ -340,7 +340,7 @@ Push to the PR branch proactively once verification passes (per `.cursor/rules/b
 Open a GitHub issue for each deferred theme (one issue can cover related items). Create issues **before** posting replies that link to them.
 
 ```powershell
-gh issue create --title "Deferred from PR #<number>: <short topic>" --body-file "$env:TEMP\equipqr-deferred-issue.md"
+gh issue create --title "Deferred from PR #<number>: <short topic>" --body-file "$env:TEMP\znteqr-deferred-issue.md"
 ```
 
 #### 8b — In-thread replies (required for every triaged inline thread)

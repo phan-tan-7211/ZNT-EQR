@@ -256,7 +256,7 @@ $followupUrl = ''
 
 if (-not $DryRun) {
 
-    $tempBodyPath = Join-Path $env:TEMP ('equipqr-itil-followup-{0}.md' -f [Guid]::NewGuid().ToString('N'))
+    $tempBodyPath = Join-Path $env:TEMP ('znteqr-itil-followup-{0}.md' -f [Guid]::NewGuid().ToString('N'))
 
     try {
 

@@ -57,7 +57,7 @@ INSERT INTO auth.users (
   (
     '17000000-0000-0000-0000-000000000001'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'pgtap-pm-interval-owner@equipqr.test',
+    'pgtap-pm-interval-owner@znteqr.test',
     extensions.crypt('password123', extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -67,7 +67,7 @@ INSERT INTO auth.users (
   (
     '17000000-0000-0000-0000-000000000002'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'pgtap-pm-interval-member@equipqr.test',
+    'pgtap-pm-interval-member@znteqr.test',
     extensions.crypt('password123', extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,

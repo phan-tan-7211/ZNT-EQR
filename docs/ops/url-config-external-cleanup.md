@@ -67,14 +67,14 @@ Then mirror the `app-env-*-public` changes into the Cloudflare Pages build varia
 
 1. Open the ZNTEQR app → **Keys & OAuth**.
 2. Ensure redirect URIs include the derived preview and production callback URLs above.
-3. Remove any redirect URI using the retired hosts `supabase.equipqr.app` or `supabase.preview.equipqr.app`.
+3. Remove any redirect URI that is not on the live `wgynakhoppqkrutnslmv.supabase.co` host.
 4. **Keep** the live project callbacks on `https://wgynakhoppqkrutnslmv.supabase.co` — they serve production and cloud preview.
 
 ## Google Cloud Console
 
 1. Open the shared OAuth web client used by ZNTEQR.
 2. Under **Authorized redirect URIs**, ensure the derived preview and production Google Workspace callback URLs above are listed.
-3. Remove any redirect URI using the retired hosts `supabase.equipqr.app` or `supabase.preview.equipqr.app`.
+3. Remove any redirect URI that is not on the live `wgynakhoppqkrutnslmv.supabase.co` host.
 4. **Keep** the live project callbacks on `https://wgynakhoppqkrutnslmv.supabase.co` — they serve production and cloud preview.
 
 ## Validation

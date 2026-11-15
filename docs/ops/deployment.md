@@ -23,11 +23,11 @@ Developer and operator documentation is published from this repository’s [`doc
 | Production branch | `main` (same branch gate as `eqr.zinitek.com`) |
 | Custom domain on docs project | `eqrdocs.zinitek.com` |
 | Response headers | [`docs/public/_headers`](../public/_headers) (CSP with static `script-src 'self'`, `no-cache` on `/sw.js`) |
-| Retired | Vercel project `equipqr-docs` and the former `equipqr.info` / `www.equipqr.info` hostnames (the docs site was published at `equipqr.info` until the move to `zinitek.com` hosts) |
+| Retired | The former Vercel docs project and its hostnames (the docs site moved to the `zinitek.com` hosts) |
 
 Keep **`eqrdocs.zinitek.com` off the SPA Pages project (`eqr-zinitek`)** — only the docs project should attach that hostname.
 
-**Stranded PWA service worker:** Visitors who loaded the docs hostname (then `equipqr.info`) while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/public/_headers` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
+**Stranded PWA service worker:** Visitors who loaded the former docs hostname while it still served the SPA may retain the app's Workbox worker at scope `/`. Normal reloads then show the precached app shell under the docs URL; hard reload bypasses the worker. The docs project ships [`docs/public/sw.js`](../public/sw.js) as a kill-switch: on the next worker update check it clears all Cache Storage buckets, reloads open tabs, and unregisters. `docs/public/_headers` sets `Cache-Control: no-cache` on `/sw.js` so browsers pick up the script promptly. This fix deploys with `main` only (same branch gate as the docs site).
 
 **Build note:** The docs Pages project installs dependencies from `docs/package.json` only. Because the monorepo root still has [`postcss.config.js`](../../postcss.config.js), PostCSS can walk up and load the root config unless a scoped file exists. The docs project ships [`docs/postcss.config.js`](../postcss.config.js) (same plugin list as root) and pins `@tailwindcss/postcss`, `tailwindcss`, and `postcss` under [`docs/package.json`](../package.json). Tailwind is also wired in [`docs/.vitepress/config.ts`](../.vitepress/config.ts) for local dev.
 
@@ -35,7 +35,7 @@ Keep **`eqrdocs.zinitek.com` off the SPA Pages project (`eqr-zinitek`)** — onl
 
 **Local footer testing:** Run `.\dev\dev-start.bat` to start the product app and docs site together. In local Vite dev mode, the app footer’s Documentation link defaults to `http://localhost:5174`; production builds default to `https://eqrdocs.zinitek.com`. Set `VITE_DOCUMENTATION_URL` when you need to test a different docs preview URL, such as `http://localhost:4173` after running `npm run docs:build` and then `npm run docs:preview`.
 
-**Retired domains:** During the earlier Vercel-era domain migration, **`equipqr.support`** / **`www.equipqr.support`** on the SPA project redirected to **`equipqr.app`** instead of **`equipqr.info`** because Vercel only allowed same-project redirect targets. Those hostnames, like `equipqr.app` and `equipqr.info`, are retired; the live hosts are `eqr.zinitek.com` (app), `eqrdocs.zinitek.com` (docs), and `eqrweb.zinitek.com` (company site).
+**Retired domains:** All hostnames from the earlier Vercel-era setup are retired; the live hosts are `eqr.zinitek.com` (app), `eqrdocs.zinitek.com` (docs), and `eqrweb.zinitek.com` (company site).
 
 ## Build Process
 
@@ -209,7 +209,7 @@ Configure these environment variables in the Cloudflare Pages project (**Setting
 - **Production**: merges to `main` trigger the Cloudflare Pages production build for **eqr.zinitek.com**, which goes live when the build succeeds. **Production Release Readiness** runs in parallel for Supabase (migrations, schema drift, Edge Functions) and does not gate the frontend.
 - **Preview / integration**: merges and pushes to git **`preview`** deploy to **`https://preview.eqr-zinitek.pages.dev`** (Cloudflare Pages branch alias). Feature PRs also get per-deployment `*.eqr-zinitek.pages.dev` URLs. There is no `preview-domain-alias.yml` fast-forward from `main`.
 
-See `docs/ops/git-and-deploy.md` and `docs/ops/preview-architecture-migration.md` (#1033 history, #1282 train restore).
+See `docs/ops/git-and-deploy.md`.
 
 ### Production release readiness (Supabase)
 
@@ -785,7 +785,7 @@ if (import.meta.env.PROD) {
 ```typescript
 // Service Worker for caching (optional)
 // src/sw.ts
-const CACHE_NAME = 'equipqr-v1';
+const CACHE_NAME = 'znteqr-v1';
 const urlsToCache = [
   '/',
   '/static/css/main.css',
@@ -843,8 +843,7 @@ single production project for cloud runtime:
 replacement is the persistent preview branch above, once its cutover checklist
 is implemented.
 
-See `docs/ops/preview-persistent-branch.md`,
-`docs/ops/preview-architecture-migration.md`, and
+See `docs/ops/preview-persistent-branch.md` and
 `docs/ops/supabase-branch-secrets.md`.
 
 ### Supabase Configuration

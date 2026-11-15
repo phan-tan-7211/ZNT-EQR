@@ -2,7 +2,7 @@
  * User Persona Fixtures for Testing
  * 
  * These fixtures represent different user roles and their permissions
- * in the EquipQR system. Use these to test role-based access control
+ * in the ZNTEQR system. Use these to test role-based access control
  * and user-specific workflows.
  */
 

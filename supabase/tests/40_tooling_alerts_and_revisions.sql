@@ -15,11 +15,11 @@ SELECT u.id, '00000000-0000-0000-0000-000000000000'::uuid, u.email, extensions.c
   NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, jsonb_build_object('name', u.email),
   false, 'authenticated', 'authenticated', '', '', '', ''
 FROM (VALUES
-  ('40000000-0000-0000-0000-000000000001'::uuid, 'tl2-owner@equipqr.test'),
-  ('40000000-0000-0000-0000-000000000002'::uuid, 'tl2-admin@equipqr.test'),
-  ('40000000-0000-0000-0000-000000000003'::uuid, 'tl2-tech@equipqr.test'),
-  ('40000000-0000-0000-0000-000000000004'::uuid, 'tl2-plain@equipqr.test'),
-  ('40000000-0000-0000-0000-000000000005'::uuid, 'tl2-outsider@equipqr.test')
+  ('40000000-0000-0000-0000-000000000001'::uuid, 'tl2-owner@znteqr.test'),
+  ('40000000-0000-0000-0000-000000000002'::uuid, 'tl2-admin@znteqr.test'),
+  ('40000000-0000-0000-0000-000000000003'::uuid, 'tl2-tech@znteqr.test'),
+  ('40000000-0000-0000-0000-000000000004'::uuid, 'tl2-plain@znteqr.test'),
+  ('40000000-0000-0000-0000-000000000005'::uuid, 'tl2-outsider@znteqr.test')
 ) AS u(id, email)
 ON CONFLICT (id) DO NOTHING;
 

@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.3] - 2026-11-15
+
+### Changed
+
+- **Brand cleanup** - Removed the remaining mentions of the product's former name from documentation and release notes.
+
 ## [3.44.1] - 2026-10-11
 
 ### Fixed
@@ -334,7 +340,7 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ### Changed
 
-- **ZNTEQR brand consistency** — Product copy, documentation, tests, PWA notifications, SEO metadata, and internal source identifiers now use the ZNTEQR brand. Existing equipqr.app URLs and persisted browser keys remain compatible.
+- **ZNTEQR brand consistency** — Product copy, documentation, tests, PWA notifications, SEO metadata, and internal source identifiers now use the ZNTEQR brand. Existing links and saved browser settings remain compatible.
 
 ## [3.33.0] - 2026-09-13
 

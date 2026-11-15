@@ -226,7 +226,7 @@ export const personas: Record<
   },
   multiOrg: {
     displayName: 'Multi Org User',
-    email: 'multi@equipqr.test',
+    email: 'multi@znteqr.test',
     orgLabel: 'ALL Organizations',
     defaultOrgId: apexOrgId,
   },

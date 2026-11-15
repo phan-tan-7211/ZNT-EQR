@@ -169,7 +169,7 @@ describe('EquipmentScanner', () => {
     await startCameraScan(user);
     await waitFor(() => expect(hoisted.scannerState.lastOnDecode).not.toBeNull());
     act(() => {
-      hoisted.scannerState.lastOnDecode?.({ data: 'https://evil.example/not-equipqr' });
+      hoisted.scannerState.lastOnDecode?.({ data: 'https://evil.example/not-znteqr' });
     });
     const errorAlert = await screen.findByRole('alert');
     expect(errorAlert).toHaveTextContent(/not a znteqr link/i);

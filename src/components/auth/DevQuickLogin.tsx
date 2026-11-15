@@ -46,7 +46,7 @@ export const DEV_USERS = [
   // Fresh onboarding org (no teams/equipment)
   { email: 'owner@freshstart.test', name: 'Fresh Start Owner', role: 'Owner', org: 'Fresh Start Equipment' },
   // Multi-org user
-  { email: 'multi@equipqr.test', name: 'Multi Org User', role: 'Member', org: 'ALL Organizations' },
+  { email: 'multi@znteqr.test', name: 'Multi Org User', role: 'Member', org: 'ALL Organizations' },
   // Pending invitation signup (personal org only until accept)
   {
     email: 'e2e.invitee.pending@apex.test',

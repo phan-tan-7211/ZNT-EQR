@@ -65,7 +65,7 @@ After running `npx supabase db reset`, you can login as any test user with passw
 | `tech@metro.test` | password123 | Mike's Repair Shop | Metro (member) |
 | `owner@valley.test` | password123 | Valley Landscaping | - |
 | `owner@industrial.test` | password123 | Industrial Rentals | Apex (member) |
-| `multi@equipqr.test` | password123 | Multi Org Consulting | All 4 business orgs |
+| `multi@znteqr.test` | password123 | Multi Org Consulting | All 4 business orgs |
 
 ## Organizations
 
@@ -81,7 +81,7 @@ After running `npx supabase db reset`, you can login as any test user with passw
 - **Amanda's Equipment Services** (free) - `admin@apex.test`'s org
 - **Tom's Field Services** (free) - `tech@apex.test`'s org
 - **Mike's Repair Shop** (free) - `tech@metro.test`'s org
-- **Multi Org Consulting** (free) - `multi@equipqr.test`'s org
+- **Multi Org Consulting** (free) - `multi@znteqr.test`'s org
 
 ## Test Scenarios
 
@@ -91,7 +91,7 @@ After running `npx supabase db reset`, you can login as any test user with passw
 | Cross-org membership | `owner@apex.test` is also member at Metro |
 | Multi-org admin | `owner@metro.test` is admin at Industrial |
 | Free tier | Valley Landscaping and personal orgs test feature limitations |
-| Multi-org user | `multi@equipqr.test` tests org switching (owns 1, member of 4) |
+| Multi-org user | `multi@znteqr.test` tests org switching (owns 1, member of 4) |
 
 ## Equipment Locations (Map Testing)
 

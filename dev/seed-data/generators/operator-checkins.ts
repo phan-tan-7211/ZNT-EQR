@@ -70,7 +70,7 @@ function sha256Hex(value: string): string {
 
 /** Deterministic 64-hex "raw token" (same shape the RPC mints via gen_random_bytes). */
 function seedToken(index: number): string {
-  return sha256Hex(`equipqr-local-seed-operator-checkin-token-${index}`);
+  return sha256Hex(`znteqr-local-seed-operator-checkin-token-${index}`);
 }
 
 export function generateOperatorCheckinDomain(

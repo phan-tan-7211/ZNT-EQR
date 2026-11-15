@@ -54,7 +54,7 @@ If capture fails, **stop before opening the PR** — fix the spec or stack; do n
 
 - New route, form, dialog, integration UI, or UX change: **add** `e2e/pr-evidence/<feature>.spec.ts`.
 - Use `evidenceScreenshot()` from `e2e/pr-evidence/shared/evidence-helpers.ts` at each meaningful state. Pass `{ target: locator }` when a specific control must be fully visible in the PNG; capture asserts no horizontal overflow.
-- Reuse `equipqr-test` fixtures (`gotoDashboard`, personas) for deterministic seeded data.
+- Reuse shared test fixtures (`gotoDashboard`, personas) for deterministic seeded data.
 
 ## Frame quality standard
 

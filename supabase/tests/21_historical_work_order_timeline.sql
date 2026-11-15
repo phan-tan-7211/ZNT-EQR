@@ -77,7 +77,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '14000000-0000-0000-0000-000000000001'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'cursed-timeline-admin@equipqr.test',
+  'cursed-timeline-admin@znteqr.test',
   extensions.crypt(('pgtap-fixture-' || '14000000-0000-0000-0000-000000000001'::uuid::text), extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -93,7 +93,7 @@ ON CONFLICT (id) DO NOTHING;
 INSERT INTO public.profiles (id, email, name)
 VALUES (
   '14000000-0000-0000-0000-000000000001'::uuid,
-  'cursed-timeline-admin@equipqr.test',
+  'cursed-timeline-admin@znteqr.test',
   'Cursed Timeline Admin'
 )
 ON CONFLICT (id) DO NOTHING;

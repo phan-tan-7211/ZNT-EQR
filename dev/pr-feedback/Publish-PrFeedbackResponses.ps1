@@ -84,7 +84,7 @@ function Invoke-CreatePullReviewCommentReply {
         in_reply_to  = $InReplyTo
     } | ConvertTo-Json -Compress
 
-    $tmp = Join-Path $env:TEMP ("equipqr-pr-reply-{0}.json" -f [Guid]::NewGuid().ToString('N'))
+    $tmp = Join-Path $env:TEMP ("znteqr-pr-reply-{0}.json" -f [Guid]::NewGuid().ToString('N'))
     try {
         $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
         [System.IO.File]::WriteAllText($tmp, $payload, $utf8NoBom)
@@ -140,7 +140,7 @@ if ($DeferredIssuesFile) {
             throw "Deferred issue entry needs body or bodyFile: $title"
         }
 
-        $tmpBody = Join-Path $env:TEMP ("equipqr-issue-body-{0}.md" -f [Guid]::NewGuid().ToString('N'))
+        $tmpBody = Join-Path $env:TEMP ("znteqr-issue-body-{0}.md" -f [Guid]::NewGuid().ToString('N'))
         try {
             $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
             [System.IO.File]::WriteAllText($tmpBody, $bodyText, $utf8NoBom)

@@ -1,6 +1,6 @@
 # Historical Fixes Archive
 
-This folder contains historical documentation of fixes and optimizations that have been applied to EquipQR. These documents are kept for reference purposes.
+This folder contains historical documentation of fixes and optimizations that have been applied to ZNTEQR. These documents are kept for reference purposes.
 
 ## 📁 Contents
 

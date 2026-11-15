@@ -4,7 +4,7 @@ name: Export Database Schema
 # Reference-only: does not modify migrations or apply schema changes.
 #
 # PREVIEW_DATABASE_URL (GitHub secret name unchanged) should point at the production
-# pooler after #1033 cutover — see docs/ops/preview-architecture-migration.md.
+# pooler after the #1033 cutover.
 #
 # Artifacts:
 # - supabase/schema.sql (public, storage, auth, pgmq_public)

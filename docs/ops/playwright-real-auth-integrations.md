@@ -179,7 +179,7 @@ Spec file: `e2e/user/full/real-auth-integrations.spec.ts`
 | `Export failed:` toast | Intuit API / mapping / tax errors | Check edge function response in Playwright trace |
 | `QuickBooks Setup Required` | Team customer mapping missing | Map team in Team Settings |
 | Tests skipped | Missing env vars | Set variables per table above |
-| QBO OAuth sends the browser to `olsdirk`, `supabase.equipqr.app`, or `supabase.preview.equipqr.app` | Stale Cloudflare Pages build or retired hostname | Ensure `VITE_SUPABASE_URL` is `https://wgynakhoppqkrutnslmv.supabase.co` in the Cloudflare Pages **Preview** environment variables and the Intuit redirect URI matches `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` (keep that live callback registered) |
+| QBO OAuth sends the browser to a retired Supabase hostname | Stale Cloudflare Pages build or retired hostname | Ensure `VITE_SUPABASE_URL` is `https://wgynakhoppqkrutnslmv.supabase.co` in the Cloudflare Pages **Preview** environment variables and the Intuit redirect URI matches `https://wgynakhoppqkrutnslmv.supabase.co/functions/v1/quickbooks-oauth-callback` (keep that live callback registered) |
 
 ## Safety rails
 

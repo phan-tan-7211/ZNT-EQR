@@ -37,7 +37,7 @@ INSERT INTO auth.users (
   (
     '13000000-0000-0000-0000-000000000001'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'convert-admin@equipqr.test',
+    'convert-admin@znteqr.test',
     extensions.crypt(('pgtap-fixture-' || '13000000-0000-0000-0000-000000000001'::uuid::text), extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -47,7 +47,7 @@ INSERT INTO auth.users (
   (
     '13000000-0000-0000-0000-000000000002'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'convert-member@equipqr.test',
+    'convert-member@znteqr.test',
     extensions.crypt(('pgtap-fixture-' || '13000000-0000-0000-0000-000000000002'::uuid::text), extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -62,8 +62,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.profiles (id, email, name)
 VALUES
-  ('13000000-0000-0000-0000-000000000001'::uuid, 'convert-admin@equipqr.test', 'Convert Admin'),
-  ('13000000-0000-0000-0000-000000000002'::uuid, 'convert-member@equipqr.test', 'Convert Member')
+  ('13000000-0000-0000-0000-000000000001'::uuid, 'convert-admin@znteqr.test', 'Convert Admin'),
+  ('13000000-0000-0000-0000-000000000002'::uuid, 'convert-member@znteqr.test', 'Convert Member')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO convert_test_context (label, id)

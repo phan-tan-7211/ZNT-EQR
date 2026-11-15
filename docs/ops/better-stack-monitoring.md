@@ -58,7 +58,7 @@ When the database check fails or times out, the endpoint returns HTTP 503 with `
 
 ## Status page (not published)
 
-ZNTEQR has no customer-facing status page. The former custom domain `status.equipqr.app` is retired, and the app no longer links to a status page. `https://eqr.zinitek.com/support` is the public **Support** page (contact email and response time) — it is not a status page and must not be pointed at Better Stack.
+ZNTEQR has no customer-facing status page. The former custom status domain is retired, and the app no longer links to a status page. `https://eqr.zinitek.com/support` is the public **Support** page (contact email and response time) — it is not a status page and must not be pointed at Better Stack.
 
 If the Better Stack status page is still enabled, it is reachable only at its Better Stack subdomain and is for operators:
 
@@ -66,7 +66,7 @@ If the Better Stack status page is still enabled, it is reachable only at its Be
 |---|---|
 | Status page title | ZNTEQR Status |
 | Better Stack subdomain | `equipqr.betteruptime.com` (legacy name) |
-| Custom domain | None (`status.equipqr.app` retired) |
+| Custom domain | None |
 | Components shown | ZNTEQR Web, ZNTEQR API Health |
 | History / uptime chart | Enabled (90-day history) |
 

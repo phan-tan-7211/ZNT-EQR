@@ -37,7 +37,7 @@ INSERT INTO auth.users (
   (
     '14000000-0000-0000-0000-000000000001'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'note-ts-admin@equipqr.test',
+    'note-ts-admin@znteqr.test',
     extensions.crypt(('pgtap-fixture-' || '14000000-0000-0000-0000-000000000001'::uuid::text), extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -47,7 +47,7 @@ INSERT INTO auth.users (
   (
     '14000000-0000-0000-0000-000000000002'::uuid,
     '00000000-0000-0000-0000-000000000000'::uuid,
-    'note-ts-member@equipqr.test',
+    'note-ts-member@znteqr.test',
     extensions.crypt(('pgtap-fixture-' || '14000000-0000-0000-0000-000000000002'::uuid::text), extensions.gen_salt('bf')),
     NOW(), NOW(), NOW(),
     '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -62,8 +62,8 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.profiles (id, email, name)
 VALUES
-  ('14000000-0000-0000-0000-000000000001'::uuid, 'note-ts-admin@equipqr.test', 'Note TS Admin'),
-  ('14000000-0000-0000-0000-000000000002'::uuid, 'note-ts-member@equipqr.test', 'Note TS Member')
+  ('14000000-0000-0000-0000-000000000001'::uuid, 'note-ts-admin@znteqr.test', 'Note TS Admin'),
+  ('14000000-0000-0000-0000-000000000002'::uuid, 'note-ts-member@znteqr.test', 'Note TS Member')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO note_ts_test_context (label, id)

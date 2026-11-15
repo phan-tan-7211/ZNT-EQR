@@ -46,7 +46,7 @@ Before you begin, ensure you have the following installed on your development ma
 
 ```bash
 git clone <repository-url>
-cd equipqr
+cd ZNT-EQR
 ```
 
 ### 2. Install Dependencies

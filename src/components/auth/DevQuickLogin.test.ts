@@ -35,7 +35,7 @@ describe('DevQuickLogin seed data', () => {
     const localDevEmails = localDevGroups.flatMap((group) => group.users.map((user) => user.email));
 
     expect(localDevEmails).toContain('admin@apex.test');
-    expect(localDevEmails).toContain('multi@equipqr.test');
+    expect(localDevEmails).toContain('multi@znteqr.test');
     expect(localDevEmails).toContain('owner@valley.test');
   });
 
@@ -62,7 +62,7 @@ describe('DevQuickLogin seed data', () => {
     ]);
     expect(previewRoles).toEqual(['Owner', 'Technician', 'Viewer', 'Owner']);
     expect(previewEmails).not.toContain('admin@apex.test');
-    expect(previewEmails).not.toContain('multi@equipqr.test');
+    expect(previewEmails).not.toContain('multi@znteqr.test');
     expect(previewEmails).not.toContain('owner@valley.test');
     expect(previewEmails).not.toContain('owner@industrial.test');
     expect(previewEmails).not.toContain('owner@freshstart.test');

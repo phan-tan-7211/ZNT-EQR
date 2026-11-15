@@ -14,7 +14,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '41000000-0000-0000-0000-000000000001'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'quickform-owner-a@equipqr.test',
+  'quickform-owner-a@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -23,7 +23,7 @@ INSERT INTO auth.users (
 ), (
   '41000000-0000-0000-0000-000000000002'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'quickform-owner-b@equipqr.test',
+  'quickform-owner-b@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -32,7 +32,7 @@ INSERT INTO auth.users (
 ), (
   '41000000-0000-0000-0000-000000000003'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'quickform-member-a@equipqr.test',
+  'quickform-member-a@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
