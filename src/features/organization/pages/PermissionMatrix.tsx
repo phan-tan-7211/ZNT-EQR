@@ -1,10 +1,11 @@
 import { Fragment, useMemo, useState } from 'react';
-import { AlertCircle, Check, Info, Minus, Search, ShieldAlert, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { Check, Info, Minus, Search, ShieldCheck, TriangleAlert } from 'lucide-react';
 import Page from '@/components/layout/Page';
 import PageHeader from '@/components/layout/PageHeader';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/features/organization/components/OrganizationPageAlerts';
 import { OrganizationSubnav } from '@/features/organization/components/OrganizationSubnav';
 import { TeamPermissionSettings } from '../permissions/TeamPermissionSettings';
 import { useI18n } from '@/i18n';
@@ -47,28 +48,12 @@ export default function PermissionMatrix() {
   }, [copy, search]);
 
   if (!currentOrganization) {
-    return (
-      <Page maxWidth="full" padding="workspace">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{copy.title}</AlertTitle>
-          <AlertDescription>{copy.noOrganization}</AlertDescription>
-        </Alert>
-      </Page>
-    );
+    return <NoOrganizationPageAlert title={copy.title} description={copy.noOrganization} />;
   }
 
   const isAdmin = currentOrganization.userRole === 'owner' || currentOrganization.userRole === 'admin';
   if (!isAdmin) {
-    return (
-      <Page maxWidth="full" padding="workspace">
-        <Alert variant="destructive">
-          <ShieldAlert className="h-4 w-4" />
-          <AlertTitle>{copy.accessDenied}</AlertTitle>
-          <AlertDescription>{copy.adminOnly}</AlertDescription>
-        </Alert>
-      </Page>
-    );
+    return <AdminOnlyPageAlert title={copy.accessDenied} description={copy.adminOnly} />;
   }
 
   return (
