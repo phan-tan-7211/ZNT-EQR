@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Loader2, Save } from 'lucide-react';
 import { StructuredLocationEditorControls } from '@/components/location/StructuredLocationEditorControls';
 import { useStructuredLocationEditorState } from '@/components/location/structuredLocationEditorState';
+import { useStructuredLocationEditorControlsProps } from '@/components/location/useStructuredLocationEditorControlsProps';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,9 +13,6 @@ import {
   organizationInventoryDefaultToPlaceData,
   placeDataToOrganizationInventoryDefaultLocation,
 } from '@/features/inventory/utils/inventoryLocationUtils';
-import { useGoogleMapsLoader } from '@/hooks/useGoogleMapsLoader';
-import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
-import { useIsDarkTheme, useThemeVersion } from '@/hooks/useThemeVersion';
 import type { SessionOrganization } from '@/types/session';
 import { toast } from 'sonner';
 import { useI18n } from '@/i18n';
@@ -29,10 +27,6 @@ export function OrganizationInventoryDefaultLocationSection({
   onSaved,
 }: OrganizationInventoryDefaultLocationSectionProps) {
   const { t } = useI18n();
-  const { isLoaded: isPlacesLoaded } = useGoogleMapsLoader();
-  const themeVersion = useThemeVersion();
-  const isDark = useIsDarkTheme(themeVersion);
-  const { googleMapsKey, mapId } = useGoogleMapsKey();
 
   const [locationName, setLocationName] = useState(
     organization.inventoryDefaultLocationName ?? '',
@@ -70,6 +64,8 @@ export function OrganizationInventoryDefaultLocationSection({
       inventory_default_location_country: organization.inventoryDefaultLocationCountry,
     }),
   });
+
+  const locationControlsProps = useStructuredLocationEditorControlsProps(editor);
 
   useEffect(() => {
     setLocationName(organization.inventoryDefaultLocationName ?? '');
@@ -126,20 +122,8 @@ export function OrganizationInventoryDefaultLocationSection({
           </div>
 
           <StructuredLocationEditorControls
+            {...locationControlsProps}
             locationLabel={t('organizationHub.storageAddress')}
-            locationAddress={editor.addressValue}
-            onPlaceSelect={editor.handlePlaceSelect}
-            onClear={editor.handleClear}
-            isPlacesLoaded={isPlacesLoaded}
-            previewCenter={editor.previewCenter}
-            recenterKey={editor.recenterKey}
-            onCenterChange={editor.handleMapCenterChange}
-            googleMapsKey={googleMapsKey}
-            mapId={mapId ?? undefined}
-            isDark={isDark}
-            isLiveCaptureOpen={editor.isLiveCaptureOpen}
-            onLiveCaptureOpenChange={editor.setIsLiveCaptureOpen}
-            onConfirmLiveLocation={editor.handleSaveLiveLocation}
             liveCaptureTitle={t('organizationHub.deviceLocation')}
             liveCaptureConfirmLabel={t('organizationHub.useLocation')}
             isSaving={isSaving}
