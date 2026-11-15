@@ -11,19 +11,19 @@ import {
 } from '@tanstack/react-table';
 import { BulkTanstackTableShell } from '@/components/bulk-edit/BulkTanstackTableShell';
 import { BulkGridSortableHeader } from '@/components/bulk-edit/BulkGridSortableHeader';
+import { ImageHoverPreview } from '@/components/common/ImageHoverPreview';
 import { getBulkDisplayValue } from '@/hooks/bulkGridDisplayValue';
 import { useBulkGridClickToSelect } from '@/hooks/useBulkGridClickToSelect';
 import { useBulkGridPendingApply } from '@/hooks/useBulkGridPendingApply';
+import { useImageHoverPreview } from '@/hooks/useImageHoverPreview';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { EquipmentRecord } from '@/features/equipment/types/equipment';
 import { getEquipmentDisplayImageUrl } from '@/services/imageUploadService';
 import { getEquipmentStatusRailClass } from '@/lib/status-colors';
 import { cn } from '@/lib/utils';
-import { useEquipmentImageHoverPreview } from '@/features/equipment/utils/equipmentImageHover';
 import { useI18n } from '@/i18n';
 
 import { BulkApplyConfirmDialog } from './BulkApplyConfirmDialog';
-import { EquipmentImageHoverPreview } from './EquipmentImageHoverPreview';
 import {
   BulkEditableCell,
   type BulkEditableCellProps,
@@ -70,7 +70,10 @@ const EquipmentBulkThumbnail: React.FC<{
 }> = ({ name, imageUrl, status }) => {
   const src = getEquipmentDisplayImageUrl(imageUrl, 'thumb');
   const previewSrc = getEquipmentDisplayImageUrl(imageUrl, 'preview') ?? src;
-  const { hover, visible, handlers } = useEquipmentImageHoverPreview(previewSrc, name);
+  const { hover, visible, handlers } = useImageHoverPreview({
+    src: previewSrc,
+    closeWhilePointerButtonHeld: true,
+  });
   const statusRailClass = getEquipmentStatusRailClass(status);
   return (
     <>
@@ -103,7 +106,7 @@ const EquipmentBulkThumbnail: React.FC<{
           />
         ) : null}
       </div>
-      <EquipmentImageHoverPreview hover={hover} visible={visible} portal />
+      <ImageHoverPreview hover={hover} visible={visible} marker="equipment" portal />
     </>
   );
 };

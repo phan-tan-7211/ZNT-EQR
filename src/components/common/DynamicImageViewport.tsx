@@ -1,7 +1,6 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Download } from 'lucide-react';
-import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useHoverCapable } from '@/hooks/use-hover-capable';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -9,11 +8,10 @@ import { useI18n } from '@/i18n';
 import { formatFinalAuditCopy, getFinalHardcodedAuditCopy } from '@/i18n/finalHardcodedAuditCopy';
 import {
   calculatePanPosition,
-  copyImageToClipboard,
-  downloadImageFile,
   imageSupportsPanning,
   type PanPosition,
 } from '@/components/common/dynamicImageViewportUtils';
+import { useImageFileActions } from '@/components/common/useImageFileActions';
 
 export interface DynamicImageViewportProps {
   src: string;
@@ -46,7 +44,7 @@ const DynamicImageViewport: React.FC<DynamicImageViewportProps> = ({
   const [pan, setPan] = useState<PanPosition>(DEFAULT_PAN);
   const [canPan, setCanPan] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
+  const { isCopying, downloadImage, copyImage } = useImageFileActions({ src, alt, fileName });
 
   const inlinePanEnabled = hoverCapable && !isMobile;
   const effectiveCanPan = canPan && inlinePanEnabled;
@@ -91,14 +89,8 @@ const DynamicImageViewport: React.FC<DynamicImageViewportProps> = ({
   const handleDownload = useCallback(async (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
-    try {
-      await downloadImageFile(src, fileName || alt || 'image');
-      toast.success(copy.downloadStarted);
-    } catch (error) {
-      console.error('Failed to download image:', error);
-      toast.error(copy.downloadImageFailed);
-    }
-  }, [alt, copy.downloadImageFailed, copy.downloadStarted, fileName, src]);
+    await downloadImage();
+  }, [downloadImage]);
 
   const stopControlPointer = useCallback((event: React.PointerEvent) => {
     event.stopPropagation();
@@ -107,17 +99,8 @@ const DynamicImageViewport: React.FC<DynamicImageViewportProps> = ({
   const handleCopy = useCallback(async (event: React.MouseEvent) => {
     event.stopPropagation();
     event.preventDefault();
-    setIsCopying(true);
-    try {
-      await copyImageToClipboard(src, fileName || alt || 'image.png');
-      toast.success(copy.imageCopied);
-    } catch (error) {
-      console.error('Failed to copy image:', error);
-      toast.error(copy.copyImageFailed);
-    } finally {
-      setIsCopying(false);
-    }
-  }, [alt, copy.copyImageFailed, copy.imageCopied, fileName, src]);
+    await copyImage();
+  }, [copyImage]);
 
   const objectPosition = effectiveCanPan ? `${pan.x}% ${pan.y}%` : 'center center';
 

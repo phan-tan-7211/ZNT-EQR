@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/i18n';
-import { FileSignature, Pencil, Plus, QrCode, ShieldAlert, Trash2 } from 'lucide-react';
+import { FileSignature, Pencil, Plus, QrCode, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import Page from '@/components/layout/Page';
 import PageHeader from '@/components/layout/PageHeader';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AdminOnlyPageAlert } from '@/components/common/OrganizationPageAlerts';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -75,15 +75,10 @@ export default function QuickFormsPage() {
 
   if (!isAdmin) {
     return (
-      <Page maxWidth="full" padding="workspace">
-        <Alert variant="destructive">
-          <ShieldAlert className="h-4 w-4" />
-          <AlertTitle>{t('quickForms.page.accessDenied')}</AlertTitle>
-          <AlertDescription>
-            {t('quickForms.page.accessDescription')}
-          </AlertDescription>
-        </Alert>
-      </Page>
+      <AdminOnlyPageAlert
+        title={t('quickForms.page.accessDenied')}
+        description={t('quickForms.page.accessDescription')}
+      />
     );
   }
 

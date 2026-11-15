@@ -19,10 +19,10 @@ import EmptyState from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { FieldError, ListMessage, LoadStateView } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useCreateToolingCompatibility,
@@ -44,6 +44,8 @@ import { cn } from '@/lib/utils';
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
 const ANY_OPERATION = '__any__';
+
+const RULE_SKELETONS = ['h-12 w-full', 'h-12 w-full'] as const;
 
 const APPROVAL_CLASS: Record<ToolingCompatibilityApproval, string> = {
   pending: 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300',
@@ -430,11 +432,7 @@ function AddRuleDialog({ organizationId, toolingId, onClose }: AddRuleDialogProp
             <Textarea id="compat-notes" value={notes} rows={3} onChange={(event) => setNotes(event.target.value)} />
           </div>
 
-          {formError && (
-            <p role="alert" className="text-sm text-destructive">
-              {formError}
-            </p>
-          )}
+          <FieldError show={Boolean(formError)} message={formError ?? ''} />
 
           <DialogFooter className="gap-2 sm:gap-0">
             <Button type="button" variant="outline" onClick={onClose} disabled={submitting}>
@@ -571,109 +569,90 @@ export function ToolingCompatibilityTab({ tool, canManage }: ToolingTabProps) {
   const showProductHint = canManage && !productsLoading && products !== undefined && !hasActiveProducts;
   const showOperationHint = canManage && !operationsLoading && operations !== undefined && !hasActiveOperations;
 
-  const renderRules = () => {
-    if (isLoading) {
-      return (
-        <div className="space-y-2" aria-busy="true" aria-label={t('toolingCompat.tab.loading')}>
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-      );
-    }
-    if (error) {
-      return (
-        <Alert variant="destructive">
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
-            <span>{t('toolingCompat.common.loadFailed')}</span>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
-              {t('toolingCompat.common.retry')}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      );
-    }
-    if (rules.length === 0) {
-      return (
+  const ruleList = (
+    <LoadStateView
+      loading={isLoading}
+      failed={Boolean(error)}
+      skeletons={RULE_SKELETONS}
+      loadingLabel={t('toolingCompat.tab.loading')}
+      failedMessage={t('toolingCompat.common.loadFailed')}
+      retry={{ label: t('toolingCompat.common.retry'), onRetry: () => void refetch() }}
+      empty={rules.length === 0}
+      emptyState={
         <EmptyState
           icon={Link2}
           title={t('toolingCompat.tab.empty')}
           description={canManage ? t('toolingCompat.tab.emptyAdmin') : t('toolingCompat.tab.emptyReadOnly')}
         />
-      );
-    }
-    if (visibleRules.length === 0) {
-      return (
-        <p className="py-6 text-center text-sm text-muted-foreground">{t('toolingCompat.tab.emptyInactiveHidden')}</p>
-      );
-    }
-    return (
-      <>
-        <div className="hidden md:block">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('toolingCompat.tab.product')}</TableHead>
-                <TableHead>{t('toolingCompat.tab.operation')}</TableHead>
-                <TableHead>{t('toolingCompat.tab.machine')}</TableHead>
-                <TableHead>{t('toolingCompat.tab.drawingRevision')}</TableHead>
-                <TableHead>{t('toolingCompat.tab.effective')}</TableHead>
-                <TableHead>{t('toolingCompat.tab.approval')}</TableHead>
-                <TableHead>{t('toolingCompat.common.status')}</TableHead>
-                {canManage && <TableHead className="text-right">{t('toolingCompat.common.actions')}</TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {visibleRules.map((rule) => (
-                <TableRow key={rule.id} className={cn(!rule.is_active && 'opacity-70')} data-testid="compat-rule-row">
-                  <TableCell className="font-medium">{productLabel(rule, t)}</TableCell>
-                  <TableCell>{operationLabel(rule, t)}</TableCell>
-                  <TableCell>{machineLabel(rule, t)}</TableCell>
-                  <TableCell>{rule.drawing_revision || t('tooling.none')}</TableCell>
-                  <TableCell className="whitespace-nowrap text-xs">{effectiveLabel(rule, t)}</TableCell>
-                  <TableCell>
-                    <ApprovalBadge status={rule.approval_status} />
-                  </TableCell>
-                  <TableCell>
-                    <ActiveBadge active={rule.is_active} />
-                  </TableCell>
-                  {canManage && (
-                    <TableCell>
-                      <RuleActions rule={rule} onAction={setPendingAction} className="justify-end" />
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-        <ul className="space-y-2 md:hidden">
-          {visibleRules.map((rule) => (
-            <li key={rule.id} className={cn('rounded-lg border p-3', !rule.is_active && 'opacity-70')}>
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <p className="min-w-0 break-words text-sm font-semibold">{productLabel(rule, t)}</p>
-                <div className="flex flex-wrap gap-1">
+      }
+      noMatch={visibleRules.length === 0}
+      noMatchState={<ListMessage message={t('toolingCompat.tab.emptyInactiveHidden')} />}
+    >
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('toolingCompat.tab.product')}</TableHead>
+              <TableHead>{t('toolingCompat.tab.operation')}</TableHead>
+              <TableHead>{t('toolingCompat.tab.machine')}</TableHead>
+              <TableHead>{t('toolingCompat.tab.drawingRevision')}</TableHead>
+              <TableHead>{t('toolingCompat.tab.effective')}</TableHead>
+              <TableHead>{t('toolingCompat.tab.approval')}</TableHead>
+              <TableHead>{t('toolingCompat.common.status')}</TableHead>
+              {canManage && <TableHead className="text-right">{t('toolingCompat.common.actions')}</TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {visibleRules.map((rule) => (
+              <TableRow key={rule.id} className={cn(!rule.is_active && 'opacity-70')} data-testid="compat-rule-row">
+                <TableCell className="font-medium">{productLabel(rule, t)}</TableCell>
+                <TableCell>{operationLabel(rule, t)}</TableCell>
+                <TableCell>{machineLabel(rule, t)}</TableCell>
+                <TableCell>{rule.drawing_revision || t('tooling.none')}</TableCell>
+                <TableCell className="whitespace-nowrap text-xs">{effectiveLabel(rule, t)}</TableCell>
+                <TableCell>
                   <ApprovalBadge status={rule.approval_status} />
+                </TableCell>
+                <TableCell>
                   <ActiveBadge active={rule.is_active} />
-                </div>
+                </TableCell>
+                {canManage && (
+                  <TableCell>
+                    <RuleActions rule={rule} onAction={setPendingAction} className="justify-end" />
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <ul className="space-y-2 md:hidden">
+        {visibleRules.map((rule) => (
+          <li key={rule.id} className={cn('rounded-lg border p-3', !rule.is_active && 'opacity-70')}>
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <p className="min-w-0 break-words text-sm font-semibold">{productLabel(rule, t)}</p>
+              <div className="flex flex-wrap gap-1">
+                <ApprovalBadge status={rule.approval_status} />
+                <ActiveBadge active={rule.is_active} />
               </div>
-              <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-                <dt className="text-muted-foreground">{t('toolingCompat.tab.operation')}</dt>
-                <dd className="break-words">{operationLabel(rule, t)}</dd>
-                <dt className="text-muted-foreground">{t('toolingCompat.tab.machine')}</dt>
-                <dd className="break-words">{machineLabel(rule, t)}</dd>
-                <dt className="text-muted-foreground">{t('toolingCompat.tab.drawingRevision')}</dt>
-                <dd className="break-words">{rule.drawing_revision || t('tooling.none')}</dd>
-                <dt className="text-muted-foreground">{t('toolingCompat.tab.effective')}</dt>
-                <dd>{effectiveLabel(rule, t)}</dd>
-              </dl>
-              {rule.notes && <p className="mt-2 break-words text-xs text-muted-foreground">{rule.notes}</p>}
-              {canManage && <RuleActions rule={rule} onAction={setPendingAction} className="mt-3" />}
-            </li>
-          ))}
-        </ul>
-      </>
-    );
-  };
+            </div>
+            <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+              <dt className="text-muted-foreground">{t('toolingCompat.tab.operation')}</dt>
+              <dd className="break-words">{operationLabel(rule, t)}</dd>
+              <dt className="text-muted-foreground">{t('toolingCompat.tab.machine')}</dt>
+              <dd className="break-words">{machineLabel(rule, t)}</dd>
+              <dt className="text-muted-foreground">{t('toolingCompat.tab.drawingRevision')}</dt>
+              <dd className="break-words">{rule.drawing_revision || t('tooling.none')}</dd>
+              <dt className="text-muted-foreground">{t('toolingCompat.tab.effective')}</dt>
+              <dd>{effectiveLabel(rule, t)}</dd>
+            </dl>
+            {rule.notes && <p className="mt-2 break-words text-xs text-muted-foreground">{rule.notes}</p>}
+            {canManage && <RuleActions rule={rule} onAction={setPendingAction} className="mt-3" />}
+          </li>
+        ))}
+      </ul>
+    </LoadStateView>
+  );
 
   return (
     <div className="space-y-4">
@@ -742,7 +721,7 @@ export function ToolingCompatibilityTab({ tool, canManage }: ToolingTabProps) {
             )}
           </div>
         </CardHeader>
-        <CardContent>{renderRules()}</CardContent>
+        <CardContent>{ruleList}</CardContent>
       </Card>
 
       {canManage && addOpen && (

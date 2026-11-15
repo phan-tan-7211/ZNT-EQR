@@ -56,6 +56,14 @@ export function toolingIssueBlockers(
   return blockers;
 }
 
+/** Parses an optional numeric form input: empty → null, invalid → undefined. */
+export function parseOptionalNumber(value: string): number | null | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
 export function formatToolingNumber(value: number | null | undefined, locale?: string): string {
   if (value == null || Number.isNaN(Number(value))) return '—';
   return new Intl.NumberFormat(locale).format(Number(value));

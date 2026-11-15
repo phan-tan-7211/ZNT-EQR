@@ -1,13 +1,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Search, X, RefreshCw } from 'lucide-react';
@@ -20,6 +14,7 @@ import {
   STOCK_FILTER_OPTIONS,
 } from './types';
 import { createPartsSortChangeHandler, partsToolbarSortValue } from './partsSortHandlers';
+import { PartsSelectContent } from './PartsSelectContent';
 import { useI18n } from '@/i18n';
 
 interface DesktopPartsToolbarProps {
@@ -61,13 +56,7 @@ export const DesktopPartsToolbar: React.FC<DesktopPartsToolbarProps> = ({
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder={t('equipmentParts.sortBy')} />
         </SelectTrigger>
-        <SelectContent>
-          {SORT_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {t(option.labelKey)}
-            </SelectItem>
-          ))}
-        </SelectContent>
+        <PartsSelectContent options={SORT_OPTIONS} />
       </Select>
 
       <Select
@@ -77,13 +66,7 @@ export const DesktopPartsToolbar: React.FC<DesktopPartsToolbarProps> = ({
         <SelectTrigger className="w-[160px]">
           <SelectValue placeholder={t('equipmentParts.stockStatus')} />
         </SelectTrigger>
-        <SelectContent>
-          {STOCK_FILTER_OPTIONS.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
-              {t(option.labelKey)}
-            </SelectItem>
-          ))}
-        </SelectContent>
+        <PartsSelectContent options={STOCK_FILTER_OPTIONS} />
       </Select>
 
       <div className="flex items-center gap-2">

@@ -2,13 +2,7 @@ import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -30,6 +24,7 @@ import {
   STOCK_FILTER_OPTIONS,
 } from './types';
 import { createPartsSortChangeHandler, partsToolbarSortValue } from './partsSortHandlers';
+import { PartsSelectContent } from './PartsSelectContent';
 import { useI18n } from '@/i18n';
 
 interface MobilePartsToolbarProps {
@@ -80,13 +75,7 @@ export const MobilePartsToolbar: React.FC<MobilePartsToolbarProps> = ({
           <SelectTrigger className="w-[120px] h-10">
             <SelectValue placeholder={t('equipmentParts.sort')} />
           </SelectTrigger>
-          <SelectContent>
-            {SORT_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {t(option.labelKey)}
-              </SelectItem>
-            ))}
-          </SelectContent>
+          <PartsSelectContent options={SORT_OPTIONS} />
         </Select>
 
         <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -130,13 +119,7 @@ export const MobilePartsToolbar: React.FC<MobilePartsToolbarProps> = ({
                     <SelectTrigger className="h-12">
                       <SelectValue placeholder={t('equipmentParts.stockAll')} />
                     </SelectTrigger>
-                    <SelectContent>
-                      {STOCK_FILTER_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {t(option.labelKey)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
+                    <PartsSelectContent options={STOCK_FILTER_OPTIONS} />
                   </Select>
                 </div>
 

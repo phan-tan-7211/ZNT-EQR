@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { StructuredLocationEditorControls } from '@/components/location/StructuredLocationEditorControls';
 import { StructuredLocationEditorDialogFooter } from '@/components/location/StructuredLocationEditorDialogFooter';
 import { useStructuredLocationEditorState } from '@/components/location/structuredLocationEditorState';
+import { useStructuredLocationEditorControlsProps } from '@/components/location/useStructuredLocationEditorControlsProps';
 import {
   Dialog,
   DialogContent,
@@ -16,9 +17,6 @@ import {
   buildTeamAddress,
   teamLocationToPlaceData,
 } from '@/features/teams/utils/teamLocationUtils';
-import { useGoogleMapsLoader } from '@/hooks/useGoogleMapsLoader';
-import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
-import { useIsDarkTheme, useThemeVersion } from '@/hooks/useThemeVersion';
 import { useToast } from '@/hooks/use-toast';
 import { useI18n } from '@/i18n';
 
@@ -36,10 +34,6 @@ export function TeamLocationEditorDialog({
   const { t } = useI18n();
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { isLoaded: isPlacesLoaded } = useGoogleMapsLoader();
-  const themeVersion = useThemeVersion();
-  const isDark = useIsDarkTheme(themeVersion);
-  const { googleMapsKey, mapId } = useGoogleMapsKey();
   const [isSaving, setIsSaving] = useState(false);
 
   const initialPlace = useMemo(() => teamLocationToPlaceData(team), [team]);
@@ -49,6 +43,8 @@ export function TeamLocationEditorDialog({
     initialPlace,
     fallbackAddress: buildTeamAddress(team),
   });
+
+  const locationControlsProps = useStructuredLocationEditorControlsProps(editor);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -103,20 +99,8 @@ export function TeamLocationEditorDialog({
         </DialogHeader>
 
         <StructuredLocationEditorControls
+          {...locationControlsProps}
           locationLabel={t('teamsCards.teamAddress')}
-          locationAddress={editor.addressValue}
-          onPlaceSelect={editor.handlePlaceSelect}
-          onClear={editor.handleClear}
-          isPlacesLoaded={isPlacesLoaded}
-          previewCenter={editor.previewCenter}
-          recenterKey={editor.recenterKey}
-          onCenterChange={editor.handleMapCenterChange}
-          googleMapsKey={googleMapsKey}
-          mapId={mapId ?? undefined}
-          isDark={isDark}
-          isLiveCaptureOpen={editor.isLiveCaptureOpen}
-          onLiveCaptureOpenChange={editor.setIsLiveCaptureOpen}
-          onConfirmLiveLocation={editor.handleSaveLiveLocation}
           liveCaptureTitle={t('teamsCards.captureTitle')}
           liveCaptureConfirmLabel={t('teamsCards.useLocation')}
           isSaving={isSaving}

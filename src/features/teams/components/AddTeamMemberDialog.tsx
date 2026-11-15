@@ -25,6 +25,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useToast } from '@/hooks/use-toast';
 import { TeamWithMembers } from '@/features/teams/services/teamService';
 import { TeamRoleSelect } from '@/features/teams/components/TeamRoleSelect';
+import { getTeamRoleOptions } from '@/features/teams/utils/teamRoleOptions';
 
 import { useI18n } from '@/i18n';
 
@@ -74,12 +75,7 @@ const AddTeamMemberDialog: React.FC<AddTeamMemberDialogProps> = ({
     }
   };
 
-  const roleOptions = [
-    { value: 'manager', label: t('teamsDetail.roles.manager'), description: t('teamsDetail.roleDescriptions.manager') },
-    { value: 'technician', label: t('teamsDetail.roles.technician'), description: t('teamsDetail.roleDescriptions.technician') },
-    { value: 'requestor', label: t('teamsDetail.roles.requestor'), description: t('teamsDetail.roleDescriptions.requestorAdd') },
-    { value: 'viewer', label: t('teamsDetail.roles.viewer'), description: t('teamsDetail.roleDescriptions.viewerAdd') },
-  ];
+  const roleOptions = getTeamRoleOptions(t, 'add');
 
   const isLoading = availableUsers.isLoading;
   const users = availableUsers.data || [];

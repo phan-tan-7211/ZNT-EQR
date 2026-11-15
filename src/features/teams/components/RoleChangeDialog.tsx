@@ -19,6 +19,7 @@ import { useTeamMembers } from '@/features/teams/hooks/useTeamManagement';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { logger } from '@/utils/logger';
 import { TeamRoleSelect } from '@/features/teams/components/TeamRoleSelect';
+import { getTeamRoleOptions } from '@/features/teams/utils/teamRoleOptions';
 
 import { useI18n } from '@/i18n';
 
@@ -74,12 +75,7 @@ const RoleChangeDialog: React.FC<RoleChangeDialogProps> = ({
     }
   };
 
-  const roleOptions: Array<{ value: TeamRole; label: string; description: string }> = [
-    { value: 'manager', label: t('teamsDetail.roles.manager'), description: t('teamsDetail.roleDescriptions.manager') },
-    { value: 'technician', label: t('teamsDetail.roles.technician'), description: t('teamsDetail.roleDescriptions.technician') },
-    { value: 'requestor', label: t('teamsDetail.roles.requestor'), description: t('teamsDetail.roleDescriptions.requestor') },
-    { value: 'viewer', label: t('teamsDetail.roles.viewer'), description: t('teamsDetail.roleDescriptions.viewer') },
-  ];
+  const roleOptions = getTeamRoleOptions(t, 'change');
 
   if (!member) return null;
 

@@ -5,6 +5,7 @@ import {
   isDisplayImageV2Ref,
   removeDisplayImageSet,
 } from '@/services/displayImageStorageService';
+import { getEquipmentDisplayImageRef } from '@/features/equipment/services/equipmentDisplayImageRefService';
 
 export interface EquipmentDeletionImpact {
   workOrders: number;
@@ -25,21 +26,6 @@ interface WorkOrderWithImages {
     file_url: string;
   }>;
 }
-
-const getEquipmentDisplayImageRef = async (
-  equipmentId: string,
-  organizationId: string,
-): Promise<string | null> => {
-  const { data, error } = await supabase
-    .from('equipment')
-    .select('image_url')
-    .eq('id', equipmentId)
-    .eq('organization_id', organizationId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data?.image_url ?? null;
-};
 
 // Get equipment note images
 const getEquipmentNoteImages = async (equipmentId: string): Promise<EquipmentNoteImage[]> => {
@@ -168,8 +154,8 @@ export const getEquipmentDeletionImpact = async (equipmentId: string): Promise<E
 export const deleteEquipmentCascade = async (equipmentId: string, orgId: string): Promise<void> => {
   try {
     const equipmentDisplayImageRef = await getEquipmentDisplayImageRef(
-      equipmentId,
       orgId,
+      equipmentId,
     );
 
     logger.info(`Starting cascade deletion for equipment ${equipmentId}`);

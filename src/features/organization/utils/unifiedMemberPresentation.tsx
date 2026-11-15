@@ -32,14 +32,3 @@ export function getUnifiedMemberStatusBadgeVariant(status: UnifiedMember['status
       return 'outline' as const;
   }
 }
-
-export function getStatusLabel(status: UnifiedMember['status']) {
-  switch (status) {
-    case 'active':
-      return 'Active';
-    case 'pending_invite':
-      return 'Pending Invite';
-    case 'pending_gws':
-      return 'Awaiting Sign-up';
-  }
-}

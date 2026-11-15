@@ -122,33 +122,45 @@ export function loadPersistedColumnSizing(
   }
 }
 
-export function usePersistedColumnSizing(storageKey: string, defaults: ColumnSizingState) {
-  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(() =>
-    loadPersistedColumnSizing(storageKey, defaults),
-  );
-  const columnSizingRef = useRef(columnSizing);
-  columnSizingRef.current = columnSizing;
+/**
+ * Table preference state backed by preference storage: loads the saved value on mount,
+ * rehydrates (or flushes the in-memory value) once preference storage is allowed, and
+ * writes changes after `persistDelayMs`.
+ */
+function usePersistedTablePreference<TState>(
+  storageKey: string,
+  defaults: TState,
+  loadPersisted: (storageKey: string, defaults: TState) => TState,
+  persistDelayMs: number,
+) {
+  const [state, setState] = useState<TState>(() => loadPersisted(storageKey, defaults));
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
   const rehydrateOrFlush = useCallback(() => {
     const raw = getPreferenceLocalStorage(storageKey);
     if (raw) {
-      setColumnSizing(loadPersistedColumnSizing(storageKey, defaults));
+      setState(loadPersisted(storageKey, defaults));
       return;
     }
-    // Flush in-memory sizing chosen before Accept (prior writes were no-ops).
-    setPreferenceLocalStorage(storageKey, JSON.stringify(columnSizingRef.current));
-  }, [defaults, storageKey]);
+    // Flush in-memory state chosen before Accept (prior writes were no-ops).
+    setPreferenceLocalStorage(storageKey, JSON.stringify(stateRef.current));
+  }, [defaults, loadPersisted, storageKey]);
   useWhenPreferenceStorageAllowed(rehydrateOrFlush);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const timer = window.setTimeout(() => {
-      setPreferenceLocalStorage(storageKey, JSON.stringify(columnSizing));
-    }, 160);
+      setPreferenceLocalStorage(storageKey, JSON.stringify(state));
+    }, persistDelayMs);
     return () => window.clearTimeout(timer);
-  }, [columnSizing, storageKey]);
+  }, [persistDelayMs, state, storageKey]);
 
-  return [columnSizing, setColumnSizing] as const;
+  return [state, setState] as const;
+}
+
+export function usePersistedColumnSizing(storageKey: string, defaults: ColumnSizingState) {
+  return usePersistedTablePreference<ColumnSizingState>(storageKey, defaults, loadPersistedColumnSizing, 160);
 }
 
 export function loadPersistedColumnOrder(
@@ -169,31 +181,7 @@ export function loadPersistedColumnOrder(
 }
 
 export function usePersistedColumnOrder(storageKey: string, defaults: ColumnOrderState) {
-  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() =>
-    loadPersistedColumnOrder(storageKey, defaults),
-  );
-  const columnOrderRef = useRef(columnOrder);
-  columnOrderRef.current = columnOrder;
-
-  const rehydrateOrFlush = useCallback(() => {
-    const raw = getPreferenceLocalStorage(storageKey);
-    if (raw) {
-      setColumnOrder(loadPersistedColumnOrder(storageKey, defaults));
-      return;
-    }
-    setPreferenceLocalStorage(storageKey, JSON.stringify(columnOrderRef.current));
-  }, [defaults, storageKey]);
-  useWhenPreferenceStorageAllowed(rehydrateOrFlush);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const timer = window.setTimeout(() => {
-      setPreferenceLocalStorage(storageKey, JSON.stringify(columnOrder));
-    }, 120);
-    return () => window.clearTimeout(timer);
-  }, [columnOrder, storageKey]);
-
-  return [columnOrder, setColumnOrder] as const;
+  return usePersistedTablePreference<ColumnOrderState>(storageKey, defaults, loadPersistedColumnOrder, 120);
 }
 
 export function getResizableTableWidth(totalSize: number, minWidth = 960): number {

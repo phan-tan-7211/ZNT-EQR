@@ -8,6 +8,7 @@ import type {
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestEntitySnap } from './closestSnap';
 
 export type NearestSnapResult = {
   point: SketchPoint;
@@ -157,25 +158,10 @@ export const findNearestSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): NearestSnapResult | null => {
-  let best: NearestSnapResult | null = null;
-
-  entities.forEach((entity) => {
-    const candidate = getNearestPointOnEntity(point, entity);
-    if (!candidate) return;
-
-    const candidateDistance = distance(point, candidate);
-    if (
-      candidateDistance < threshold &&
-      (!best || candidateDistance < best.distance)
-    ) {
-      best = {
-        point: { ...candidate },
-        entityId: entity.id,
-        distance: candidateDistance,
-      };
-    }
-  });
-
-  return best;
-};
+): NearestSnapResult | null =>
+  findClosestEntitySnap(
+    point,
+    entities,
+    threshold,
+    (entity) => getNearestPointOnEntity(point, entity),
+  );

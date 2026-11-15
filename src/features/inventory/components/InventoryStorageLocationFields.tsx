@@ -5,6 +5,7 @@ import {
   mergeMapCenterIntoPlaceData,
   useStructuredLocationEditorState,
 } from '@/components/location/structuredLocationEditorState';
+import { useStructuredLocationEditorControlsProps } from '@/components/location/useStructuredLocationEditorControlsProps';
 import type { PlaceLocationData } from '@/components/ui/GooglePlacesAutocomplete';
 import {
   buildInventoryAddress,
@@ -12,9 +13,6 @@ import {
   placeDataToInventoryStructuredLocation,
 } from '@/features/inventory/utils/inventoryLocationUtils';
 import type { InventoryStructuredLocationFields } from '@/features/inventory/utils/inventoryLocationUtils';
-import { useGoogleMapsLoader } from '@/hooks/useGoogleMapsLoader';
-import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
-import { useIsDarkTheme, useThemeVersion } from '@/hooks/useThemeVersion';
 
 type InventoryStorageLocationFieldsProps = {
   structuredLocation: InventoryStructuredLocationFields;
@@ -30,13 +28,10 @@ export function InventoryStorageLocationFields({
   description,
 }: InventoryStorageLocationFieldsProps) {
   const { t } = useI18n();
-  const { isLoaded: isPlacesLoaded } = useGoogleMapsLoader();
-  const themeVersion = useThemeVersion();
-  const isDark = useIsDarkTheme(themeVersion);
-  const { googleMapsKey, mapId } = useGoogleMapsKey();
 
   const initialPlace = useMemo(
     () => inventoryLocationToPlaceData(structuredLocation),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- recompute only when a location field changes, not for every new object the parent form passes
     [
       structuredLocation.location_address,
       structuredLocation.location_city,
@@ -51,6 +46,8 @@ export function InventoryStorageLocationFields({
     initialPlace,
     fallbackAddress: buildInventoryAddress(structuredLocation),
   });
+
+  const locationControlsProps = useStructuredLocationEditorControlsProps(editor);
 
   const applyPlace = useCallback(
     (data: PlaceLocationData | null) => {
@@ -91,20 +88,12 @@ export function InventoryStorageLocationFields({
 
   return (
     <StructuredLocationEditorControls
+      {...locationControlsProps}
       className="space-y-3"
       locationLabel={locationLabel ?? t('itemForm.storageAddress')}
-      locationAddress={editor.addressValue}
       onPlaceSelect={handlePlaceSelect}
       onClear={handleClear}
-      isPlacesLoaded={isPlacesLoaded}
-      previewCenter={editor.previewCenter}
-      recenterKey={editor.recenterKey}
       onCenterChange={handleMapCenterChange}
-      googleMapsKey={googleMapsKey}
-      mapId={mapId ?? undefined}
-      isDark={isDark}
-      isLiveCaptureOpen={editor.isLiveCaptureOpen}
-      onLiveCaptureOpenChange={editor.setIsLiveCaptureOpen}
       onConfirmLiveLocation={handleSaveLiveLocation}
       liveCaptureTitle={t('itemForm.liveCaptureTitle')}
       liveCaptureConfirmLabel={t('itemForm.useLocation')}

@@ -11,13 +11,13 @@
 
 import React, { useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { History, Shield, AlertCircle, ShieldAlert } from 'lucide-react';
+import { History, Shield } from 'lucide-react';
 import Page from '@/components/layout/Page';
 import PageHeader from '@/components/layout/PageHeader';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { AuditExplorer } from '@/components/audit/explorer';
+import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/components/common/OrganizationPageAlerts';
 import { OrganizationSubnav } from '@/features/organization/components/OrganizationSubnav';
 import { AUDIT_ENTITY_TYPES, type AuditEntityType, type AuditLogFilters } from '@/types/audit';
 import { useI18n } from '@/i18n/I18nProvider';
@@ -44,15 +44,10 @@ function AuditLog() {
 
   if (!currentOrganization) {
     return (
-      <Page maxWidth="full" padding="workspace">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('auditLogControls.noOrganization')}</AlertTitle>
-          <AlertDescription>
-            {t('auditLogControls.chooseOrganization')}
-          </AlertDescription>
-        </Alert>
-      </Page>
+      <NoOrganizationPageAlert
+        title={t('auditLogControls.noOrganization')}
+        description={t('auditLogControls.chooseOrganization')}
+      />
     );
   }
 
@@ -61,15 +56,10 @@ function AuditLog() {
 
   if (!isAdmin) {
     return (
-      <Page maxWidth="full" padding="workspace">
-        <Alert variant="destructive">
-          <ShieldAlert className="h-4 w-4" />
-          <AlertTitle>{t('auditLogControls.accessDenied')}</AlertTitle>
-          <AlertDescription>
-            {t('auditLogControls.adminOnly')}
-          </AlertDescription>
-        </Alert>
-      </Page>
+      <AdminOnlyPageAlert
+        title={t('auditLogControls.accessDenied')}
+        description={t('auditLogControls.adminOnly')}
+      />
     );
   }
 

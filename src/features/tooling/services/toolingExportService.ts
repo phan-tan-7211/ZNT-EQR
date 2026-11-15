@@ -11,7 +11,6 @@
 
 import Papa from 'papaparse';
 import type { jsPDF } from 'jspdf';
-import fontUrl from '@/features/operator-check-ins/assets/ZNTEQR-Report-KR-VI.ttf?url';
 import {
   TOOLING_USABILITY_STATES,
   type ToolingAssignment,
@@ -24,6 +23,7 @@ import { toolingLifePercent, toolingRemainingLife } from '@/features/tooling/uti
 import { formatForExport } from '@/utils/dateFormatter';
 import { downloadBlob, filenameWithDate, sanitizeSpreadsheetCell } from '@/utils/exportUtils';
 import { equipmentQRPath, generateQRDataUrl, qrFullUrl } from '@/utils/qr';
+import { fetchReportPdfFont, readReportPdfFontBase64, registerReportPdfFont } from '@/utils/reportPdfFont';
 
 // ---------------------------------------------------------------------------
 // Shared types
@@ -476,9 +476,6 @@ async function downloadWorkbook(
 // PDF plumbing (A4, embedded Unicode font)
 // ---------------------------------------------------------------------------
 
-const PDF_FONT_FILE = 'ZNTEQR-Report-KR-VI.ttf';
-const PDF_FONT_FAMILY = 'ZNTEQRReport';
-
 /** Thrown when the embedded PDF font cannot be fetched (e.g. offline). */
 export class ToolingPdfFontError extends Error {
   constructor() {
@@ -489,14 +486,9 @@ export class ToolingPdfFontError extends Error {
 
 async function loadPdfFontBase64(): Promise<string> {
   try {
-    const response = await fetch(fontUrl);
+    const response = await fetchReportPdfFont();
     if (!response.ok) throw new ToolingPdfFontError();
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    let binary = '';
-    for (let offset = 0; offset < bytes.length; offset += 8192) {
-      binary += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
-    }
-    return btoa(binary);
+    return await readReportPdfFontBase64(response);
   } catch {
     throw new ToolingPdfFontError();
   }
@@ -505,9 +497,8 @@ async function loadPdfFontBase64(): Promise<string> {
 async function createA4Pdf(orientation: 'portrait' | 'landscape', unit: 'pt' | 'mm'): Promise<jsPDF> {
   const [{ jsPDF: JsPdf }, fontBase64] = await Promise.all([import('jspdf'), loadPdfFontBase64()]);
   const doc = new JsPdf({ orientation, unit, format: 'a4', compress: true });
-  doc.addFileToVFS(PDF_FONT_FILE, fontBase64);
-  doc.addFont(PDF_FONT_FILE, PDF_FONT_FAMILY, 'normal');
-  doc.setFont(PDF_FONT_FAMILY, 'normal');
+  const fontFamily = registerReportPdfFont(doc, fontBase64);
+  doc.setFont(fontFamily, 'normal');
   return doc;
 }
 

@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n';
 import { Plus, X, CheckCircle2, Info } from 'lucide-react';
 import { CompatibilityRulesCardShell } from '@/components/common/CompatibilityRulesCardShell';
 import { CompatibilityManufacturerSelect } from '@/components/common/CompatibilityManufacturerSelect';
+import { useCompatibilityRuleManufacturers } from '@/features/equipment/hooks/useCompatibilityRuleManufacturers';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -18,11 +19,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { useEquipmentManufacturersAndModels } from '@/features/equipment/hooks/useEquipment';
 import { useEquipmentMatchCount } from '@/features/inventory/hooks/useInventory';
 import type { PartCompatibilityRuleFormData, ModelMatchType, VerificationStatus } from '@/features/inventory/types/inventory';
-import { useManufacturerModelLookup } from '@/features/equipment/utils/manufacturerModelLookup';
 
 interface CompatibilityRulesEditorProps {
   rules: PartCompatibilityRuleFormData[];
@@ -108,10 +106,8 @@ export const CompatibilityRulesEditor: React.FC<CompatibilityRulesEditorProps> =
   disabled = false
 }) => {
   const { t } = useI18n();
-  const { currentOrganization } = useOrganization();
-  const { data: manufacturersData = [], isLoading: isLoadingMfrs } = useEquipmentManufacturersAndModels(
-    currentOrganization?.id
-  );
+  const { organizationId, isLoadingManufacturers, manufacturers, getModelsForManufacturer } =
+    useCompatibilityRuleManufacturers();
 
   // Transform rules for match count query (include match_type in the payload)
   const rulesForCount = useMemo(() => 
@@ -127,11 +123,9 @@ export const CompatibilityRulesEditor: React.FC<CompatibilityRulesEditorProps> =
 
   // Get match count for current rules
   const { data: matchCount = 0 } = useEquipmentMatchCount(
-    currentOrganization?.id,
+    organizationId,
     rulesForCount
   );
-
-  const { manufacturers, getModelsForManufacturer } = useManufacturerModelLookup(manufacturersData);
 
   // Check if a rule already exists (for duplicate detection)
   const isDuplicateRule = useCallback((rule: PartCompatibilityRuleFormData, excludeIndex: number): boolean => {
@@ -191,7 +185,7 @@ export const CompatibilityRulesEditor: React.FC<CompatibilityRulesEditorProps> =
       addEquipmentLabel={t('itemForm.addEquipmentFirst')}
       validRulesCount={validRulesCount}
       matchCount={matchCount}
-      isLoadingMfrs={isLoadingMfrs}
+      isLoadingMfrs={isLoadingManufacturers}
       hasManufacturers={manufacturers.length > 0}
       footer={
         <>

@@ -1,4 +1,4 @@
-# Operator Check-in PDF font
+# Report PDF font
 
 `ZNTEQR-Report-KR-VI.ttf` is derived from the regular (weight 400) instance of
 Google Fonts' Noto Sans KR variable TTF. The source is
@@ -11,4 +11,6 @@ intended to cover Vietnamese and Korean Hangul text, not arbitrary Han character
 Subset SHA-256: `03ac58d60ebde4e1fe26f2020948834ebedcd022f7917b4db6aba1b096cf94a5`.
 
 The font is distributed under the SIL Open Font License 1.1 in `OFL.txt`.
-It is fetched only when exporting an Operator Check-in PDF.
+It is loaded through `src/utils/reportPdfFont.ts` and fetched only when exporting
+a PDF: Operator Check-in reports and the tooling PDFs (tooling register,
+customer-owned tooling report, tool history and QR label sheets).
