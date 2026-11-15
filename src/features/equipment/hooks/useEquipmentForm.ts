@@ -8,10 +8,10 @@ import { useSession } from '@/hooks/useSession';
 import {
   createEquipmentFormSchema,
   createEquipmentValidationSchema,
-  type EquipmentValidationMessages,
   EquipmentFormData,
   EquipmentRecord,
 } from '@/features/equipment/types/equipment';
+import { useEquipmentValidationMessages } from '@/features/equipment/hooks/useEquipmentValidationMessages';
 import { createValidationContext } from '@/utils/validationHelpers';
 import { OfflineAwareWorkOrderService } from '@/services/offlineAwareService';
 import { useOfflineQueueOptional } from '@/contexts/OfflineQueueContext';
@@ -65,18 +65,7 @@ export const useEquipmentForm = (
   const localPendingRef = useRef<EquipmentFormPendingMedia>({ files: [], displayIndex: 0 });
   const mediaRef = pendingMediaRef ?? localPendingRef;
 
-  const validationMessages = useMemo<EquipmentValidationMessages>(() => ({
-    equipmentNameRequired: t('equipmentForm.validationEquipmentNameRequired'),
-    manufacturerRequired: t('equipmentForm.validationManufacturerRequired'),
-    modelRequired: t('equipmentForm.validationModelRequired'),
-    serialRequired: t('equipmentForm.validationSerialRequired'),
-    locationRequired: t('equipmentForm.validationLocationRequired'),
-    workingHoursNonNegative: t('equipmentForm.validationWorkingHoursNonNegative'),
-    teamRequired: t('equipmentForm.validationTeamRequired'),
-    nameRequired: t('equipmentForm.validationNameRequired'),
-    nameMax: t('equipmentForm.validationNameMax'),
-    teamCreatePermission: t('equipmentForm.validationTeamCreatePermission'),
-  }), [t]);
+  const validationMessages = useEquipmentValidationMessages();
 
   const validationSchema = useMemo(() => {
     if (initialData || !currentOrganization) {

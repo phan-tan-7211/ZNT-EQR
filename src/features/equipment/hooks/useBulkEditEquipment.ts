@@ -10,9 +10,9 @@ import {
 } from '@/features/equipment/services/EquipmentService';
 import {
   createEquipmentFormSchema,
-  type EquipmentValidationMessages,
   type EquipmentRecord,
 } from '@/features/equipment/types/equipment';
+import { useEquipmentValidationMessages } from '@/features/equipment/hooks/useEquipmentValidationMessages';
 import {
   useBulkEditCommitResult,
   type BulkEditCommitHookResult,
@@ -37,18 +37,7 @@ export const useBulkEditEquipment = (
   const rowState = useBulkEditRowState<EquipmentRecord, EquipmentRowDelta>(initialRows);
   const { dirtyRows, clearSucceededDirtyFields } = rowState;
 
-  const validationMessages = useMemo<EquipmentValidationMessages>(() => ({
-    equipmentNameRequired: t('equipmentForm.validationEquipmentNameRequired'),
-    manufacturerRequired: t('equipmentForm.validationManufacturerRequired'),
-    modelRequired: t('equipmentForm.validationModelRequired'),
-    serialRequired: t('equipmentForm.validationSerialRequired'),
-    locationRequired: t('equipmentForm.validationLocationRequired'),
-    workingHoursNonNegative: t('equipmentForm.validationWorkingHoursNonNegative'),
-    teamRequired: t('equipmentForm.validationTeamRequired'),
-    nameRequired: t('equipmentForm.validationNameRequired'),
-    nameMax: t('equipmentForm.validationNameMax'),
-    teamCreatePermission: t('equipmentForm.validationTeamCreatePermission'),
-  }), [t]);
+  const validationMessages = useEquipmentValidationMessages();
 
   const partialSchema = useMemo(
     () => createEquipmentFormSchema(validationMessages).partial(),
