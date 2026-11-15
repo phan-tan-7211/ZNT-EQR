@@ -39,13 +39,8 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/i18n';
 import { getEquipmentDisplayImageUrl } from '@/services/imageUploadService';
 import { getEquipmentStatusRailClass } from '@/lib/status-colors';
-import { EquipmentImageHoverPreview } from '@/features/equipment/components/EquipmentImageHoverPreview';
-import {
-  IMAGE_HOVER_MEDIA_QUERY,
-  IMAGE_HOVER_TRANSITION_MS,
-  getImageHoverPosition,
-  type EquipmentImageHover,
-} from '@/features/equipment/utils/equipmentImageHover';
+import { ImageHoverPreview } from '@/components/common/ImageHoverPreview';
+import { useImageHoverPreview } from '@/hooks/useImageHoverPreview';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -300,11 +295,14 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
   const { t } = useI18n();
   const { beginTransition, activeEquipmentId } = useEquipmentCardTransition();
   const { settings } = useUserSettings();
-  const [imageHover, setImageHover] = useState<EquipmentImageHover | null>(null);
-  const [imageHoverVisible, setImageHoverVisible] = useState(false);
-  const imageHoverCloseTimer = useRef<number | null>(null);
-  const imageHoverRef = useRef<EquipmentImageHover | null>(null);
-  const imageHoverFrame = useRef<number | null>(null);
+  // One preview serves every thumbnail: a delegated listener opens each one's
+  // image, and position-only moves wait for the next animation frame.
+  const {
+    hover: imageHover,
+    visible: imageHoverVisible,
+    openAt: openImageHover,
+    close: closeImageHover,
+  } = useImageHoverPreview({ coalescePositionUpdates: true });
   const columnInteractionRef = useRef(false);
   const [columnSizing, setColumnSizing] = usePersistedColumnSizing(COLUMN_SIZING_STORAGE_KEY, DEFAULT_EQUIPMENT_COLUMN_SIZING);
   const [columnOrder, setColumnOrder] = usePersistedColumnOrder(COLUMN_ORDER_STORAGE_KEY, [...EQUIPMENT_TABLE_COLUMN_ORDER]);
@@ -329,51 +327,6 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
     setPreferenceLocalStorage(pinnedStorageKey, JSON.stringify(pinnedColumns));
   }, [pinnedColumns, pinnedStorageKey]);
 
-  const clearImageHoverCloseTimer = useCallback(() => {
-    if (imageHoverCloseTimer.current === null) return;
-    window.clearTimeout(imageHoverCloseTimer.current);
-    imageHoverCloseTimer.current = null;
-  }, []);
-
-  const closeImageHover = useCallback(() => {
-    if (!imageHoverRef.current) return;
-    setImageHoverVisible(false);
-    if (imageHoverCloseTimer.current !== null) return;
-    imageHoverCloseTimer.current = window.setTimeout(() => {
-      imageHoverRef.current = null;
-      setImageHover(null);
-      imageHoverCloseTimer.current = null;
-    }, IMAGE_HOVER_TRANSITION_MS);
-  }, []);
-
-  const openImageHover = useCallback((thumbnail: HTMLElement, clientX: number, clientY: number) => {
-    const src = thumbnail.dataset.equipmentImageSrc;
-    if (!src || !window.matchMedia(IMAGE_HOVER_MEDIA_QUERY).matches) {
-      closeImageHover();
-      return;
-    }
-    clearImageHoverCloseTimer();
-    const nextHover = {
-      src,
-      alt: thumbnail.dataset.equipmentImageAlt ?? 'Equipment image',
-      ...getImageHoverPosition(clientX, clientY),
-    };
-    const previousHover = imageHoverRef.current;
-    imageHoverRef.current = nextHover;
-    setImageHoverVisible(true);
-    // Render a new image immediately, but coalesce position-only updates to one
-    // animation frame instead of re-rendering on every pointer event.
-    if (!previousHover || previousHover.src !== nextHover.src) {
-      setImageHover(nextHover);
-      return;
-    }
-    if (imageHoverFrame.current !== null) return;
-    imageHoverFrame.current = window.requestAnimationFrame(() => {
-      imageHoverFrame.current = null;
-      if (imageHoverRef.current) setImageHover({ ...imageHoverRef.current });
-    });
-  }, [clearImageHoverCloseTimer, closeImageHover]);
-
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
       if (event.buttons !== 0 || columnInteractionRef.current) return;
@@ -385,7 +338,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
         closeImageHover();
         return;
       }
-      openImageHover(thumbnail, event.clientX, event.clientY);
+      openImageHover(thumbnail.dataset.equipmentImageSrc, event.clientX, event.clientY);
     };
 
     document.addEventListener('pointermove', handlePointerMove, true);
@@ -397,15 +350,6 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
       window.removeEventListener('blur', closeImageHover);
     };
   }, [closeImageHover, openImageHover]);
-
-  useEffect(() => () => {
-    clearImageHoverCloseTimer();
-    if (imageHoverFrame.current !== null) {
-      window.cancelAnimationFrame(imageHoverFrame.current);
-      imageHoverFrame.current = null;
-    }
-    imageHoverRef.current = null;
-  }, [clearImageHoverCloseTimer]);
   const isColumnVisible = useCallback((key:EquipmentTableColumnKey)=>{ const meta=getEquipmentTableColumnMeta(key); if(meta&&!meta.canHide)return true; return effectiveVisibleColumns[key]??true; },[effectiveVisibleColumns]);
   const visibleColumnKeys=useMemo(()=>EQUIPMENT_TABLE_COLUMN_ORDER.filter((key)=>isColumnVisible(key)),[isColumnVisible]);
   const orderedColumnKeys=useMemo(()=>{ const visible=new Set(visibleColumnKeys); const saved=columnOrder.filter((key): key is EquipmentTableColumnKey=>visible.has(key as EquipmentTableColumnKey)); const missing=visibleColumnKeys.filter((key)=>!saved.includes(key)); return [...saved,...missing]; },[columnOrder,visibleColumnKeys]);
@@ -507,7 +451,7 @@ const EquipmentTable: React.FC<EquipmentTableProps> = ({ equipment, onShowQRCode
     onDragCancel={clearDndDrag}
   >
     <ResizableFixedDataTable table={table} tableWidth={tableWidth} columnDndItems={orderedVisibleColumnKeys} withTooltipProvider stickyHeader scrollClassName="min-h-0 min-w-0 flex-1 overflow-auto overscroll-contain [scrollbar-gutter:stable]" cardClassName="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden" contentClassName="flex min-h-0 min-w-0 flex-1 flex-col p-0" getHeaderProps={(header)=>{ const columnId=header.column.id; const isStatusColumn=columnId===STATUS_COLUMN_KEY; const isActionsColumn=columnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY; const meta=isActionsColumn?undefined:getEquipmentTableColumnMeta(columnId as EquipmentTableColumnKey); const pinnedOffset=pinnedLeftOffsets.get(columnId as EquipmentTableColumnKey); const isPinned=pinnedOffset!==undefined; const isDragged=draggedColumnId===columnId; const reorderable=!isActionsColumn; return {className:cn(getDataTableAlignClass(meta?.align),meta?.mono&&'font-mono tabular-nums',isActionsColumn&&'w-14 px-2','relative select-none',reorderable&&'cursor-grab active:cursor-grabbing',isDragged&&'opacity-50',isPinned&&'sticky z-40 isolate bg-card',isPinned&&pinnedOffset===0&&'left-0',isStatusColumn&&'px-2'),style:isPinned?{left:pinnedOffset}:undefined,draggable:false,dataColumnKey:reorderable?columnId:undefined,ariaSort:meta?.sortable&&sortConfig?.field===meta.sortField?(sortConfig.direction==='asc'?'ascending':'descending'):'none',onAutoFit:isActionsColumn?undefined:()=>handleAutoFitColumn(columnId as EquipmentTableColumnKey)};}} getCellClassName={(cell)=>{ const columnId=cell.column.id; const isActionsColumn=columnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY; const meta=isActionsColumn?undefined:getEquipmentTableColumnMeta(columnId as EquipmentTableColumnKey); const isPinned=pinnedLeftOffsets.has(columnId as EquipmentTableColumnKey); return cn(getDataTableAlignClass(meta?.align),meta?.mono&&'font-mono tabular-nums',isPinned&&'sticky z-30 isolate bg-card',isPinned&&pinnedLeftOffsets.get(columnId as EquipmentTableColumnKey)===0&&'left-0',isActionsColumn&&'w-14 px-2','overflow-hidden');}} getCellStyle={(cell)=>{ const pinnedOffset=pinnedLeftOffsets.get(cell.column.id as EquipmentTableColumnKey); return pinnedOffset===undefined?undefined:{left:pinnedOffset}; }} renderHeaderActions={(header)=>{ const rawColumnId=header.column.id; if(rawColumnId===EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY)return null; const columnId=rawColumnId as EquipmentTableColumnKey; return <EquipmentColumnHeaderMenu columnKey={columnId} visibleColumns={effectiveVisibleColumns} pinned={pinnedLeftOffsets.has(columnId)} onToggleColumn={handleToggleColumn} onTogglePin={handleTogglePin} onHideColumn={handleHideColumn} filterOptions={columnFilterOptions?.[columnId]} selectedFilterValues={getColumnFilterValues(columnId as EquipmentColumnFilterKey)} onColumnFilterChange={onColumnFilterChange} />;}} />
-    <EquipmentImageHoverPreview hover={imageHover} visible={imageHoverVisible} />
+    <ImageHoverPreview hover={imageHover} visible={imageHoverVisible} marker="equipment" />
     <DragOverlay dropAnimation={null}>
       {activeDndColumnId ? (
         <div className="min-w-36 max-w-64 rounded-lg border border-primary/40 bg-card px-3 py-2 text-sm font-medium text-foreground shadow-2xl">

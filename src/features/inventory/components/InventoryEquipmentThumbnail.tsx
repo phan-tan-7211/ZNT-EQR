@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Forklift } from 'lucide-react';
 import {
   batchResolveEquipmentDisplayImageUrls,
   displayableImageSrc,
 } from '@/services/imageUploadService';
-import { useInventoryThumbnailImageHover } from '@/features/inventory/components/useInventoryThumbnailImageHover';
+import { ImageHoverPreview } from '@/components/common/ImageHoverPreview';
+import { useImageHoverPreview } from '@/hooks/useImageHoverPreview';
 
 export type InventoryEquipmentThumbnailItem = {
   id: string;
@@ -105,17 +105,19 @@ export function InventoryEquipmentThumbnail({
     };
   }, [equipment.id, storedRef]);
 
-  const { imageHover, imageHoverVisible, openImageHover, closeImageHover } =
-    useInventoryThumbnailImageHover(Boolean(imageSrc));
+  const {
+    hover: imageHover,
+    visible: imageHoverVisible,
+    close: closeImageHover,
+    handlers: imageHoverHandlers,
+  } = useImageHoverPreview({ src: imageSrc });
 
   return (
     <>
       <div
         className={`relative h-10 w-10 shrink-0 overflow-hidden rounded-md border border-border/70 bg-muted ${imageSrc ? 'cursor-zoom-in' : ''}`}
         data-inventory-equipment-thumbnail
-        onPointerEnter={(event) => openImageHover(event.clientX, event.clientY)}
-        onPointerMove={(event) => openImageHover(event.clientX, event.clientY)}
-        onPointerLeave={closeImageHover}
+        {...imageHoverHandlers}
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <Forklift className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
@@ -134,28 +136,13 @@ export function InventoryEquipmentThumbnail({
           />
         )}
       </div>
-      {imageHover && imageSrc && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              className={`equipment-image-hover-preview pointer-events-none fixed z-[9999] box-border overflow-hidden rounded-xl border border-border bg-white p-2 shadow-2xl transition-[opacity,transform] duration-150 ease-out dark:bg-card ${imageHoverVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0'}`}
-              data-equipment-image-hover-preview
-              aria-hidden="true"
-              style={{
-                left: imageHover.x,
-                top: imageHover.y,
-                width: imageHover.size,
-                height: imageHover.size,
-              }}
-            >
-              <img
-                src={imageSrc}
-                alt=""
-                className="block h-full w-full rounded-md bg-white object-contain dark:bg-card"
-              />
-            </div>,
-            document.body,
-          )
-        : null}
+      <ImageHoverPreview
+        hover={imageSrc ? imageHover : null}
+        visible={imageHoverVisible}
+        marker="equipment"
+        src={imageSrc}
+        portal
+      />
     </>
   );
 }

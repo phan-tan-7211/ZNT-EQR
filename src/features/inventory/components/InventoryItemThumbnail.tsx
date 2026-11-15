@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Package } from 'lucide-react';
 import type { InventoryItem } from '@/features/inventory/types/inventory';
 import {
@@ -13,7 +12,8 @@ import {
   getInventoryItemDisplayImageUrl,
 } from '@/services/imageUploadService';
 import { isDisplayImageV2Ref } from '@/services/displayImageStorageService';
-import { useInventoryThumbnailImageHover } from '@/features/inventory/components/useInventoryThumbnailImageHover';
+import { ImageHoverPreview } from '@/components/common/ImageHoverPreview';
+import { useImageHoverPreview } from '@/hooks/useImageHoverPreview';
 import { cn } from '@/lib/utils';
 
 type InventoryThumbnailItem = Pick<InventoryItem, 'id' | 'organization_id' | 'image_url'>;
@@ -201,8 +201,12 @@ export function InventoryItemThumbnail({
     };
   }, [itemId, organizationId, legacyImageUrl]);
 
-  const { imageHover, imageHoverVisible, openImageHover, closeImageHover } =
-    useInventoryThumbnailImageHover(enableHover && Boolean(imageSrc));
+  const {
+    hover: imageHover,
+    visible: imageHoverVisible,
+    close: closeImageHover,
+    handlers: imageHoverHandlers,
+  } = useImageHoverPreview({ src: enableHover ? imageSrc : null });
 
   return (
     <>
@@ -213,9 +217,7 @@ export function InventoryItemThumbnail({
           enableHover && imageSrc && 'cursor-zoom-in',
         )}
         data-inventory-item-thumbnail
-        onPointerEnter={enableHover ? (event) => openImageHover(event.clientX, event.clientY) : undefined}
-        onPointerMove={enableHover ? (event) => openImageHover(event.clientX, event.clientY) : undefined}
-        onPointerLeave={enableHover ? closeImageHover : undefined}
+        {...(enableHover ? imageHoverHandlers : undefined)}
       >
         <div className="absolute inset-0 flex items-center justify-center">
           <Package className="h-4 w-4 text-muted-foreground/50" aria-hidden="true" />
@@ -235,31 +237,13 @@ export function InventoryItemThumbnail({
           />
         )}
       </div>
-      {imageHover && imageSrc && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              className={cn(
-                'inventory-item-image-hover-preview pointer-events-none fixed z-[9999] box-border overflow-hidden rounded-xl border border-border bg-white p-2 shadow-2xl transition-[opacity,transform] duration-150 ease-out dark:bg-card',
-                imageHoverVisible ? 'scale-100 opacity-100' : 'scale-[0.97] opacity-0',
-              )}
-              data-inventory-item-image-hover-preview
-              aria-hidden="true"
-              style={{
-                left: imageHover.x,
-                top: imageHover.y,
-                width: imageHover.size,
-                height: imageHover.size,
-              }}
-            >
-              <img
-                src={imageHoverSrc ?? imageSrc}
-                alt=""
-                className="block h-full w-full rounded-md bg-white object-contain dark:bg-card"
-              />
-            </div>,
-            document.body,
-          )
-        : null}
+      <ImageHoverPreview
+        hover={imageSrc ? imageHover : null}
+        visible={imageHoverVisible}
+        marker="inventory-item"
+        src={imageHoverSrc}
+        portal
+      />
     </>
   );
 }
