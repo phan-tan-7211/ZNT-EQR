@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.7] - 2026-11-15
+
+### Changed
+
+- **Code clean-up** - Screens and helpers that had been copied in several places (tooling catalogs and operation tabs, member lists, location editors, the PM template picker, data tables, image viewers and others) now share one implementation, so they behave the same everywhere. Nothing changes in how the app looks or works.
+
 ## [3.44.6] - 2026-11-15
 
 ### Changed
