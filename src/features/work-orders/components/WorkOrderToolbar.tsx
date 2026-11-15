@@ -7,6 +7,10 @@ import { Separator } from '@/components/ui/separator';
 import WorkOrderFilterPopover from './WorkOrderFilterPopover';
 import WorkOrderSortPopover from './WorkOrderSortPopover';
 import type { WorkOrderFiltersToolbarProps } from '@/features/work-orders/types/workOrderFiltersToolbarTypes';
+import {
+  getWorkOrderListPriorityLabels,
+  getWorkOrderListStatusLabels,
+} from '@/features/work-orders/utils/workOrderListLabels';
 import { useI18n } from '@/i18n';
 
 type WorkOrderToolbarProps = Omit<
@@ -31,20 +35,8 @@ const WorkOrderToolbar: React.FC<WorkOrderToolbarProps> = ({
 }) => {
   const { t } = useI18n();
   const hasActiveFilters = activeFilterCount > 0 || filters.searchQuery.length > 0;
-  const statusLabels: Record<string, string> = {
-    submitted: t('workOrders.list.submitted'),
-    accepted: t('workOrders.list.accepted'),
-    assigned: t('workOrders.list.assigned'),
-    in_progress: t('workOrders.list.inProgress'),
-    on_hold: t('workOrders.list.onHold'),
-    completed: t('workOrders.list.completed'),
-    cancelled: t('workOrders.list.cancelled'),
-  };
-  const priorityLabels: Record<string, string> = {
-    high: t('workOrders.list.high'),
-    medium: t('workOrders.list.medium'),
-    low: t('workOrders.list.low'),
-  };
+  const statusLabels = getWorkOrderListStatusLabels(t);
+  const priorityLabels = getWorkOrderListPriorityLabels(t);
   const dueDateLabels: Record<string, string> = {
     overdue: t('workOrders.list.overdue'),
     today: t('workOrders.list.dueToday'),

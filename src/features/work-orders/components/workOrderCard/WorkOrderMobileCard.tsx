@@ -24,6 +24,10 @@ import { PendingSyncBadge } from '@/features/offline-queue/components/PendingSyn
 import type { MergedWorkOrder } from '@/features/work-orders/hooks/useOfflineMergedWorkOrders';
 import { useCanViewWorkOrderCostsForWorkOrder } from '@/features/work-orders/hooks/useCanViewWorkOrderCosts';
 import { getAssigneeInitials } from '@/features/work-orders/utils/workOrderCardMappers';
+import {
+  getWorkOrderListPriorityLabels,
+  getWorkOrderListStatusLabels,
+} from '@/features/work-orders/utils/workOrderListLabels';
 import { WorkOrderEquipmentThumbnail } from './WorkOrderEquipmentThumbnail';
 import { WorkOrderQuickActions } from '../WorkOrderQuickActions';
 import type { WorkOrderCardProps } from '../WorkOrderCard';
@@ -47,15 +51,8 @@ export const WorkOrderMobileCard: React.FC<WorkOrderMobileCardProps> = memo(({
   const { formatDate, formatRelative } = useFormatTimestamp();
   const { t } = useI18n();
   const canViewCosts = useCanViewWorkOrderCostsForWorkOrder(workOrder);
-  const statusLabels: Record<string, string> = {
-    submitted: t('workOrders.list.submitted'), accepted: t('workOrders.list.accepted'),
-    assigned: t('workOrders.list.assigned'), in_progress: t('workOrders.list.inProgress'),
-    on_hold: t('workOrders.list.onHold'), completed: t('workOrders.list.completed'),
-    cancelled: t('workOrders.list.cancelled'),
-  };
-  const priorityLabels: Record<string, string> = {
-    high: t('workOrders.list.high'), medium: t('workOrders.list.medium'), low: t('workOrders.list.low'),
-  };
+  const statusLabels = getWorkOrderListStatusLabels(t);
+  const priorityLabels = getWorkOrderListPriorityLabels(t);
   const dueDateValue = workOrder.due_date;
   const createdDateValue = workOrder.created_date;
   const machineHours = formatWorkOrderMachineHours(workOrder.equipmentWorkingHours);
