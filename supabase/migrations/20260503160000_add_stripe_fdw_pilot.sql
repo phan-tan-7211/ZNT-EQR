@@ -4,7 +4,7 @@
 -- Date: 2026-05-03
 --
 -- Sets up the Stripe Foreign Data Wrapper (FDW) for read-only admin/finance
--- queries that join EquipQR's auth.users + organizations against live Stripe
+-- queries that join ZNTEQR's auth.users + organizations against live Stripe
 -- subscription data via SQL.
 --
 -- Architecture decision: per the Service Request and the user's locked-in
@@ -45,12 +45,12 @@
 --   on the organizations table — verified empirically against the live schema
 --   2026-05-03 (zero rows in information_schema.columns where column_name LIKE
 --   '%stripe%' on the public schema except customers_feature_enabled boolean).
---   EquipQR has no live mapping today between organizations and Stripe
+--   ZNTEQR has no live mapping today between organizations and Stripe
 --   customers; the legacy check-subscription Edge Function is itself stubbed
 --   to return 410 Gone (see supabase/functions/check-subscription/index.ts).
 --   Until a real mapping exists, the safest posture is service_role only —
 --   no untrusted caller can hit the function, and there is no broken join to
---   leak data through. When EquipQR reintroduces an org → Stripe mapping in a
+--   leak data through. When ZNTEQR reintroduces an org → Stripe mapping in a
 --   future change, a follow-up migration can re-grant to authenticated with
 --   the correct tenant filter.
 --
@@ -118,7 +118,7 @@ BEGIN
     $cs$;
   END IF;
 
-  -- IMPORT FOREIGN SCHEMA — restricted to the 8 objects EquipQR may join
+  -- IMPORT FOREIGN SCHEMA — restricted to the 8 objects ZNTEQR may join
   -- against in admin views. Do NOT import the full schema (the Stripe FDW
   -- catalog has 24+ object types and bloats the schema unnecessarily).
   -- Idempotency: check for the canonical 'customers' foreign table.
@@ -185,7 +185,7 @@ END $$;
 -- PART 3: SECURITY DEFINER exposure function (always created)
 -- ============================================================================
 -- This function is the only access path to Stripe data via the FDW. Until
--- EquipQR introduces a real org → Stripe customer mapping (see migration
+-- ZNTEQR introduces a real org → Stripe customer mapping (see migration
 -- header), the function is locked down to service_role only. Future
 -- migrations will re-grant to authenticated and add the correct tenant
 -- filter once the mapping exists.
@@ -245,7 +245,7 @@ COMMENT ON FUNCTION public.list_active_stripe_subscriptions() IS
   'public.org_active_stripe_subscriptions (refreshed every 15 minutes by the '
   'refresh-stripe-mvs cron job). The stripe.* foreign tables are private; '
   'this SECURITY DEFINER function is GRANTed only to service_role until '
-  'EquipQR reintroduces an org → Stripe customer mapping. Server-side Edge '
+  'ZNTEQR reintroduces an org → Stripe customer mapping. Server-side Edge '
   'Functions invoke it with the service role key and apply any tenant '
   'filtering themselves. Returns empty when the FDW pilot has not yet been '
   'provisioned (Section B of the Change Record on issue #722).';

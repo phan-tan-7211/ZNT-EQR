@@ -51,9 +51,9 @@ Deno.test("isAllowedOrigin rejects other Pages projects and look-alike hosts", (
   assertEquals(isAllowedOrigin("https://a.b.eqr-zinitek.pages.dev"), false);
 });
 
-Deno.test("isAllowedOrigin no longer trusts the retired Vercel team previews", () => {
-  assertEquals(isAllowedOrigin("https://equipqr-abc123-columbia-cloudworks-llc.vercel.app"), false);
-  assertEquals(isAllowedOrigin("https://equip-qr-preview-columbia-cloudworks-llc.vercel.app"), false);
+Deno.test("isAllowedOrigin does not trust Vercel preview hosts", () => {
+  assertEquals(isAllowedOrigin("https://znteqr-abc123-some-team.vercel.app"), false);
+  assertEquals(isAllowedOrigin("https://znteqr-preview-some-team.vercel.app"), false);
 });
 
 Deno.test("isAllowedOrigin honours a trimmed CLOUDFLARE_PAGES_PROJECT override", () => {

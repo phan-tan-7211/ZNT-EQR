@@ -435,8 +435,8 @@ export default defineConfig({
   },
   head: [
     ["link", { rel: "icon", href: "/favicon.ico", sizes: "32x32" }],
-    ["link", { rel: "icon", href: "/eqr-logo/icon.svg", type: "image/svg+xml" }],
-    ["link", { rel: "apple-touch-icon", href: "/eqr-logo/icon.svg" }],
+    ["link", { rel: "icon", href: "/brand/znteqr-icon.png", type: "image/png", sizes: "512x512" }],
+    ["link", { rel: "apple-touch-icon", href: "/brand/znteqr-icon.png" }],
     ["meta", { name: "theme-color", content: "#B79CFF" }],
     [
       "meta",
@@ -468,7 +468,7 @@ export default defineConfig({
     },
   },
   themeConfig: {
-    logo: { src: "/eqr-logo/icon.svg", alt: "ZNTEQR" },
+    logo: { src: "/brand/znteqr-icon.png", alt: "ZNTEQR" },
     // Primary wordmark; CSS appends a secondary " Docs" label.
     siteTitle: "ZNTEQR",
 

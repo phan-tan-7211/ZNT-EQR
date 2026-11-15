@@ -59,22 +59,12 @@ export const landingDetailResources = {
         "case5Win": "Catch the ding at the gate, not on the next customer's job."
       },
       "social": {
-        "heading": "Trusted by Equipment Teams",
-        "intro": "Currently deployed at heavy equipment repair shops who rely on ZNTEQR™ for their daily operations.",
-        "trustedAt": "Trusted by teams at",
-        "repairType": "Heavy equipment repair",
-        "repairShop": "Heavy Equipment Repair Shop",
-        "customerResults": "Customer results",
-        "adoption": "Field adoption",
-        "adoptionDescription": "Every technician on the team uses ZNTEQR daily.",
-        "close": "Faster close times",
-        "closeDescription": "Work orders close faster after moving the process into ZNTEQR.",
+        "heading": "Built for Equipment Teams",
+        "intro": "Private by default, usable offline, and connected to the tools your shop already runs on.",
         "private": "Your Data Stays Private",
         "offline": "Offline-Ready Mobile",
         "google": "Google Workspace SSO",
-        "quickbooks": "QuickBooks Integration",
-        "quote": "“We used to track PMs on paper and hope nothing slipped through. Now every machine has a QR code — scanning it proves exactly where it was dropped off and pulls up the full inspection history. I can see at a glance that every item was checked for defects, and so can my customers.”",
-        "attribution": "— Matt Hankins, Owner, 3-A Equipment"
+        "quickbooks": "QuickBooks Integration"
       }
     }
   },
@@ -138,22 +128,12 @@ export const landingDetailResources = {
         "case5Win": "Phát hiện vết hư hỏng ngay khi nhận lại, trước khi giao cho khách tiếp theo."
       },
       "social": {
-        "heading": "Được các đội ngũ thiết bị tin dùng",
-        "intro": "ZNTEQR™ hiện được các xưởng sửa chữa máy móc hạng nặng sử dụng trong công việc hằng ngày.",
-        "trustedAt": "Được các nhóm tại đây tin dùng",
-        "repairType": "Sửa chữa máy móc hạng nặng",
-        "repairShop": "Xưởng sửa chữa máy móc hạng nặng",
-        "customerResults": "Kết quả của khách hàng",
-        "adoption": "Mức độ sử dụng tại hiện trường",
-        "adoptionDescription": "Mọi kỹ thuật viên trong nhóm đều dùng ZNTEQR mỗi ngày.",
-        "close": "Thời gian hoàn tất nhanh hơn",
-        "closeDescription": "Lệnh công việc được hoàn tất nhanh hơn sau khi chuyển quy trình sang ZNTEQR.",
+        "heading": "Xây dựng cho đội ngũ thiết bị",
+        "intro": "Riêng tư theo mặc định, dùng được khi mất mạng và kết nối với những công cụ xưởng của bạn đang dùng.",
         "private": "Dữ liệu của bạn luôn riêng tư",
         "offline": "Ứng dụng di động hỗ trợ ngoại tuyến",
         "google": "Đăng nhập Google Workspace",
-        "quickbooks": "Tích hợp QuickBooks",
-        "quote": "“Trước đây chúng tôi theo dõi bảo dưỡng định kỳ trên giấy và chỉ biết hy vọng không bỏ sót gì. Giờ mỗi thiết bị đều có mã QR — quét mã sẽ xác nhận chính xác nơi máy được đưa tới và mở toàn bộ lịch sử kiểm tra. Tôi và khách hàng có thể thấy ngay mọi hạng mục đã được kiểm tra lỗi.”",
-        "attribution": "— Matt Hankins, chủ sở hữu, 3-A Equipment"
+        "quickbooks": "Tích hợp QuickBooks"
       }
     }
   },
@@ -217,22 +197,12 @@ export const landingDetailResources = {
         "case5Win": "다음 고객에게 넘기기 전에 반납 단계에서 손상을 발견할 수 있습니다."
       },
       "social": {
-        "heading": "장비 운영 팀의 신뢰",
-        "intro": "ZNTEQR™은 현재 중장비 수리점의 일상 운영에 사용되고 있습니다.",
-        "trustedAt": "다음 팀이 신뢰합니다",
-        "repairType": "중장비 수리",
-        "repairShop": "중장비 수리점",
-        "customerResults": "고객 성과",
-        "adoption": "현장 사용률",
-        "adoptionDescription": "팀의 모든 기술자가 매일 ZNTEQR을 사용합니다.",
-        "close": "더 빠른 작업 완료",
-        "closeDescription": "업무를 ZNTEQR로 옮긴 후 작업 지시를 더 빨리 완료합니다.",
+        "heading": "장비 운영 팀을 위해 만들었습니다",
+        "intro": "기본적으로 비공개이고, 오프라인에서도 쓸 수 있으며, 정비소에서 이미 쓰는 도구와 연결됩니다.",
         "private": "데이터 비공개 유지",
         "offline": "오프라인 모바일 지원",
         "google": "Google Workspace SSO",
-        "quickbooks": "QuickBooks 연동",
-        "quote": "“예전에는 예방 정비를 종이로 관리하며 빠진 항목이 없기를 바랐습니다. 이제 모든 장비에 QR 코드가 있어 스캔하면 장비를 맡긴 위치와 전체 점검 이력을 확인할 수 있습니다. 저와 고객 모두 모든 항목의 결함 점검 여부를 한눈에 알 수 있습니다.”",
-        "attribution": "— Matt Hankins, 소유주, 3-A Equipment"
+        "quickbooks": "QuickBooks 연동"
       }
     }
   }

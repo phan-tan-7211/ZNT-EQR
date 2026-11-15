@@ -15,7 +15,7 @@ import {
   setPreferenceLocalStorage,
 } from '@/lib/cookieConsent';
 
-const STORAGE_KEY_PREFIX = 'equipqr:selectedTeamId:';
+const STORAGE_KEY_PREFIX = 'znteqr:selectedTeamId:';
 
 const storageKeyFor = (organizationId: string | null) =>
   organizationId ? `${STORAGE_KEY_PREFIX}${organizationId}` : null;

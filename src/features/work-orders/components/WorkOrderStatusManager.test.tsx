@@ -32,7 +32,7 @@ vi.mock('@/features/work-orders/hooks/useWorkOrderStatusChangeHandlers', () => (
 vi.mock('@/features/work-orders/hooks/useWorkOrderContextualAssignment', () => ({
   useWorkOrderContextualAssignment: vi.fn(() => ({
     assignmentOptions: [
-      { id: 'user-1', name: 'Nicholas King', role: 'Owner', type: 'user' as const },
+      { id: 'user-1', name: 'Alex Morgan', role: 'Owner', type: 'user' as const },
       { id: 'user-2', name: 'Jane Smith', role: 'Technician', type: 'user' as const },
     ],
     isLoading: false,
@@ -85,7 +85,7 @@ describe('WorkOrderStatusManager', () => {
     } as unknown as ReturnType<typeof useWorkOrderStatusChangeHandlers>);
     vi.mocked(useWorkOrderContextualAssignment).mockReturnValue({
       assignmentOptions: [
-        { id: 'user-1', name: 'Nicholas King', role: 'Owner', type: 'user' as const },
+        { id: 'user-1', name: 'Alex Morgan', role: 'Owner', type: 'user' as const },
         { id: 'user-2', name: 'Jane Smith', role: 'Technician', type: 'user' as const },
       ],
       isLoading: false,
@@ -97,7 +97,7 @@ describe('WorkOrderStatusManager', () => {
   it('enables Start Work for accepted work orders that already have an assignee', async () => {
     renderStatusManager({
       assignee_id: 'user-1',
-      assigneeName: 'Nicholas King',
+      assigneeName: 'Alex Morgan',
     });
 
     expect(screen.queryByText('Assign to start work')).not.toBeInTheDocument();

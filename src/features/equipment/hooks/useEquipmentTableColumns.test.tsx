@@ -15,12 +15,12 @@ import {
 } from '@/features/equipment/components/equipmentTableColumns';
 import { useEquipmentTableColumns } from './useEquipmentTableColumns';
 
-const STORAGE_KEY = (orgId: string) => `equipqr:equipment-table-columns:${orgId}`;
+const STORAGE_KEY = (orgId: string) => `znteqr:equipment-table-columns:${orgId}`;
 
 describe('useEquipmentTableColumns', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
 
   it('returns DEFAULT_VISIBLE_COLUMNS when no localStorage entry exists', () => {
@@ -116,7 +116,7 @@ describe('useEquipmentTableColumns', () => {
     // No localStorage write should have happened for any equipment-table key.
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      expect(key?.startsWith('equipqr:equipment-table-columns:')).toBe(false);
+      expect(key?.startsWith('znteqr:equipment-table-columns:')).toBe(false);
     }
   });
 

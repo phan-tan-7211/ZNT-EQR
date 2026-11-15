@@ -1,5 +1,4 @@
 import { Search, Zap, GitCompare, DollarSign, Layers, BookOpen, Link2 } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, Capability, FeaturePageContent, ImageScreenshot, Step } from './featurePageTypes';
 
 export const content: FeaturePageContent = {
@@ -119,7 +118,6 @@ export const steps: Step[] = [
 export const showcases: ImageScreenshot[] = [
   {
     kind: 'image',
-    imageUrl: landingImage('part-lookup-2026-04.webp'),
     imageAlt: 'Part Lookup page with search by part number tab and example search suggestions',
     title: 'Search by Part Number or Make/Model',
     description:

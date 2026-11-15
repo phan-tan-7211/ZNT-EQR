@@ -24,7 +24,7 @@ describe('sessionPersistence', () => {
     vi.clearAllMocks();
     Object.keys(mockLocalStorage).forEach((key) => delete mockLocalStorage[key]);
     // Preference writes require Accept — mirror vitest/setup-shared.ts default.
-    mockLocalStorage['equipqr:cookie-consent'] = 'accepted';
+    mockLocalStorage['znteqr:cookie-consent'] = 'accepted';
     
     // Mock localStorage
     Object.defineProperty(window, 'localStorage', {
@@ -200,7 +200,7 @@ describe('sessionPersistence', () => {
 
   describe('constants', () => {
     it('should return session storage key', () => {
-      expect(getSessionStorageKey()).toBe('equipqr_session_data');
+      expect(getSessionStorageKey()).toBe('znteqr_session_data');
     });
 
     it('should return session version', () => {

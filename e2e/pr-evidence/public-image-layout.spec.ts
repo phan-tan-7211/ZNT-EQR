@@ -24,7 +24,6 @@ test.describe('PR evidence public image layout @pr-evidence', () => {
     await dismissCookieBannerIfPresent(page);
 
     await expectPublicImageOk(page, '/images/brand/icons/ZNTEQR-Icon-512.png');
-    await expectPublicImageOk(page, '/images/brand/logos/3A-Equipment-Logo-Medium.png');
     await expectPublicImageOk(page, '/images/equipment/excavator-svgrepo-com.svg');
     await expectPublicImageOk(page, '/favicon.ico');
 
@@ -32,15 +31,6 @@ test.describe('PR evidence public image layout @pr-evidence', () => {
     await expect(headerBrand).toBeVisible({ timeout: 15_000 });
     await evidencePause(page, 300);
     await evidenceScreenshot(page, '01-landing-header-brand', { target: headerBrand });
-
-    const customerLogo = page.getByRole('img', { name: '3-A Equipment Logo' });
-    await customerLogo.scrollIntoViewIfNeeded();
-    await expect(customerLogo).toBeVisible({ timeout: 15_000 });
-    await expect
-      .poll(async () => customerLogo.evaluate((img: HTMLImageElement) => img.naturalWidth))
-      .toBeGreaterThan(0);
-    await evidencePause(page, 300);
-    await evidenceScreenshot(page, '02-landing-customer-logo', { target: customerLogo });
   });
 });
 

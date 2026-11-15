@@ -28,8 +28,8 @@ describe('cookieConsent', () => {
   it('returns null when no decision is stored', () => {
     expect(getCookieConsentDecision()).toBeNull();
     expect(isPreferenceStorageAllowed()).toBe(false);
-    localStorage.setItem('equipqr:equipment-view-mode', 'table');
-    expect(getPreferenceLocalStorage('equipqr:equipment-view-mode')).toBeNull();
+    localStorage.setItem('znteqr:equipment-view-mode', 'table');
+    expect(getPreferenceLocalStorage('znteqr:equipment-view-mode')).toBeNull();
   });
 
   it('persists Accept and allows preference storage', () => {
@@ -37,8 +37,8 @@ describe('cookieConsent', () => {
     expect(getCookieConsentDecision()).toBe('accepted');
     expect(localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)).toBe('accepted');
     expect(isPreferenceStorageAllowed()).toBe(true);
-    expect(setPreferenceLocalStorage('equipqr:equipment-view-mode', 'table')).toBe(true);
-    expect(localStorage.getItem('equipqr:equipment-view-mode')).toBe('table');
+    expect(setPreferenceLocalStorage('znteqr:equipment-view-mode', 'table')).toBe(true);
+    expect(localStorage.getItem('znteqr:equipment-view-mode')).toBe('table');
     expect(setPreferenceCookie(SIDEBAR_COOKIE_NAME, 'true', 60)).toBe(true);
     expect(document.cookie).toContain(`${SIDEBAR_COOKIE_NAME}=true`);
   });
@@ -56,58 +56,58 @@ describe('cookieConsent', () => {
     applyCookieConsentDecision('accepted');
     expect(setPreferenceLocalStorage('unknown-preference-key', 'x')).toBe(false);
     expect(localStorage.getItem('unknown-preference-key')).toBeNull();
-    expect(setPreferenceLocalStorage('equipqr:equipment-view-mode', 'grid')).toBe(true);
-    expect(setPreferenceLocalStorage('equipqr:work-orders-view-mode', 'calendar')).toBe(true);
+    expect(setPreferenceLocalStorage('znteqr:equipment-view-mode', 'grid')).toBe(true);
+    expect(setPreferenceLocalStorage('znteqr:work-orders-view-mode', 'calendar')).toBe(true);
   });
 
   it('returns false when preference setItem throws instead of crashing', () => {
     applyCookieConsentDecision('accepted');
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key: string) => {
-      if (key === 'equipqr:equipment-view-mode') throw new Error('quota');
+      if (key === 'znteqr:equipment-view-mode') throw new Error('quota');
     });
-    expect(setPreferenceLocalStorage('equipqr:equipment-view-mode', 'table')).toBe(false);
+    expect(setPreferenceLocalStorage('znteqr:equipment-view-mode', 'table')).toBe(false);
     vi.restoreAllMocks();
   });
 
   it('does not remove optional preference keys before Accept', () => {
-    localStorage.setItem('equipqr:selectedTeamId:org-1', 'team-A');
-    removePreferenceLocalStorage('equipqr:selectedTeamId:org-1');
-    expect(localStorage.getItem('equipqr:selectedTeamId:org-1')).toBe('team-A');
+    localStorage.setItem('znteqr:selectedTeamId:org-1', 'team-A');
+    removePreferenceLocalStorage('znteqr:selectedTeamId:org-1');
+    expect(localStorage.getItem('znteqr:selectedTeamId:org-1')).toBe('team-A');
 
     applyCookieConsentDecision('accepted');
-    removePreferenceLocalStorage('equipqr:selectedTeamId:org-1');
-    expect(localStorage.getItem('equipqr:selectedTeamId:org-1')).toBeNull();
+    removePreferenceLocalStorage('znteqr:selectedTeamId:org-1');
+    expect(localStorage.getItem('znteqr:selectedTeamId:org-1')).toBeNull();
   });
 
   it('persists Reject, blocks preference writes, and clears optional keys', () => {
-    localStorage.setItem('equipqr:equipment-view-mode', 'list');
-    localStorage.setItem('equipqr:selectedTeamId:org-1', 'team-A');
-    localStorage.setItem('equipqr_offline_queue_u1_o1', '[]');
+    localStorage.setItem('znteqr:equipment-view-mode', 'list');
+    localStorage.setItem('znteqr:selectedTeamId:org-1', 'team-A');
+    localStorage.setItem('znteqr_offline_queue_u1_o1', '[]');
     document.cookie = `${SIDEBAR_COOKIE_NAME}=true; path=/; max-age=60`;
 
     applyCookieConsentDecision('rejected');
 
     expect(getCookieConsentDecision()).toBe('rejected');
     expect(isPreferenceStorageAllowed()).toBe(false);
-    expect(localStorage.getItem('equipqr:equipment-view-mode')).toBeNull();
-    expect(localStorage.getItem('equipqr:selectedTeamId:org-1')).toBeNull();
-    expect(localStorage.getItem('equipqr_offline_queue_u1_o1')).toBe('[]');
-    expect(setPreferenceLocalStorage('equipqr:equipment-view-mode', 'table')).toBe(false);
-    expect(localStorage.getItem('equipqr:equipment-view-mode')).toBeNull();
+    expect(localStorage.getItem('znteqr:equipment-view-mode')).toBeNull();
+    expect(localStorage.getItem('znteqr:selectedTeamId:org-1')).toBeNull();
+    expect(localStorage.getItem('znteqr_offline_queue_u1_o1')).toBe('[]');
+    expect(setPreferenceLocalStorage('znteqr:equipment-view-mode', 'table')).toBe(false);
+    expect(localStorage.getItem('znteqr:equipment-view-mode')).toBeNull();
     expect(document.cookie).not.toContain(`${SIDEBAR_COOKIE_NAME}=true`);
   });
 
   it('clearOptionalPreferenceStorage leaves consent and necessary keys alone', () => {
     localStorage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'rejected');
-    localStorage.setItem('equipqr_pending_terms_acceptance:user-1', '1');
-    localStorage.setItem('equipqr_session_data', '{"version":3}');
-    localStorage.setItem('equipqr_current_organization', 'org-1');
-    localStorage.setItem('equipqr:equipment-view-mode', 'table');
+    localStorage.setItem('znteqr_pending_terms_acceptance:user-1', '1');
+    localStorage.setItem('znteqr_session_data', '{"version":3}');
+    localStorage.setItem('znteqr_current_organization', 'org-1');
+    localStorage.setItem('znteqr:equipment-view-mode', 'table');
     clearOptionalPreferenceStorage();
     expect(localStorage.getItem(COOKIE_CONSENT_STORAGE_KEY)).toBe('rejected');
-    expect(localStorage.getItem('equipqr_pending_terms_acceptance:user-1')).toBe('1');
-    expect(localStorage.getItem('equipqr_session_data')).toBe('{"version":3}');
-    expect(localStorage.getItem('equipqr_current_organization')).toBe('org-1');
-    expect(localStorage.getItem('equipqr:equipment-view-mode')).toBeNull();
+    expect(localStorage.getItem('znteqr_pending_terms_acceptance:user-1')).toBe('1');
+    expect(localStorage.getItem('znteqr_session_data')).toBe('{"version":3}');
+    expect(localStorage.getItem('znteqr_current_organization')).toBe('org-1');
+    expect(localStorage.getItem('znteqr:equipment-view-mode')).toBeNull();
   });
 });

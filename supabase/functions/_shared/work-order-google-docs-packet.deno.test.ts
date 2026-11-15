@@ -4,7 +4,7 @@ import type { SingleWorkOrderGoogleDocData } from "./work-order-google-docs-sing
 
 function makeMockData(overrides?: Partial<SingleWorkOrderGoogleDocData>): SingleWorkOrderGoogleDocData {
   return {
-    organization: { name: "CW Rentals", logoUrl: null },
+    organization: { name: "Demo Rentals", logoUrl: null },
     team: { name: "Alpha Team", imageUrl: null },
     customer: { name: "Acme Corp" },
     equipment: { name: "Excavator", manufacturer: "CAT", model: "320", serialNumber: "SN-001", location: "Site A" },

@@ -3,7 +3,7 @@
 -- 
 -- Previously, the function only reused orgs with "Organization" in the name,
 -- which was too restrictive. If a user manually created an org with a custom
--- name (e.g., "Columbia Cloud Works" instead of "Columbiacloudworks Organization"),
+-- name (e.g., "Acme Works" instead of "Acmeworks Organization"),
 -- connecting Google Workspace would create a NEW org instead of using their existing one.
 --
 -- This fix removes the name restriction so the function reuses ANY non-personal

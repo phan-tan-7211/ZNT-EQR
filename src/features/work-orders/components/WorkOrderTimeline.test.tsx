@@ -127,17 +127,17 @@ describe('WorkOrderTimeline', () => {
           status: 'assigned',
           created_date: '2026-07-14T15:39:00Z',
           updated_at: '2026-07-14T15:39:00Z',
-          createdByName: 'Nicholas King',
-          assigneeName: 'Nicholas King',
+          createdByName: 'Alex Morgan',
+          assigneeName: 'Alex Morgan',
         })}
         showDetailedHistory
       />,
     );
 
     expect(screen.getByText('Created & Assigned')).toBeInTheDocument();
-    expect(screen.getByText('Nicholas King')).toBeInTheDocument();
+    expect(screen.getByText('Alex Morgan')).toBeInTheDocument();
     expect(
-      screen.getByText('Submitted by Nicholas King • Assigned to Nicholas King'),
+      screen.getByText('Submitted by Alex Morgan • Assigned to Alex Morgan'),
     ).toBeInTheDocument();
     expect(screen.queryByText('Created', { exact: true })).not.toBeInTheDocument();
     expect(screen.getAllByText('Created & Assigned')).toHaveLength(1);
@@ -156,7 +156,7 @@ describe('WorkOrderTimeline', () => {
           reason: null,
           metadata: null,
           is_historical_creation: false,
-          profiles: { name: 'Nicholas King' },
+          profiles: { name: 'Alex Morgan' },
         },
         {
           id: 'history-2',
@@ -168,7 +168,7 @@ describe('WorkOrderTimeline', () => {
           reason: null,
           metadata: null,
           is_historical_creation: false,
-          profiles: { name: 'Nicholas King' },
+          profiles: { name: 'Alex Morgan' },
         },
       ],
       isLoading: false,
@@ -182,7 +182,7 @@ describe('WorkOrderTimeline', () => {
           status: 'in_progress',
           created_date: '2026-07-14T10:00:00Z',
           updated_at: '2026-07-14T12:00:00Z',
-          assigneeName: 'Nicholas King',
+          assigneeName: 'Alex Morgan',
         })}
         showDetailedHistory
       />,

@@ -73,7 +73,7 @@ Deno.test({
 
     // A secret still holding a retired host resolves to the live app.
     withSiteEnv(
-      { PUBLIC_SITE_URL: "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app" },
+      { PUBLIC_SITE_URL: "https://preview.supabase.app" },
       () => {
         assertEquals(
           buildEquipmentUrl("abc-123"),
@@ -97,7 +97,7 @@ Deno.test({
         csvContent,
         "Name,URL\nPump A,https://eqr.zinitek.com/dashboard/equipment/e1",
       );
-      assertEquals(csvContent.includes("equipqr"), false);
+      assertEquals(csvContent.includes("preview.supabase.app"), false);
     });
   },
 });

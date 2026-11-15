@@ -14,7 +14,7 @@ description: ZNTEQR의 설비 이미지 업로드 가이드, 빠른 참조 카�
 ## 문서 파일
 
 - **[기술자용 이미지 업로드 가이드](/ko/how-to/image-upload/technician-image-upload-guide)** — 작업 지시와
-  사진 등록의 핵심 흐름을 스크린샷과 함께 번호 순서대로 설명한 가이드입니다.
+  사진 등록의 핵심 흐름을 번호 순서대로 설명한 가이드입니다.
   앱 내 문서와 같은 내용이지만 인쇄하거나 신규 입사자에게 공유하기가 더 쉽습니다.
 - **[빠른 참조 카드](/ko/how-to/image-upload/quick-reference-card)** — 현장 기술자를 위한
   코팅 카드 형식의 요약표입니다.

@@ -13,7 +13,7 @@ step-by-step walkthrough for end users — those live in the **ZNTEQR Help Cente
 - **[Image upload quick reference](../how-to/image-upload/quick-reference-card.md)**
   — single-page cheat sheet for technicians in the field.
 - **[Image upload technician guide](../how-to/image-upload/technician-image-upload-guide.md)**
-  — numbered-step guide with screenshots for work order + photo flows.
+  — numbered-step guide for work order + photo flows.
 
 The rest of this document is structured as a reference for developers, admins,
 and support engineers who need the full lifecycle and permission map in one
@@ -166,7 +166,7 @@ ZNTEQR has no status page). Signed-in users can report issues at
 ## Related documentation
 
 - [Permissions](./permissions.md). Full RBAC matrix.
-- [Image Upload Technician Guide](../how-to/image-upload/technician-image-upload-guide.md). Numbered-step guide with screenshots.
+- [Image Upload Technician Guide](../how-to/image-upload/technician-image-upload-guide.md). Numbered-step guide.
 - [QuickBooks Online](../integrations/quickbooks.md). Connect, map teams, export draft invoices.
 
 ---

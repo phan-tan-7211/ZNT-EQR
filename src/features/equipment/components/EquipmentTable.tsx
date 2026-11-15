@@ -54,9 +54,9 @@ import type { EquipmentColumnFilterKey, EquipmentColumnFilters } from '@/feature
 import type { EquipmentColumnFilterOption, EquipmentColumnFilterOptions } from '@/features/equipment/hooks/useEquipmentFiltering';
 
 const STATUS_COLUMN_KEY: EquipmentTableColumnKey = 'status';
-const COLUMN_SIZING_STORAGE_KEY = 'equipqr:equipment-table-column-sizing:v3';
-const COLUMN_ORDER_STORAGE_KEY = 'equipqr:equipment-table-column-order:v1';
-const PINNED_COLUMNS_STORAGE_PREFIX = 'equipqr:equipment-table-pinned-columns:';
+const COLUMN_SIZING_STORAGE_KEY = 'znteqr:equipment-table-column-sizing:v3';
+const COLUMN_ORDER_STORAGE_KEY = 'znteqr:equipment-table-column-order:v1';
+const PINNED_COLUMNS_STORAGE_PREFIX = 'znteqr:equipment-table-pinned-columns:';
 const COLUMN_KEYS: Record<EquipmentTableColumnKey, string> = { status:'equipment.status', name:'equipment.name', manufacturer:'equipment.manufacturer', model:'equipment.model', serial_number:'equipment.serialNumber', working_hours:'equipment.hours', location:'equipment.location', team_name:'equipment.team', last_maintenance:'equipment.lastMaintenanceFull', management_responsible_primary:'equipment.managementResponsiblePrimary', management_responsible_secondary:'equipment.managementResponsibleSecondary' };
 const DEFAULT_EQUIPMENT_COLUMN_SIZING = getDefaultEquipmentColumnSizing();
 const COLUMN_DRAG_THRESHOLD_PX = 6;

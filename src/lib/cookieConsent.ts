@@ -2,14 +2,14 @@
  * First-visit cookie / browser-storage consent helpers.
  *
  * Strictly necessary storage (always allowed):
- * - This consent decision (`equipqr:cookie-consent`)
+ * - This consent decision (`znteqr:cookie-consent`)
  * - Supabase Auth session tokens (SDK-managed)
  * - `pendingRedirect` / scan-feedback sessionStorage (auth & QR flows)
- * - Offline mutation queue (`equipqr_offline_queue_*`)
- * - Pending terms-acceptance markers (`equipqr_pending_terms_acceptance:*`)
- * - Active organization hints (`equipqr_current_organization`, `equipqr_current_org`)
- * - Sanitized session cache (`equipqr_session_data` — no street/coords; name allowed)
- * - Admin grant throttle keys (`equipqr_admin_grants_*`)
+ * - Offline mutation queue (`znteqr_offline_queue_*`)
+ * - Pending terms-acceptance markers (`znteqr_pending_terms_acceptance:*`)
+ * - Active organization hints (`znteqr_current_organization`, `znteqr_current_org`)
+ * - Sanitized session cache (`znteqr_session_data` — no street/coords; name allowed)
+ * - Admin grant throttle keys (`znteqr_admin_grants_*`)
  * - In-progress editor draft backups (`pm-checklist-*`, `pm-template-editor-*`)
  *
  * Preference / optional storage (Accept only; cleared on Reject):
@@ -19,32 +19,32 @@
  * they are required for bot protection and map surfaces, not advertising.
  */
 
-export const COOKIE_CONSENT_STORAGE_KEY = 'equipqr:cookie-consent';
-export const COOKIE_CONSENT_CHANGED_EVENT = 'equipqr:cookie-consent-changed';
+export const COOKIE_CONSENT_STORAGE_KEY = 'znteqr:cookie-consent';
+export const COOKIE_CONSENT_CHANGED_EVENT = 'znteqr:cookie-consent-changed';
 export const SIDEBAR_COOKIE_NAME = 'sidebar:state';
 
 export type CookieConsentDecision = 'accepted' | 'rejected';
 
 const OPTIONAL_LOCAL_STORAGE_EXACT = new Set([
-  'equipqr:equipment-view-mode',
-  'equipqr:work-orders-view-mode',
-  'equipqr:alternate-groups-table-column-sizing',
-  'equipqr:equipment-table-column-sizing:v2',
-  'equipqr:equipment-table-column-sizing:v3',
-  'equipqr:equipment-table-column-order:v1',
-  'equipqr-user-settings',
+  'znteqr:equipment-view-mode',
+  'znteqr:work-orders-view-mode',
+  'znteqr:alternate-groups-table-column-sizing',
+  'znteqr:equipment-table-column-sizing:v2',
+  'znteqr:equipment-table-column-sizing:v3',
+  'znteqr:equipment-table-column-order:v1',
+  'znteqr-user-settings',
   'audit-dashboard-grid-v1',
 ]);
 
 const OPTIONAL_LOCAL_STORAGE_PREFIXES = [
-  'equipqr:selectedTeamId:',
-  'equipqr:equipment-table-columns:',
-  'equipqr:equipment-table-pinned-columns:',
-  'equipqr:inventory-table-preferences:',
-  'equipqr-operator-checkin-starter-catalog-expanded:',
-  'equipqr_dashboard_layout_',
+  'znteqr:selectedTeamId:',
+  'znteqr:equipment-table-columns:',
+  'znteqr:equipment-table-pinned-columns:',
+  'znteqr:inventory-table-preferences:',
+  'znteqr-operator-checkin-starter-catalog-expanded:',
+  'znteqr_dashboard_layout_',
   'eqr_work_timer_',
-  'equipqr_export_columns_',
+  'znteqr_export_columns_',
 ] as const;
 
 export function isCookieConsentDecision(value: unknown): value is CookieConsentDecision {
@@ -162,9 +162,12 @@ function isOptionalLocalStorageKey(key: string): boolean {
   return OPTIONAL_LOCAL_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
-/** Remove product-controlled preference storage after Reject. */
-export function clearOptionalPreferenceStorage(): void {
-  const storage = getLocalStorage();
+/**
+ * Remove product-controlled preference storage after Reject. `storage`
+ * defaults to `localStorage`; the legacy storage migration passes the area it
+ * is migrating.
+ */
+export function clearOptionalPreferenceStorage(storage: Storage | null = getLocalStorage()): void {
   if (!storage) return;
 
   clearSidebarPreferenceCookie();

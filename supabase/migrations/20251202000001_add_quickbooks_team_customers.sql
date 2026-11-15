@@ -1,5 +1,5 @@
 -- Migration: Add QuickBooks team-customer mapping table
--- Description: Creates table to map EquipQR teams to QuickBooks customers for invoice export
+-- Description: Creates table to map ZNTEQR teams to QuickBooks customers for invoice export
 -- Author: System
 -- Date: 2025-12-02
 
@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS public.quickbooks_team_customers (
 
 -- Add comments for documentation
 COMMENT ON TABLE public.quickbooks_team_customers IS 
-    'Maps EquipQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
+    'Maps ZNTEQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
 
 COMMENT ON COLUMN public.quickbooks_team_customers.quickbooks_customer_id IS 
     'The QuickBooks Customer ID (Customer.Id) from the QuickBooks API';

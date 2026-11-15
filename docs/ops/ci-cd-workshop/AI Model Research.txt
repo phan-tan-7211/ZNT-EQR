@@ -1,6 +1,6 @@
 # AI Model Research
 
-**Author**: Nicholas King
+**Author**: ZNT
 
 This is a list of models available in Cursor as of 2026-04-21.
 

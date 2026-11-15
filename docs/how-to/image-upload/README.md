@@ -12,7 +12,7 @@ lightweight and should not diverge from the in-app articles.
 ## Documentation Files
 
 - **[Technician Image Upload Guide](technician-image-upload-guide.md)** — a
-  numbered-step guide with screenshots for the core work-order-plus-photo flow.
+  numbered-step guide for the core work-order-plus-photo flow.
   Mirrors the in-app article but is easier to print or share with a new hire.
 - **[Quick Reference Card](quick-reference-card.md)** — a laminated-card style
   cheat sheet for field technicians.

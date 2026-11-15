@@ -48,7 +48,7 @@ async function assertIntuitInvoicePage(
   if ((await signInHeading.count()) > 0) {
     const qboHost = environment === 'production' ? 'app.qbo.intuit.com' : 'app.sandbox.qbo.intuit.com';
     throw new Error(
-      `QuickBooks session is not authenticated. Re-capture tmp/playwright/auth/nicholas-google-qbo.json ` +
+      `QuickBooks session is not authenticated. Re-capture tmp/playwright/auth/owner-google-qbo.json ` +
         `after signing into https://${qboHost} in the same browser context.`,
     );
   }

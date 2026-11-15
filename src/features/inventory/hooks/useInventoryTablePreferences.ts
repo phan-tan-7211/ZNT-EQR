@@ -15,7 +15,7 @@ import type {
 } from '@/features/inventory/types/inventory';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
-const STORAGE_PREFIX = 'equipqr:inventory-table-preferences:';
+const STORAGE_PREFIX = 'znteqr:inventory-table-preferences:';
 const PREFERENCES_VERSION = 1;
 
 const buildStorageKey = (organizationId: string): string =>

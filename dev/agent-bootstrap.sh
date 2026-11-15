@@ -266,7 +266,7 @@ fi
 log "[4/5] Rendering GCP SA JSON for gcloud MCP..."
 
 GCP_KEY_DIR="${HOME}/.config/gcloud"
-GCP_KEY_PATH="${GCP_KEY_DIR}/equipqr-agent-viewer.json"
+GCP_KEY_PATH="${GCP_KEY_DIR}/znteqr-agent-viewer.json"
 GCP_ITEM_NAME=""
 
 if op item get 'gcp-read' --vault "$OP_VAULT" --format json >/dev/null 2>&1; then

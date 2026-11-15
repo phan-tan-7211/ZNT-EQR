@@ -20,7 +20,7 @@ ALTER TABLE public.quickbooks_oauth_sessions
 ADD COLUMN IF NOT EXISTS origin_url TEXT;
 
 COMMENT ON COLUMN public.quickbooks_oauth_sessions.origin_url IS 
-    'The origin URL (e.g., http://localhost:5173 or https://equipqr.app) to redirect back to after OAuth completes.';
+    'The origin URL (e.g., http://localhost:5173 or https://eqr.zinitek.com) to redirect back to after OAuth completes.';
 
 -- ============================================================================
 -- PART 2: Update create_quickbooks_oauth_session function

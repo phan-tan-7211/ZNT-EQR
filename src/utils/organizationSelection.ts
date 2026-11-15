@@ -2,7 +2,7 @@ import { logger } from '@/utils/logger';
 import { saveOrganizationPreference } from '@/utils/sessionPersistence';
 
 /** Matches SimpleOrganizationProvider and QR redirect flows. */
-export const DASHBOARD_CURRENT_ORG_STORAGE_KEY = 'equipqr_current_organization';
+export const DASHBOARD_CURRENT_ORG_STORAGE_KEY = 'znteqr_current_organization';
 
 /**
  * Persist the active organization id for cross-document navigations (QR →

@@ -16,7 +16,7 @@ ALTER TABLE public.external_customer_contacts
   ADD COLUMN IF NOT EXISTS source_payload jsonb;
 
 COMMENT ON COLUMN public.external_customer_contacts.source IS
-  'Origin of this contact row: "manual" (entered in EquipQR) or "quickbooks" (synced from QBO Customer).';
+  'Origin of this contact row: "manual" (entered in ZNTEQR) or "quickbooks" (synced from QBO Customer).';
 
 COMMENT ON COLUMN public.external_customer_contacts.source_external_id IS
   'QuickBooks Customer.Id when source = ''quickbooks''; NULL for manual rows.';

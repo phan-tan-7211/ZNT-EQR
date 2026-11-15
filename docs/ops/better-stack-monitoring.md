@@ -65,7 +65,7 @@ If the Better Stack status page is still enabled, it is reachable only at its Be
 | Field | Value |
 |---|---|
 | Status page title | ZNTEQR Status |
-| Better Stack subdomain | `equipqr.betteruptime.com` (legacy name) |
+| Better Stack subdomain | `<status-page-subdomain>.betteruptime.com` (placeholder: read the real subdomain in Better Stack, Status pages → Settings) |
 | Custom domain | None |
 | Components shown | ZNTEQR Web, ZNTEQR API Health |
 | History / uptime chart | Enabled (90-day history) |

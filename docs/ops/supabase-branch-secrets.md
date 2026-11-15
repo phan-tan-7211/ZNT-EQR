@@ -213,7 +213,7 @@ Do **not** add Picker values to Supabase Edge Function secrets.
 2. Use the branch dropdown in the top navigation
 3. Select the new persistent preview branch created for `preview.eqr-zinitek.pages.dev`
    (not production `wgynakhoppqkrutnslmv`, and not retired
-   `olsdirkvvfegvclbpgrg`)
+   `<retired-preview-ref>`)
 
 ### Step 2: Get Preview Branch Credentials
 

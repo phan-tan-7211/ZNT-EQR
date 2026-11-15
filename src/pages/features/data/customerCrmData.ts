@@ -1,5 +1,4 @@
 import { Building2, History, Wrench, UserCircle } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, FeaturePageContent, ImageScreenshot, Step } from './featurePageTypes';
 
 export const content: FeaturePageContent = {
@@ -81,7 +80,6 @@ export const steps: Step[] = [
 export const showcases: ImageScreenshot[] = [
   {
     kind: 'image',
-    imageUrl: landingImage('equipment-list-2026-04.webp'),
     imageAlt:
       'Equipment list view showing all tracked assets. Each piece of equipment can be linked to a customer',
     title: 'Customers & Linked Equipment',
@@ -90,7 +88,6 @@ export const showcases: ImageScreenshot[] = [
   },
   {
     kind: 'image',
-    imageUrl: landingImage('team-detail-2026-04.webp'),
     imageAlt:
       'Service team detail page showing team members and the equipment they are responsible for',
     title: 'Service Teams & Customer Equipment',

@@ -80,7 +80,7 @@ export async function savePersonaStorageState(
  */
 export async function ensureCookieConsentAccepted(page: Page): Promise<void> {
   await page.evaluate(() => {
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
 
   // Same-tab localStorage writes do not re-sync CookieConsentProvider; if the
@@ -107,7 +107,7 @@ export async function loginAndPersistStorageState(
 ): Promise<void> {
   // Seed consent before auth navigation so CookieConsentProvider mounts accepted.
   await page.addInitScript(() => {
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
   await quickLogin(page, persona);
   await ensureCookieConsentAccepted(page);
@@ -125,9 +125,9 @@ export async function pinContextToOrg(
     sessionStorage.setItem('znteqr_e2e_org_pin_applied', 'true');
 
     const selectionTimestamp = new Date().toISOString();
-    localStorage.setItem('equipqr_current_organization', orgId);
+    localStorage.setItem('znteqr_current_organization', orgId);
     localStorage.setItem(
-      'equipqr_current_org',
+      'znteqr_current_org',
       JSON.stringify({
         selectedOrgId: orgId,
         selectionTimestamp,
@@ -138,7 +138,7 @@ export async function pinContextToOrg(
     // stale teamMemberships (often []) causes equipment list RBAC to
     // short-circuit empty for non-admin personas. Cleared session forces a
     // fresh fetchSessionData for the preferred org.
-    localStorage.removeItem('equipqr_session_data');
+    localStorage.removeItem('znteqr_session_data');
   }, organizationId);
 }
 

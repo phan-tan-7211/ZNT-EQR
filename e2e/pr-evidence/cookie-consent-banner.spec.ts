@@ -26,7 +26,7 @@ test.describe('PR evidence cookie consent banner @pr-evidence', () => {
     await acceptBtn.click();
     await expect(banner).toHaveCount(0);
 
-    const stored = await page.evaluate(() => localStorage.getItem('equipqr:cookie-consent'));
+    const stored = await page.evaluate(() => localStorage.getItem('znteqr:cookie-consent'));
     expect(stored).toBe('accepted');
 
     await page.reload({ waitUntil: 'domcontentloaded' });
@@ -51,7 +51,7 @@ test.describe('PR evidence cookie consent banner @pr-evidence', () => {
     await rejectBtn.click();
     await expect(banner).toHaveCount(0);
 
-    const stored = await page.evaluate(() => localStorage.getItem('equipqr:cookie-consent'));
+    const stored = await page.evaluate(() => localStorage.getItem('znteqr:cookie-consent'));
     expect(stored).toBe('rejected');
 
     const sidebarCookie = await page.evaluate(() =>

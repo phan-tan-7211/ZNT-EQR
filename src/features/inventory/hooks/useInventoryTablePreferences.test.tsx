@@ -9,12 +9,12 @@ import {
   useInventoryTablePreferences,
 } from './useInventoryTablePreferences';
 
-const STORAGE_KEY = (orgId: string) => `equipqr:inventory-table-preferences:${orgId}`;
+const STORAGE_KEY = (orgId: string) => `znteqr:inventory-table-preferences:${orgId}`;
 
 describe('useInventoryTablePreferences', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
 
   it('returns defaults when no localStorage entry exists', () => {

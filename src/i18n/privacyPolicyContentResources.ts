@@ -47,7 +47,7 @@ const viSections: readonly PrivacyPolicyLocalizedSection[] = [
     title: '5. Cookie, bộ nhớ cục bộ và dữ liệu phiên',
     paragraphs: [
       'ZNTEQR chỉ dùng bộ nhớ trình duyệt tối thiểu cho chức năng ứng dụng. Chúng tôi không dùng cookie theo dõi bên thứ ba, pixel quảng cáo hoặc kỹ thuật fingerprinting.',
-      'Thông báo cookie cho phép bạn Chấp nhận hoặc Từ chối. Lựa chọn được lưu trong localStorage với khóa equipqr:cookie-consent. Token đăng nhập, chuyển hướng đăng nhập QR, hàng đợi offline và lựa chọn đồng ý vẫn hoạt động khi bạn Từ chối để các luồng cốt lõi không bị gián đoạn.',
+      'Thông báo cookie cho phép bạn Chấp nhận hoặc Từ chối. Lựa chọn được lưu trong localStorage với khóa znteqr:cookie-consent. Token đăng nhập, chuyển hướng đăng nhập QR, hàng đợi offline và lựa chọn đồng ý vẫn hoạt động khi bạn Từ chối để các luồng cốt lõi không bị gián đoạn.',
       'Cookie sidebar:state ghi nhớ trạng thái mở rộng của thanh điều hướng trong 7 ngày và không chứa thông tin cá nhân. localStorage còn có thể lưu tổ chức đã chọn, bộ nhớ phiên đã làm sạch, bố cục dashboard, trạng thái bộ tính giờ, quyền quản trị và bản sao nháp editor. Dữ liệu này nằm trong trình duyệt và có thể xóa từ cài đặt trình duyệt.',
       'sessionStorage chỉ lưu URL chuyển hướng đang chờ khi lần quét QR yêu cầu đăng nhập. Supabase Auth lưu JWT và refresh token để duy trì phiên đăng nhập; dữ liệu này không được chia sẻ với script bên thứ ba.',
     ],
@@ -191,7 +191,7 @@ const koSections: readonly PrivacyPolicyLocalizedSection[] = [
     title: '5. 쿠키, 로컬 저장소 및 세션 데이터',
     paragraphs: [
       'ZNTEQR은 애플리케이션 기능에 필요한 최소한의 브라우저 저장소만 사용합니다. 제3자 추적 쿠키, 광고 픽셀 또는 브라우저 지문 기술은 사용하지 않습니다.',
-      '첫 방문 시 쿠키 및 브라우저 저장소 알림에서 수락 또는 거부를 선택할 수 있습니다. 선택은 equipqr:cookie-consent에 저장됩니다. 로그인 토큰, QR 로그인 리디렉션, 오프라인 큐 및 동의 선택은 거부 후에도 핵심 흐름을 위해 유지됩니다.',
+      '첫 방문 시 쿠키 및 브라우저 저장소 알림에서 수락 또는 거부를 선택할 수 있습니다. 선택은 znteqr:cookie-consent에 저장됩니다. 로그인 토큰, QR 로그인 리디렉션, 오프라인 큐 및 동의 선택은 거부 후에도 핵심 흐름을 위해 유지됩니다.',
       'sidebar:state 쿠키는 탐색 사이드바 상태를 7일 동안 기억하며 개인정보를 포함하지 않습니다. 조직 선택, 정리된 세션 캐시, 대시보드 레이아웃, 작업 타이머, 관리자 권한 및 편집기 초안도 브라우저에 저장될 수 있으며 언제든지 삭제할 수 있습니다.',
       'sessionStorage는 QR 스캔 후 로그인에 필요한 대기 리디렉션 URL에만 사용합니다. Supabase Auth는 로그인 유지를 위해 JWT와 refresh token을 저장하며 제3자 스크립트와 공유하지 않습니다.',
     ],

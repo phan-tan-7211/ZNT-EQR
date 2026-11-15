@@ -13,7 +13,7 @@
 - **[이미지 업로드 빠른 참조 카드](../how-to/image-upload/quick-reference-card.md)**
   — 현장 기술자를 위한 한 페이지 요약표.
 - **[기술자용 이미지 업로드 가이드](../how-to/image-upload/technician-image-upload-guide.md)**
-  — 작업 지시와 사진 등록 흐름을 스크린샷과 함께 번호 순서대로 설명한 가이드.
+  — 작업 지시와 사진 등록 흐름을 번호 순서대로 설명한 가이드.
 
 이 문서의 나머지 부분은 전체 수명 주기와 권한 구성을 한곳에서 확인해야 하는
 개발자, 관리자, 지원 엔지니어를 위한 참조 자료로 구성되어 있습니다.
@@ -165,7 +165,7 @@ ZNTEQR에는 상태 페이지가 없습니다)를 안내하세요. 로그인한 
 ## 관련 문서
 
 - [권한](./permissions.md). 전체 RBAC 매트릭스.
-- [기술자용 이미지 업로드 가이드](../how-to/image-upload/technician-image-upload-guide.md). 스크린샷이 포함된 번호 순서 가이드.
+- [기술자용 이미지 업로드 가이드](../how-to/image-upload/technician-image-upload-guide.md). 번호 순서대로 설명한 가이드.
 - [QuickBooks Online](../integrations/quickbooks.md). 연결, 팀 매핑, 임시 청구서 내보내기.
 
 ---

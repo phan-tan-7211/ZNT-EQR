@@ -221,7 +221,7 @@ BEGIN
   
   -- Also trigger push notification for offline/background users via pg_net
   -- This is non-blocking (async HTTP request)
-  -- Uses vault secrets following established EquipQR pattern
+  -- Uses vault secrets following established ZNTEQR pattern
   BEGIN
     -- Retrieve secrets from Supabase Vault (same pattern as quickbooks-refresh-tokens)
     SELECT 
