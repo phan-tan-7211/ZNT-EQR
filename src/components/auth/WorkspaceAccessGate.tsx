@@ -7,6 +7,7 @@ import { AlertCircle, Clock3, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
 import { SUPPORT_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import { useI18n } from '@/i18n';
 import { useAuthFlowCopy } from './useAuthFlowCopy';
 
@@ -36,7 +37,7 @@ const WorkspaceAccessGate: React.FC<WorkspaceAccessGateProps> = ({
   reviewedByName,
 }) => {
   const t = useAuthFlowCopy();
-  const { t: translate } = useI18n();
+  const { t: translate, language } = useI18n();
   const { signOut } = useAuth();
   const { formatDateTime } = useFormatTimestamp();
   const isPending = mode === 'pending';
@@ -110,7 +111,7 @@ const WorkspaceAccessGate: React.FC<WorkspaceAccessGateProps> = ({
               </Button>
             ) : null}
             <Button variant="outline" size="sm" asChild>
-              <a href={SUPPORT_DOCS_URL} target="_blank" rel="noopener noreferrer">
+              <a href={localizeDocsUrl(SUPPORT_DOCS_URL, language)} target="_blank" rel="noopener noreferrer">
                 {translate('profileMenu.helpCenter')}
               </a>
             </Button>
