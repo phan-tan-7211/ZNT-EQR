@@ -18,14 +18,24 @@ let mockCurrentUser: {
   avatar_url: null,
 };
 
-/** Radix Avatar only exposes the img after load; jsdom never fires that by default. */
+/**
+ * Radix Avatar only exposes the img after load; jsdom never loads images. Emulate a
+ * browser that loads every image: fire `load` and, from then on, report the image as
+ * complete with a non-zero natural size (Radix checks both before showing it).
+ */
 function stubImageLoadSuccess() {
-  const descriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
-  Object.defineProperty(HTMLImageElement.prototype, 'src', {
+  const proto = HTMLImageElement.prototype;
+  const names = ['src', 'complete', 'naturalWidth'] as const;
+  const descriptors = names.map((name) => [name, Object.getOwnPropertyDescriptor(proto, name)] as const);
+  const loaded = new WeakSet<HTMLImageElement>();
+
+  Object.defineProperty(proto, 'src', {
     configurable: true,
     set(this: HTMLImageElement, value: string) {
       this.setAttribute('src', value);
+      loaded.delete(this);
       queueMicrotask(() => {
+        loaded.add(this);
         this.dispatchEvent(new Event('load'));
       });
     },
@@ -33,9 +43,26 @@ function stubImageLoadSuccess() {
       return this.getAttribute('src') ?? '';
     },
   });
+  Object.defineProperty(proto, 'complete', {
+    configurable: true,
+    get(this: HTMLImageElement) {
+      return loaded.has(this);
+    },
+  });
+  Object.defineProperty(proto, 'naturalWidth', {
+    configurable: true,
+    get(this: HTMLImageElement) {
+      return loaded.has(this) ? 64 : 0;
+    },
+  });
+
   return () => {
-    if (descriptor) {
-      Object.defineProperty(HTMLImageElement.prototype, 'src', descriptor);
+    for (const [name, descriptor] of descriptors) {
+      if (descriptor) {
+        Object.defineProperty(proto, name, descriptor);
+      } else {
+        Reflect.deleteProperty(proto, name);
+      }
     }
   };
 }
