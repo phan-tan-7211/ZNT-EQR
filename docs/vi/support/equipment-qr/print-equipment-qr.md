@@ -6,7 +6,7 @@ personas: ["admin","owner","manager","technician"]
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu, Quản lý, Kỹ thuật viên  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 ## 1. Mở hồ sơ thiết bị
 
 Chọn máy từ Thiết bị, hoặc quét mã QR hiện có của máy.

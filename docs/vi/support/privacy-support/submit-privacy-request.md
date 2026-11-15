@@ -6,7 +6,7 @@ personas: ["all"]
 ---
 
 **Dành cho:** Mọi người  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 Các yêu cầu về quyền riêng tư được tiếp nhận qua một kênh riêng tại `/privacy-request`. Ai cũng có thể gửi — bạn không cần đăng nhập.
 
 ## 1. Mở biểu mẫu yêu cầu về quyền riêng tư

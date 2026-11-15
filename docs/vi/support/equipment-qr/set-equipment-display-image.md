@@ -6,7 +6,7 @@ personas: ["manager","technician","admin","owner"]
 ---
 
 **Dành cho:** Quản lý, Kỹ thuật viên, Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 ## 1. Mở hồ sơ thiết bị
 
 Đi tới thiết bị bạn muốn cập nhật.

@@ -7,7 +7,7 @@ requirement: "Bảng điều khiển DSR chỉ dành cho Chủ sở hữu và Qu
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-19
+**Rà soát lần cuối:** 2026-07-19
 
 ::: info Yêu cầu
 Bảng điều khiển DSR chỉ dành cho Chủ sở hữu và Quản trị viên của tổ chức.

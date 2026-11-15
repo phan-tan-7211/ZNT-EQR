@@ -6,7 +6,7 @@ personas: ["all"]
 ---
 
 **Dành cho:** Mọi người  
-**Xem xét lần cuối:** 2026-10-11
+**Rà soát lần cuối:** 2026-10-11
 
 ZNTEQR không công bố trang trạng thái hệ thống riêng. Nếu ứng dụng có vẻ bị lỗi hoặc không tải được, hãy dùng trang Hỗ trợ.
 

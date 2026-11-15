@@ -7,7 +7,7 @@ requirement: "Phải là Chủ sở hữu hoặc Quản trị viên của tổ c
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 
 ::: info Yêu cầu
 Phải là Chủ sở hữu hoặc Quản trị viên của tổ chức.

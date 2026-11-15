@@ -6,7 +6,7 @@ personas: ["manager","admin","owner"]
 ---
 
 **Dành cho:** Quản lý, Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-04
+**Rà soát lần cuối:** 2026-07-04
 
 Bản đồ thiết bị hiển thị mọi thiết bị có vị trí. Bản đồ hữu ích nhất khi điều phối và khi cần xem những thiết bị nào đang ở một công trường cụ thể.
 

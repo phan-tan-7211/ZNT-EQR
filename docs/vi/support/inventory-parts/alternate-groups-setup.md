@@ -6,7 +6,7 @@ personas: ["admin","owner","manager"]
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu, Quản lý  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 Nhóm linh kiện thay thế gom các linh kiện có thể thay thế cho nhau — ví dụ như bộ lọc OEM và bộ lọc aftermarket. Khi tìm theo bất kỳ mã linh kiện nào trong nhóm, kết quả sẽ trả về mọi linh kiện thay thế hiện có.
 
 ## 1. Mở Linh kiện thay thế

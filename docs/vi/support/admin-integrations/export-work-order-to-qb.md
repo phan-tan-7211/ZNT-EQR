@@ -7,7 +7,7 @@ requirement: "Chỉ Chủ sở hữu và Quản trị viên (hoặc thành viên
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu\
-**Xem xét lần cuối:** 2026-07-07
+**Rà soát lần cuối:** 2026-07-07
 
 ::: info Yêu cầu
 Chỉ Chủ sở hữu và Quản trị viên (hoặc thành viên được cấp quyền truy cập QuickBooks) mới có thể xuất. Lệnh công việc phải **đã hoàn thành** và thiết bị của lệnh phải thuộc một nhóm được liên kết với khách hàng QuickBooks.

@@ -7,7 +7,7 @@ requirement: "Phải là quản trị viên cấp cao (super-admin) Google Works
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu\
-**Xem xét lần cuối:** 2026-06-13
+**Rà soát lần cuối:** 2026-06-13
 
 ::: info Yêu cầu
 Phải là quản trị viên cấp cao (super-admin) Google Workspace của miền và là Chủ sở hữu hoặc Quản trị viên của tổ chức trên ZNTEQR.

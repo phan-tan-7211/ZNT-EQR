@@ -6,7 +6,7 @@ personas: ["admin","owner"]
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-04
+**Rà soát lần cuối:** 2026-07-04
 
 ## 1. Mở Tổ chức
 

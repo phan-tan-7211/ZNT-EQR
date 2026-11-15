@@ -6,7 +6,7 @@ personas: ["technician","manager","admin","owner"]
 ---
 
 **Dành cho:** Kỹ thuật viên, Quản lý, Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 ## 1. Mở Tra cứu linh kiện
 
 Trên thanh bên, trong mục Thiết bị, nhấp Tra cứu linh kiện. Thanh tìm kiếm chấp nhận tên, SKU, UPC, OEM và bất kỳ mã tham chiếu chéo nào.

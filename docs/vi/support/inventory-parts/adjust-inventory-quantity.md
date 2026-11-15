@@ -7,7 +7,7 @@ requirement: "Phải là Chủ sở hữu, Quản trị viên hoặc Người qu
 ---
 
 **Dành cho:** Quản lý, Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 
 ::: info Yêu cầu
 Phải là Chủ sở hữu, Quản trị viên hoặc Người quản lý phụ tùng được chỉ định.

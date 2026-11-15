@@ -6,7 +6,7 @@ personas: ["admin","owner","manager","technician"]
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu, Quản lý, Kỹ thuật viên  
-**Xem xét lần cuối:** 2026-07-04
+**Rà soát lần cuối:** 2026-07-04
 
 ZNTEQR xác định ghim của thiết bị từ nhiều nguồn. Bạn có thể xem trước từng nguồn trên bản đồ ở trang chi tiết thiết bị, trên Bản đồ thiết bị và trên trang chi tiết lệnh công việc mà không làm thay đổi hồ sơ gốc cho đến khi bạn lưu một giá trị ghi đè.
 

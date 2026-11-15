@@ -7,7 +7,7 @@ requirement: "Chủ sở hữu và Quản trị viên có thể thêm bất kỳ
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu, Quản lý, Kỹ thuật viên  
-**Xem xét lần cuối:** 2026-07-04
+**Rà soát lần cuối:** 2026-07-04
 
 ::: info Yêu cầu
 Chủ sở hữu và Quản trị viên có thể thêm bất kỳ thiết bị nào. Quản lý và Kỹ thuật viên có thể thêm thiết bị vào các nhóm mà họ là thành viên.

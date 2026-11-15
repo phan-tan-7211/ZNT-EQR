@@ -7,7 +7,7 @@ requirement: "QuickBooks phải được kết nối. Chỉ Chủ sở hữu và
 ---
 
 **Dành cho:** Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-07
+**Rà soát lần cuối:** 2026-07-07
 
 ::: info Yêu cầu
 QuickBooks phải được kết nối. Chỉ Chủ sở hữu và Quản trị viên của Tổ chức mới có thể liên kết tài khoản khách hàng.

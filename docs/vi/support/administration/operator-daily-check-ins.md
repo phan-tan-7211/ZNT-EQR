@@ -6,7 +6,7 @@ personas: ["owner", "admin"]
 ---
 
 **Dành cho:** Chủ sở hữu tổ chức, Quản trị viên  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 
 Chủ sở hữu và quản trị viên của tổ chức thiết lập **Kiểm tra hằng ngày của người vận hành** tại **Vận hành → Kiểm tra hằng ngày** trong bảng điều khiển ZNTEQR. Người vận hành hoàn thành các danh sách kiểm tra được gán thông qua một **liên kết QR công khai riêng** — không cần đăng nhập ZNTEQR.
 

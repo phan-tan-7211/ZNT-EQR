@@ -6,7 +6,7 @@ personas: ["all"]
 ---
 
 **Dành cho:** Mọi người  
-**Xem xét lần cuối:** 2026-05-01
+**Rà soát lần cuối:** 2026-05-01
 
 ::: tip Trong ứng dụng ZNTEQR
 Quy trình này thực hiện trên trang hỗ trợ sau khi đăng nhập: [https://eqr.zinitek.com/dashboard/support](https://eqr.zinitek.com/dashboard/support).

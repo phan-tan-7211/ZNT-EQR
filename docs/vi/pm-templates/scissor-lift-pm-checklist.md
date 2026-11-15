@@ -2,7 +2,7 @@
 
 **Tên mẫu:** Scissor Lift PM (Default)\
 **Tổng số hạng mục:** 74\
-**Số mục:** 10
+**Tổng số mục:** 10
 
 74 hạng mục. Mẫu mặc định của ZNTEQR dành cho xe nâng cắt kéo.
 

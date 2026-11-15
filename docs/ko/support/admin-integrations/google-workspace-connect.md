@@ -7,7 +7,7 @@ requirement: "도메인의 Google Workspace 최고 관리자이면서 ZNTEQR 조
 ---
 
 **대상:** 관리자, 소유자\
-**최종 검토:** 2026-06-13
+**최종 검토일:** 2026-06-13
 
 ::: info 요구 사항
 도메인의 Google Workspace 최고 관리자이면서 ZNTEQR 조직 소유자 또는 관리자여야 합니다.

@@ -183,7 +183,7 @@ const LABELS: Record<string, { vi: string; ko: string }> = {
   "Add inventory item": { vi: "Thêm vật tư", ko: "재고 품목 추가" },
   "Storage locations": { vi: "Vị trí lưu kho", ko: "보관 위치" },
   "Adjust quantity": { vi: "Điều chỉnh số lượng", ko: "수량 조정" },
-  "Parts Access": { vi: "Quyền truy cập vật tư", ko: "부품 접근 권한" },
+  "Parts Access": { vi: "Quyền truy cập phụ tùng", ko: "부품 접근 권한" },
   "Alternate part groups": { vi: "Nhóm linh kiện thay thế", ko: "대체 부품 그룹" },
   "Bulk edit inventory": { vi: "Sửa kho vật tư hàng loạt", ko: "재고 일괄 편집" },
   "Part lookup": { vi: "Tra cứu linh kiện", ko: "부품 조회" },
