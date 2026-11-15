@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.6] - 2026-11-15
+
+### Changed
+
+- **Dependencies** - Updated the menu, accordion, avatar, scroll and separator components, form handling, CSV import and the offline cache library to their latest compatible releases. Nothing changes in how the app works.
+
 ## [3.44.5] - 2026-11-15
 
 ### Changed
