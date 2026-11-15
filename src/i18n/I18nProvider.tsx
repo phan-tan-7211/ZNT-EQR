@@ -107,11 +107,10 @@ import { toolingOperationsResources } from './toolingOperationsResources';
 import { toolingInsightsResources } from './toolingInsightsResources';
 import { toolingReportsResources } from './toolingReportsResources';
 import { toolingImportResources } from './toolingImportResources';
+import { LANGUAGE_STORAGE_KEY, resolvePreferredLanguage } from '@/i18n/languageStorage';
 
 
 export type Language = 'vi' | 'en' | 'ko';
-
-const STORAGE_KEY = 'znteqr-language';
 
 const resources = {
 
@@ -137,16 +136,6 @@ interface I18nContextValue {
 }
 
 const I18nContext = createContext<I18nContextValue | null>(null);
-
-function resolveInitialLanguage(): Language {
-  if (typeof window === 'undefined') return 'en';
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  if (saved === 'vi' || saved === 'en' || saved === 'ko') return saved;
-  const browserLanguage = window.navigator.language.toLowerCase();
-  if (browserLanguage.startsWith('vi')) return 'vi';
-  if (browserLanguage.startsWith('ko')) return 'ko';
-  return 'en';
-}
 
 function getNestedValue(source: unknown, key: string): unknown {
   return key.split('.').reduce<unknown>((current, segment) => {
@@ -176,10 +165,10 @@ const fallbackI18nContext: I18nContextValue = {
 };
 
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [language, setLanguageState] = useState<Language>(resolveInitialLanguage);
+  const [language, setLanguageState] = useState<Language>(resolvePreferredLanguage);
   const setLanguage = useCallback((nextLanguage: Language) => {
     setLanguageState(nextLanguage);
-    window.localStorage.setItem(STORAGE_KEY, nextLanguage);
+    window.localStorage.setItem(LANGUAGE_STORAGE_KEY, nextLanguage);
   }, []);
 
   useEffect(() => {
