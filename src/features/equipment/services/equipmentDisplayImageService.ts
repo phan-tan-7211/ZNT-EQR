@@ -7,6 +7,7 @@ import {
   uploadDisplayImageSet,
   type UploadedDisplayImageSet,
 } from '@/services/displayImageStorageService';
+import { getEquipmentDisplayImageRef } from '@/features/equipment/services/equipmentDisplayImageRefService';
 
 const DISPLAY_IMAGE_RESOLUTION_ERROR =
   'Could not resolve that image to a durable storage path. Choose an image from work orders or equipment notes again.';
@@ -16,21 +17,6 @@ export interface UploadEquipmentDisplayImageInput {
   equipmentId: string;
   source: File;
   imageSetId?: string;
-}
-
-async function getCurrentEquipmentDisplayImageRef(
-  organizationId: string,
-  equipmentId: string,
-): Promise<string | null> {
-  const { data, error } = await supabase
-    .from('equipment')
-    .select('image_url')
-    .eq('id', equipmentId)
-    .eq('organization_id', organizationId)
-    .maybeSingle();
-
-  if (error) throw error;
-  return data?.image_url ?? null;
 }
 
 function normalizeEquipmentDisplayImageRef(
@@ -118,7 +104,7 @@ export async function uploadEquipmentDisplayImage(
 export async function replaceEquipmentDisplayImage(
   input: UploadEquipmentDisplayImageInput,
 ): Promise<string> {
-  const previousRef = await getCurrentEquipmentDisplayImageRef(
+  const previousRef = await getEquipmentDisplayImageRef(
     input.organizationId,
     input.equipmentId,
   );
@@ -139,7 +125,7 @@ export async function setEquipmentDisplayImageRef(
   equipmentId: string,
   imageUrl: string,
 ): Promise<void> {
-  const previousRef = await getCurrentEquipmentDisplayImageRef(
+  const previousRef = await getEquipmentDisplayImageRef(
     organizationId,
     equipmentId,
   );
