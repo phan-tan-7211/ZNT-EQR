@@ -17,7 +17,7 @@ import {
 } from "../_shared/supabase-clients.ts";
 import { optionalSecret } from "../_shared/require-secret.ts";
 import { requireOperatorCheckinAssignmentToken } from "../_shared/operator-checkin-public-auth.ts";
-import { isCaptchaEnforced } from "../_shared/hcaptcha-gate.ts";
+import { isCaptchaEnforced, verifyCaptchaToken } from "../_shared/hcaptcha-gate.ts";
 import {
   normalizeTextValue,
   parseTemplateData,
@@ -53,28 +53,13 @@ interface SubmitRequest {
 
 type OperatorCheckInRequest = LoadRequest | SubmitRequest;
 
-/** CAPTCHA is required when the secret exists (preview/prod fail-closed). */
+/** CAPTCHA is required unless the secret is missing on the local stack (fail-closed on hosted projects). */
 function isCaptchaRequired(): boolean {
   return isCaptchaEnforced(optionalSecret("HCAPTCHA_SECRET_KEY"));
 }
 
-async function verifyCaptcha(token: string | undefined): Promise<boolean> {
-  if (!isCaptchaRequired()) return true;
-  const secret = optionalSecret("HCAPTCHA_SECRET_KEY");
-  if (!secret || !token) return false;
-
-  const form = new FormData();
-  form.append("secret", secret);
-  form.append("response", token);
-
-  try {
-    const res = await fetch("https://hcaptcha.com/siteverify", { method: "POST", body: form });
-    const result = await res.json();
-    return result.success === true;
-  } catch {
-    console.error("[OPERATOR-CHECKIN] hCaptcha verification failed");
-    return false;
-  }
+function verifyCaptcha(token: string | undefined): Promise<boolean> {
+  return verifyCaptchaToken(optionalSecret("HCAPTCHA_SECRET_KEY"), token, { logTag: "OPERATOR-CHECKIN" });
 }
 
 function buildEquipmentPreviewFields(

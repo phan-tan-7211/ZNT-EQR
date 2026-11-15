@@ -25,6 +25,7 @@ import {
   withCorrelationId,
 } from "../_shared/supabase-clients.ts";
 import { optionalSecret } from "../_shared/require-secret.ts";
+import { timingSafeEqualStrings } from "../_shared/timing-safe-equal.ts";
 
 // Web Push library for Deno
 // Note: Using npm specifier for web-push compatibility
@@ -133,7 +134,7 @@ async function sendToSubscription(
  * @param req - The incoming request
  * @returns true if authenticated with service role key, false otherwise
  */
-function validateServiceRoleAuth(req: Request): boolean {
+async function validateServiceRoleAuth(req: Request): Promise<boolean> {
   const authHeader = req.headers.get("Authorization");
   if (!authHeader) {
     return false;
@@ -148,9 +149,13 @@ function validateServiceRoleAuth(req: Request): boolean {
   const token = parts[1];
   const expectedServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
-  // Validate that the token matches the service role key
+  if (!token || !expectedServiceRoleKey) {
+    return false;
+  }
+
+  // Validate that the token matches the service role key (constant-time).
   // This ensures only trusted database triggers can call this function
-  return expectedServiceRoleKey !== undefined && token === expectedServiceRoleKey;
+  return await timingSafeEqualStrings(token, expectedServiceRoleKey);
 }
 
 Deno.serve(withCorrelationId(async (req, _ctx) => {
@@ -168,7 +173,7 @@ Deno.serve(withCorrelationId(async (req, _ctx) => {
     // Security: Validate that request is authenticated with service role key
     // This function is called from database triggers via pg_net, which passes the service role key
     // This prevents unauthorized external callers from triggering push notifications
-    if (!validateServiceRoleAuth(req)) {
+    if (!(await validateServiceRoleAuth(req))) {
       logStep("Authentication failed - invalid or missing service role key");
       return createErrorResponse("Unauthorized", 401);
     }

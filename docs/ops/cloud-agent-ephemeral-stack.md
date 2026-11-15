@@ -21,6 +21,7 @@ Cloud agents **do not** run `npx supabase start` in Docker. Cursor Cloud VMs hav
 
    - Creates `agent-<session>` via **Management API** with `git_branch=preview` (required so migrations deploy; CLI-only creates often hit `MIGRATIONS_FAILED`)
    - Polls until `FUNCTIONS_DEPLOYED`
+   - Sets the edge secret `HCAPTCHA_ALLOW_MISSING_SECRET=<branch ref>` so the public QR endpoints accept submissions without hCaptcha on this throwaway branch (the value is bound to the branch ref and has no effect on any other project)
    - Fetches branch anon + service_role keys (`supabase branches get -o json`)
    - Seeds Quick Login personas via Auth Admin API (`dev/cloud-agent/seed-quick-login.mjs`)
    - Rewrites `.env` `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (backup under `tmp/cloud-agent/`)
