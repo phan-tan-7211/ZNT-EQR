@@ -2,17 +2,13 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Copy, Download } from 'lucide-react';
-import { toast } from 'sonner';
 import {
   applyPinchScale,
   DEFAULT_LIGHTBOX_TRANSFORM,
   getTouchDistance,
   type LightboxTransform,
 } from '@/components/common/imageLightboxUtils';
-import {
-  copyImageToClipboard,
-  downloadImageFile,
-} from '@/components/common/dynamicImageViewportUtils';
+import { useImageFileActions } from '@/components/common/useImageFileActions';
 import { useI18n } from '@/i18n';
 import { getFinalHardcodedAuditCopy } from '@/i18n/finalHardcodedAuditCopy';
 
@@ -32,7 +28,7 @@ const ImageLightboxDialog: React.FC<ImageLightboxDialogProps> = ({ open, onOpenC
   const { language } = useI18n();
   const copy = getFinalHardcodedAuditCopy(language);
   const [transform, setTransform] = useState<LightboxTransform>(DEFAULT_LIGHTBOX_TRANSFORM);
-  const [isCopying, setIsCopying] = useState(false);
+  const { isCopying, downloadImage: handleDownload, copyImage: handleCopy } = useImageFileActions(image);
   const pinchRef = useRef<{ startDistance: number; startScale: number; lastTouch?: { x: number; y: number } } | null>(null);
 
   useEffect(() => {
@@ -41,31 +37,6 @@ const ImageLightboxDialog: React.FC<ImageLightboxDialogProps> = ({ open, onOpenC
       pinchRef.current = null;
     }
   }, [open, image?.src]);
-
-  const handleDownload = useCallback(async () => {
-    if (!image) return;
-    try {
-      await downloadImageFile(image.src, image.fileName || image.alt || 'image');
-      toast.success(copy.downloadStarted);
-    } catch (error) {
-      console.error('Failed to download image:', error);
-      toast.error(copy.downloadImageFailed);
-    }
-  }, [copy.downloadImageFailed, copy.downloadStarted, image]);
-
-  const handleCopy = useCallback(async () => {
-    if (!image) return;
-    setIsCopying(true);
-    try {
-      await copyImageToClipboard(image.src, image.fileName || image.alt || 'image.png');
-      toast.success(copy.imageCopied);
-    } catch (error) {
-      console.error('Failed to copy image:', error);
-      toast.error(copy.copyImageFailed);
-    } finally {
-      setIsCopying(false);
-    }
-  }, [copy.copyImageFailed, copy.imageCopied, image]);
 
   const handleTouchStart = useCallback((event: React.TouchEvent<HTMLDivElement>) => {
     if (event.touches.length === 2) {
