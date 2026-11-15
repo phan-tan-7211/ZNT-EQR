@@ -11,6 +11,13 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.5] - 2026-11-15
+
+### Changed
+
+- **Brand clean-up** - Saved preferences, your cookie choice and unsynced offline work now live under the ZNTEQR name in your browser; they are carried over automatically the first time you open the app after this update.
+- **Landing pages** - The home and repair-shops pages no longer show a customer testimonial.
+
 ## [3.44.4] - 2026-11-15
 
 ### Changed
