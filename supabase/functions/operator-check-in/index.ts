@@ -53,7 +53,7 @@ interface SubmitRequest {
 
 type OperatorCheckInRequest = LoadRequest | SubmitRequest;
 
-/** CAPTCHA is required when the secret exists (preview/prod fail-closed). */
+/** CAPTCHA is required unless the secret is missing on the local stack (fail-closed on hosted projects). */
 function isCaptchaRequired(): boolean {
   return isCaptchaEnforced(optionalSecret("HCAPTCHA_SECRET_KEY"));
 }
@@ -61,7 +61,11 @@ function isCaptchaRequired(): boolean {
 async function verifyCaptcha(token: string | undefined): Promise<boolean> {
   if (!isCaptchaRequired()) return true;
   const secret = optionalSecret("HCAPTCHA_SECRET_KEY");
-  if (!secret || !token) return false;
+  if (!secret) {
+    console.error("[OPERATOR-CHECKIN] HCAPTCHA_SECRET_KEY is not configured; rejecting submission (fail-closed)");
+    return false;
+  }
+  if (!token) return false;
 
   const form = new FormData();
   form.append("secret", secret);

@@ -58,6 +58,7 @@ once the cutover in `preview-persistent-branch.md` begins.
 | Secret Name | Required For | Example Value | Notes |
 |------------|--------------|---------------|-------|
 | `HCAPTCHA_SECRET_KEY` | `verify-hcaptcha` | `0x...` | hCaptcha secret key for server-side verification |
+| `HCAPTCHA_ALLOW_MISSING_SECRET` | `quick-form`, `operator-check-in` | `true` | Optional, **non-production only**. Hosted projects reject public QR submissions when `HCAPTCHA_SECRET_KEY` is missing (fail-closed); set this on a throwaway branch that intentionally runs without hCaptcha. Never set on production. |
 
 ### Encryption & Cryptography
 

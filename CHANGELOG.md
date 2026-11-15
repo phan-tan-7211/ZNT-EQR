@@ -11,6 +11,13 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.4] - 2026-11-15
+
+### Security
+
+- **Public QR forms** - Quick Forms and daily check-in submissions are now rejected if spam protection is not configured on the server, instead of being accepted without a CAPTCHA check.
+- **Push notifications** - Hardened the internal authorization check on the push notification service.
+
 ## [3.44.3] - 2026-11-15
 
 ### Changed
