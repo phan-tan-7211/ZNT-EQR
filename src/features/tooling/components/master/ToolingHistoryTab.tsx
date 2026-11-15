@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
 import { History } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import EmptyState from '@/components/ui/empty-state';
-import { Skeleton } from '@/components/ui/skeleton';
+import { LoadStateView } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import { useToolingEvents } from '@/features/tooling/hooks/useTooling';
 import type { ToolingEvent } from '@/features/tooling/types';
 import { useI18n } from '@/i18n';
+
+const HISTORY_SKELETONS = ['h-16 w-full', 'h-16 w-full', 'h-16 w-full'] as const;
 
 const USABILITY_EVENTS = new Set<ToolingEvent['event_type']>(['usability_changed', 'returned_to_service']);
 const USABILITY_VALUES = new Set(['available', 'quarantined', 'under_repair', 'pending_inspection', 'blocked', 'retired']);
@@ -52,19 +53,15 @@ export function ToolingHistoryTab({ tool, canManage }: ToolingTabProps) {
           )}
         </p>
 
-        {isLoading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('tooling.loading')}>
-            {[0, 1, 2].map((row) => (
-              <Skeleton key={row} className="h-16 w-full" />
-            ))}
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingMaster.history.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : events.length === 0 ? (
-          <EmptyState icon={History} title={t('toolingMaster.history.empty')} />
-        ) : (
+        <LoadStateView
+          loading={isLoading}
+          failed={Boolean(error)}
+          skeletons={HISTORY_SKELETONS}
+          loadingLabel={t('tooling.loading')}
+          failedMessage={t('toolingMaster.history.loadFailed')}
+          empty={events.length === 0}
+          emptyState={<EmptyState icon={History} title={t('toolingMaster.history.empty')} />}
+        >
           <ol className="relative space-y-4 border-l border-border pl-5" data-testid="tooling-history">
             {events.map((event) => {
               const from = displayValue(event, event.from_value);
@@ -111,7 +108,7 @@ export function ToolingHistoryTab({ tool, canManage }: ToolingTabProps) {
               );
             })}
           </ol>
-        )}
+        </LoadStateView>
       </CardContent>
     </Card>
   );

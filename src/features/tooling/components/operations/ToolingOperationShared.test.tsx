@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, within } from '@vitest-harness/utils/test-utils';
 import { toast } from 'sonner';
 import {
-  FieldError,
   LoadStateBoundary,
   OperationFormDialog,
   RecordListBoundary,
@@ -34,19 +33,6 @@ beforeEach(() => {
   usabilityPending = false;
   vi.mocked(toast.success).mockReset();
   vi.mocked(toast.error).mockReset();
-});
-
-describe('FieldError', () => {
-  it('renders nothing until it is shown', () => {
-    render(<FieldError show={false} message="Required" />);
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-    expect(screen.queryByText('Required')).not.toBeInTheDocument();
-  });
-
-  it('announces the message as an alert', () => {
-    render(<FieldError show message="Required" />);
-    expect(screen.getByRole('alert')).toHaveTextContent('Required');
-  });
 });
 
 describe('OperationFormDialog', () => {

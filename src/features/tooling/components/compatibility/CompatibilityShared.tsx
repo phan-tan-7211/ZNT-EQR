@@ -1,49 +1,27 @@
 /**
  * Building blocks shared by the compatibility master-data catalogs
  * (product parts, production operations) and the compatibility tab.
- * Each catalog keeps its own columns, form fields and validation; the list
- * states, card chrome, row anatomy and edit dialog shell live here. Their state
- * hooks live in `compatibilitySharedState.ts`.
+ * Each catalog keeps its own columns, form fields and validation; the card
+ * chrome, row anatomy and the catalog presets of the tooling list-state view
+ * and form dialog (`toolingShared`) live here. Their state hooks live in
+ * `compatibilitySharedState.ts`.
  */
 import type { ReactNode } from 'react';
 import { Pencil, Plus, Search, type LucideIcon } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import EmptyState from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { FormDialogShell, ListMessage, LoadStateView } from '@/features/tooling/components/toolingShared';
 import { useI18n } from '@/i18n';
 
 // ---------------------------------------------------------------------------
 // List states
 // ---------------------------------------------------------------------------
-
-export function LoadFailedAlert({ onRetry }: { onRetry: () => void }) {
-  const { t } = useI18n();
-  return (
-    <Alert variant="destructive">
-      <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
-        <span>{t('toolingCompat.common.loadFailed')}</span>
-        <Button variant="outline" size="sm" onClick={onRetry}>
-          {t('toolingCompat.common.retry')}
-        </Button>
-      </AlertDescription>
-    </Alert>
-  );
-}
 
 function CatalogAddButton({ label, onClick, className }: { label: string; onClick: () => void; className?: string }) {
   return (
@@ -87,6 +65,8 @@ interface CatalogListStateProps {
   children: ReactNode;
 }
 
+const CATALOG_SKELETONS = ['h-10 w-full', 'h-10 w-full', 'h-10 w-full'] as const;
+
 /** Shows the first state that applies: loading, load error, empty catalog, no search match, then the rows. */
 export function CatalogListState({
   isLoading,
@@ -98,21 +78,22 @@ export function CatalogListState({
   noMatchMessage,
   children,
 }: CatalogListStateProps) {
-  if (isLoading) {
-    return (
-      <div className="space-y-2" aria-busy="true">
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-full" />
-      </div>
-    );
-  }
-  if (hasError) return <LoadFailedAlert onRetry={onRetry} />;
-  if (totalCount === 0) return <>{emptyState}</>;
-  if (visibleCount === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">{noMatchMessage}</p>;
-  }
-  return <>{children}</>;
+  const { t } = useI18n();
+  return (
+    <LoadStateView
+      loading={isLoading}
+      failed={hasError}
+      skeletons={CATALOG_SKELETONS}
+      failedMessage={t('toolingCompat.common.loadFailed')}
+      retry={{ label: t('toolingCompat.common.retry'), onRetry }}
+      empty={totalCount === 0}
+      emptyState={emptyState}
+      noMatch={visibleCount === 0}
+      noMatchState={<ListMessage message={noMatchMessage} />}
+    >
+      {children}
+    </LoadStateView>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -304,6 +285,10 @@ interface CatalogFormDialogProps {
   children: ReactNode;
 }
 
+/**
+ * Create / edit dialog of a catalog row: the header sits above the form, the
+ * browser checks the `required` fields and Cancel stays usable while saving.
+ */
 export function CatalogFormDialog({
   open,
   onOpenChange,
@@ -316,36 +301,24 @@ export function CatalogFormDialog({
 }: CatalogFormDialogProps) {
   const { t } = useI18n();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <form
-          className="space-y-4"
-          onSubmit={(event) => {
-            event.preventDefault();
-            onSubmit();
-          }}
-        >
-          {children}
-          {error && (
-            <p role="alert" className="text-sm text-destructive">
-              {error}
-            </p>
-          )}
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? t('tooling.saving') : t('tooling.save')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <FormDialogShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title={title}
+      description={description}
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+      pending={isSaving}
+      submitLabel={t('tooling.save')}
+      headerPlacement="above-form"
+      lockCancelWhilePending={false}
+      noValidate={false}
+      error={error}
+    >
+      {children}
+    </FormDialogShell>
   );
 }
 

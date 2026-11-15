@@ -14,11 +14,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useOrganizationMembersQuery } from '@/features/organization/hooks/useOrganizationMembers';
 import {
-  FieldError,
   OperationFormDialog,
   RecordListBoundary,
   UsabilityReasonDialog,
 } from '@/features/tooling/components/operations/ToolingOperationShared';
+import { FieldError } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useIssueTooling,

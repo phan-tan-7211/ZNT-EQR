@@ -13,11 +13,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  FieldError,
   OperationFormDialog,
   RecordListBoundary,
   RequiredReasonField,
 } from '@/features/tooling/components/operations/ToolingOperationShared';
+import { FieldError } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useCorrectToolingUsage,
