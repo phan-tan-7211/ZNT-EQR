@@ -1,26 +1,19 @@
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UnifiedMemberPermissionRows } from '@/features/organization/components/UnifiedMemberPermissionRows';
 import { UnifiedMemberAvatar } from '@/features/organization/components/UnifiedMemberAvatar';
+import { UnifiedMemberRoleControl } from '@/features/organization/components/UnifiedMemberRoleControl';
 import { UnifiedMemberRowActions } from '@/features/organization/components/UnifiedMemberRowActions';
 import type { UnifiedMembersListViewProps } from '@/features/organization/components/unifiedMembersListViewProps';
 import {
   getUnifiedMemberStatusBadgeVariant,
   getStatusIcon,
   getUnifiedMemberDisplayName,
+  useUnifiedMemberLabels,
 } from '@/features/organization/utils/unifiedMemberPresentation';
-import { getRoleBadgeVariant } from '@/utils/badgeVariants';
-import { useI18n } from '@/i18n';
 
 export function UnifiedMembersMobileList({
   unifiedMembers,
   canManageMembers,
-  currentUserId,
-  resendPending,
-  cancelPending,
-  removePending,
-  revokeGwsPending,
-  mergePending,
   permissionContext,
   partsManagerUserIds,
   partsConsumerUserIds,
@@ -31,22 +24,9 @@ export function UnifiedMembersMobileList({
   onQuickBooksToggle,
   onPartsManagerToggle,
   onPartsConsumerToggle,
-  onResendInvitation,
-  onCancelInvitation,
-  onRevokeGwsClaim,
-  onRequestDataMerge,
-  onRemoveMember,
+  ...rowActionProps
 }: UnifiedMembersListViewProps) {
-  const { t } = useI18n();
-  const roleLabel = (role: string) => role === 'owner' || role === 'admin' || role === 'member'
-    ? t(`organizationMembers.${role}`) : role;
-  const statusLabel = (status: string) => status === 'active' ? t('organizationMembers.active')
-    : status === 'pending_invite' ? t('organizationMembers.pendingInvite') : t('organizationMembers.pendingGoogle');
-  const displayNameLabels = {
-    pendingInvite: t('organizationMembers.pendingInvite'),
-    pendingGoogle: t('organizationMembers.pendingGoogleName'),
-    unknown: t('organizationMembers.unknownName'),
-  };
+  const { statusLabel, displayNameLabels } = useUnifiedMemberLabels();
   return (
     <div className="sm:hidden space-y-3">
       {unifiedMembers.map((member) => (
@@ -69,39 +49,17 @@ export function UnifiedMembersMobileList({
               <UnifiedMemberRowActions
                 member={member}
                 canManageMembers={canManageMembers}
-                currentUserId={currentUserId}
-                resendPending={resendPending}
-                cancelPending={cancelPending}
-                removePending={removePending}
-                revokeGwsPending={revokeGwsPending}
-                mergePending={mergePending}
-                onResendInvitation={onResendInvitation}
-                onCancelInvitation={onCancelInvitation}
-                onRevokeGwsClaim={onRevokeGwsClaim}
-                onRequestDataMerge={onRequestDataMerge}
-                onRemoveMember={onRemoveMember}
+                {...rowActionProps}
               />
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {canManageMembers && member.organizationRole !== 'owner' && member.type === 'member' ? (
-              <Select
-                value={roleLabel(member.organizationRole)}
-                onValueChange={(value) => onRoleChange(member.id, value as 'admin' | 'member')}
-              >
-                <SelectTrigger className="w-24 h-7 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">{t('organizationMembers.admin')}</SelectItem>
-                  <SelectItem value="member">{t('organizationMembers.member')}</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <Badge variant={getRoleBadgeVariant(member.organizationRole)} className="capitalize text-xs">
-                {roleLabel(member.organizationRole)}
-              </Badge>
-            )}
+            <UnifiedMemberRoleControl
+              member={member}
+              canManageMembers={canManageMembers}
+              onRoleChange={onRoleChange}
+              layout="mobile"
+            />
           </div>
           <UnifiedMemberPermissionRows
             member={member}
