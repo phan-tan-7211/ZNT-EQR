@@ -29,7 +29,8 @@
 import { precacheAndRoute, cleanupOutdatedCaches, matchPrecache } from 'workbox-precaching';
 import { registerRoute, setCatchHandler } from 'workbox-routing';
 import { CacheFirst, NetworkFirst, NetworkOnly } from 'workbox-strategies';
-import { ExpirationPlugin } from 'workbox-expiration';
+import { CacheExpiration, ExpirationPlugin } from 'workbox-expiration';
+import { carryOverLegacyCaches } from './lib/legacyCacheCarryOver';
 
 declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: Array<{ url: string; revision: string | null }>;
@@ -178,29 +179,66 @@ self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// Runtime caches this worker owns (see section 4). Any other cache that is not
-// a Workbox precache was created by an earlier release under a different name
-// and would otherwise stay on the device forever.
-const RUNTIME_CACHE_NAMES: ReadonlySet<string> = new Set([
-  'znteqr-pages-v1',
-  'znteqr-static-v1',
-  'znteqr-display-images-v2',
-]);
+// Runtime caches this worker owns (see section 4), with their expiration.
+const RUNTIME_CACHES = {
+  pages: {
+    name: 'znteqr-pages-v1',
+    expiration: { maxEntries: 32, maxAgeSeconds: 7 * 24 * 60 * 60 },
+  },
+  static: {
+    name: 'znteqr-static-v1',
+    expiration: { maxEntries: 80, maxAgeSeconds: 30 * 24 * 60 * 60 },
+  },
+  displayImages: {
+    name: 'znteqr-display-images-v2',
+    expiration: { maxEntries: 1000, maxAgeSeconds: 90 * 24 * 60 * 60 },
+  },
+} as const;
 
-async function deleteStaleRuntimeCaches(): Promise<void> {
-  const names = await caches.keys();
-  await Promise.all(
-    names
-      .filter((name) => !RUNTIME_CACHE_NAMES.has(name) && !name.startsWith('workbox-'))
-      .map((name) => caches.delete(name)),
-  );
+interface RuntimeCacheExpiration {
+  maxEntries: number;
+  maxAgeSeconds: number;
+}
+
+const RUNTIME_CACHE_EXPIRATION: ReadonlyMap<string, RuntimeCacheExpiration> = new Map(
+  Object.values(RUNTIME_CACHES).map(
+    ({ name, expiration }): [string, RuntimeCacheExpiration] => [name, expiration],
+  ),
+);
+
+/**
+ * Earlier releases kept these runtime caches under the retired key prefix.
+ * Copy their entries into the current caches (so cached thumbnails keep
+ * working offline), then delete every legacy-named cache. Workbox precaches
+ * and caches this worker cannot attribute are never deleted here. Copied
+ * entries are registered with the target cache's expiration so its
+ * `maxEntries` cap keeps counting them.
+ */
+async function carryOverLegacyRuntimeCaches(): Promise<void> {
+  await carryOverLegacyCaches(caches, {
+    carryOver: new Set(RUNTIME_CACHE_EXPIRATION.keys()),
+    onEntriesCopied: async (cacheName, urls) => {
+      const config = RUNTIME_CACHE_EXPIRATION.get(cacheName);
+      if (!config) return;
+      const expiration = new CacheExpiration(cacheName, config);
+      for (const url of urls) {
+        await expiration.updateTimestamp(url);
+      }
+      await expiration.expireEntries();
+    },
+    // Drop the expiration timestamps Workbox kept for the deleted cache.
+    onLegacyCacheDeleted: (legacyCacheName) =>
+      new CacheExpiration(legacyCacheName, { maxEntries: 1 }).delete(),
+  });
 }
 
 self.addEventListener('activate', (event) => {
   log('[SW] Service worker activated');
   event.waitUntil(
     Promise.all([
-      deleteStaleRuntimeCaches().catch(() => undefined),
+      carryOverLegacyRuntimeCaches().catch((error: unknown) => {
+        logError('[SW] Failed to carry over legacy caches:', error);
+      }),
       self.clients.claim(),
     ]),
   );
@@ -223,14 +261,9 @@ precacheAndRoute(self.__WB_MANIFEST ?? []);
 registerRoute(
   ({ request }) => request.mode === 'navigate',
   new NetworkFirst({
-    cacheName: 'znteqr-pages-v1',
+    cacheName: RUNTIME_CACHES.pages.name,
     networkTimeoutSeconds: 5,
-    plugins: [
-      new ExpirationPlugin({
-        maxEntries: 32,
-        maxAgeSeconds: 7 * 24 * 60 * 60,
-      }),
-    ],
+    plugins: [new ExpirationPlugin({ ...RUNTIME_CACHES.pages.expiration })],
   })
 );
 
@@ -244,11 +277,10 @@ registerRoute(
       url.pathname.startsWith('/images/') ||
       url.pathname.startsWith('/static/')),
   new CacheFirst({
-    cacheName: 'znteqr-static-v1',
+    cacheName: RUNTIME_CACHES.static.name,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 80,
-        maxAgeSeconds: 30 * 24 * 60 * 60,
+        ...RUNTIME_CACHES.static.expiration,
         purgeOnQuotaError: true,
       }),
     ],
@@ -275,11 +307,10 @@ registerRoute(
     isSupabaseStorageHost(url) &&
     DISPLAY_IMAGE_V2_PUBLIC_PATH.test(url.pathname),
   new CacheFirst({
-    cacheName: 'znteqr-display-images-v2',
+    cacheName: RUNTIME_CACHES.displayImages.name,
     plugins: [
       new ExpirationPlugin({
-        maxEntries: 1000,
-        maxAgeSeconds: 90 * 24 * 60 * 60,
+        ...RUNTIME_CACHES.displayImages.expiration,
         purgeOnQuotaError: true,
       }),
     ],

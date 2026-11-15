@@ -1,10 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { set, get, del } from 'idb-keyval';
+import { set, get, del, keys } from 'idb-keyval';
 import {
   stageOfflineImages,
   loadOfflineImageFiles,
   deleteOfflineImageRefs,
+  clearOfflineBlobsForUser,
 } from './offlineBlobStore';
+
+// Lets a test hold the legacy storage migration "in progress".
+const legacyMigration = vi.hoisted(() => ({ done: Promise.resolve() as Promise<void> }));
+vi.mock('@/lib/legacyStorageMigration', () => ({
+  whenLegacyStorageMigrated: () => legacyMigration.done,
+}));
 
 vi.mock('idb-keyval', () => ({
   get: vi.fn(),
@@ -17,6 +24,7 @@ vi.mock('idb-keyval', () => ({
 describe('offlineBlobStore', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    legacyMigration.done = Promise.resolve();
   });
 
   it('stages image blobs and returns reference ids', async () => {
@@ -63,5 +71,39 @@ describe('offlineBlobStore', () => {
       /quota exceeded/i,
     );
     expect(del).toHaveBeenCalled();
+  });
+
+  it('waits for the legacy storage migration before reading or deleting blobs', async () => {
+    let finishMigration = () => {};
+    legacyMigration.done = new Promise<void>((resolve) => {
+      finishMigration = resolve;
+    });
+    vi.mocked(get).mockResolvedValue({
+      blob: new Blob(['hello'], { type: 'image/jpeg' }),
+      fileName: 'photo.jpg',
+      mimeType: 'image/jpeg',
+      sizeBytes: 5,
+      createdAt: Date.now(),
+    });
+    vi.mocked(del).mockResolvedValue(undefined);
+    vi.mocked(keys).mockResolvedValue([]);
+
+    const loading = loadOfflineImageFiles('user-1', 'org-1', ['ref-1']);
+    const deleting = deleteOfflineImageRefs('user-1', 'org-1', ['ref-2']);
+    const clearing = clearOfflineBlobsForUser('user-1');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // A photo still under its legacy key must not be reported missing or left behind.
+    expect(get).not.toHaveBeenCalled();
+    expect(del).not.toHaveBeenCalled();
+    expect(keys).not.toHaveBeenCalled();
+
+    finishMigration();
+    await expect(loading).resolves.toHaveLength(1);
+    await deleting;
+    await clearing;
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(del).toHaveBeenCalledTimes(1);
+    expect(keys).toHaveBeenCalledTimes(1);
   });
 });

@@ -162,9 +162,12 @@ function isOptionalLocalStorageKey(key: string): boolean {
   return OPTIONAL_LOCAL_STORAGE_PREFIXES.some((prefix) => key.startsWith(prefix));
 }
 
-/** Remove product-controlled preference storage after Reject. */
-export function clearOptionalPreferenceStorage(): void {
-  const storage = getLocalStorage();
+/**
+ * Remove product-controlled preference storage after Reject. `storage`
+ * defaults to `localStorage`; the legacy storage migration passes the area it
+ * is migrating.
+ */
+export function clearOptionalPreferenceStorage(storage: Storage | null = getLocalStorage()): void {
   if (!storage) return;
 
   clearSidebarPreferenceCookie();
