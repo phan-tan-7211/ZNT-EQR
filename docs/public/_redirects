@@ -20,3 +20,7 @@
 /ko/terms/ https://eqrweb.zinitek.com/ko/terms 301
 /ko/privacy https://eqrweb.zinitek.com/ko/privacy 301
 /ko/privacy/ https://eqrweb.zinitek.com/ko/privacy 301
+
+# The Help Center logo used to live at /eqr-logo/icon.svg; cached pages and
+# outside links keep working.
+/eqr-logo/icon.svg /brand/znteqr-icon.png 301

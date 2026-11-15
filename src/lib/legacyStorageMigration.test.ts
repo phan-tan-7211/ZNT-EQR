@@ -254,6 +254,32 @@ describe('migrateLegacyWebStorage', () => {
       expect(storage.snapshot()).toEqual({ [COOKIE_CONSENT_STORAGE_KEY]: 'rejected' });
     });
 
+    it('clears optional preferences an older tab moved in while the current decision is a Reject', () => {
+      const storage = new MemoryStorage();
+      storage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'rejected');
+      storage.setItem(LEGACY_CONSENT_KEY, 'accepted');
+      storage.setItem(`${LEGACY}:equipment-view-mode`, 'table');
+      storage.setItem(`${LEGACY}_current_organization`, 'org-1');
+
+      migrateLegacyWebStorage(storage);
+      expect(storage.snapshot()).toEqual({
+        [COOKIE_CONSENT_STORAGE_KEY]: 'rejected',
+        znteqr_current_organization: 'org-1',
+      });
+    });
+
+    it('leaves preferences alone on a later load with nothing left to move', () => {
+      const storage = new MemoryStorage();
+      storage.setItem(COOKIE_CONSENT_STORAGE_KEY, 'accepted');
+      storage.setItem('znteqr:equipment-view-mode', 'grid');
+
+      expect(migrateLegacyWebStorage(storage)).toBe(0);
+      expect(storage.snapshot()).toEqual({
+        [COOKIE_CONSENT_STORAGE_KEY]: 'accepted',
+        'znteqr:equipment-view-mode': 'grid',
+      });
+    });
+
     it('uses the legacy decision only when the current value is not a decision', () => {
       expect(resolveWebStorageConflict(COOKIE_CONSENT_STORAGE_KEY, 'accepted', 'accepted')).toBe('accepted');
       expect(resolveWebStorageConflict(COOKIE_CONSENT_STORAGE_KEY, 'garbage', 'accepted')).toBe('accepted');

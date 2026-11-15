@@ -15,8 +15,9 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ### Changed
 
-- **Brand clean-up** - Saved preferences, your cookie choice and unsynced offline work now live under the ZNTEQR name in your browser; they are carried over automatically the first time you open the app after this update.
-- **Landing pages** - The home and repair-shops pages no longer show a customer testimonial.
+- **Brand clean-up** - Saved preferences, your cookie choice, unsynced offline work and cached equipment images now live under the ZNTEQR name in your browser; they are carried over automatically the first time you open the app after this update, including anything saved in a tab that was still running the previous version.
+- **Landing pages** - The home and repair-shops pages no longer show a customer testimonial or its figures, and feature pages no longer show outdated product screenshots.
+- **Logo** - The Help Center icon, its home-page image and older logo links now show the ZNTEQR logo.
 
 ## [3.44.4] - 2026-11-15
 

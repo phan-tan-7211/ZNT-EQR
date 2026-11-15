@@ -168,6 +168,9 @@ const WEB_STORAGE_CONFLICT_RULES: readonly ConflictRule[] = [
     matches: startsWith(`${CURRENT_STORAGE_PREFIX}_pending_terms_acceptance:`),
     resolve: preferPendingMarker,
   },
+  // The three facility-map keys below already used the current prefix before
+  // the rename, so no legacy copy is expected; the rules are defensive in case
+  // an unreleased build wrote one.
   {
     // Local-only sketch documents.
     matches: startsWith(`${CURRENT_STORAGE_PREFIX}:facility-sketch:v1:`),
@@ -261,6 +264,7 @@ export function migrateLegacyWebStorage(storage: Storage | null | undefined): nu
   }
 
   let moved = 0;
+  let touchedLegacy = false;
   let consentRevoked = false;
   for (const key of keys) {
     const target = renameLegacyKey(key);
@@ -269,6 +273,7 @@ export function migrateLegacyWebStorage(storage: Storage | null | undefined): nu
     try {
       const legacyValue = storage.getItem(key);
       if (legacyValue === null) continue;
+      touchedLegacy = true;
 
       const current = storage.getItem(target);
       const value =
@@ -289,8 +294,16 @@ export function migrateLegacyWebStorage(storage: Storage | null | undefined): nu
 
   // A Reject that reaches the current key clears optional preferences, exactly
   // as `applyCookieConsentDecision('rejected')` does, including any written
-  // under the current prefix while the older Accept was in effect.
-  if (consentRevoked) clearOptionalPreferenceStorage(storage);
+  // under the current prefix while the older Accept was in effect. The same
+  // applies when the current key already said 'rejected' and an older tab
+  // (which had re-accepted) left optional preferences that were just moved.
+  let rejectedNow = false;
+  try {
+    rejectedNow = touchedLegacy && storage.getItem(COOKIE_CONSENT_STORAGE_KEY) === 'rejected';
+  } catch {
+    // Unreadable storage: nothing more to do.
+  }
+  if (consentRevoked || rejectedNow) clearOptionalPreferenceStorage(storage);
   return moved;
 }
 
