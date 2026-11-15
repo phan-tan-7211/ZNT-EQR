@@ -17,7 +17,7 @@ Vật tư trong kho có hai khái niệm vị trí khác nhau:
 
 | Trường | Mục đích |
 | --- | --- |
-| **Tên vị trí** trên biểu mẫu vật tư | Tên gọi tắt dễ nhớ như "Shelf A-3" hoặc "Truck 4". Không dùng để đặt ghim trên bản đồ. |
+| **Tên vị trí** trên biểu mẫu vật tư | Tên gọi tắt dễ nhớ như "Kệ A-3" hoặc "Xe 4". Không dùng để đặt ghim trên bản đồ. |
 | **Địa chỉ lưu kho** | Địa chỉ đường phố có cấu trúc hoặc tọa độ bản đồ, dùng cho bản đồ, việc kế thừa và chỉ đường trên Google Maps. |
 
 ## Vị trí mặc định của tổ chức

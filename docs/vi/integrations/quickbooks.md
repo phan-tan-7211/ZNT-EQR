@@ -2,7 +2,7 @@
 
 Tích hợp QuickBooks đẩy các lệnh công việc đã hoàn thành sang QuickBooks Online dưới dạng **hóa đơn nháp**. Bạn vẫn xem lại và gửi từng hóa đơn từ QuickBooks, nên bạn luôn kiểm soát được việc lập hóa đơn cho khách hàng.
 
-Chủ sở hữu và quản trị viên của tổ chức kết nối công ty, liên kết các nhóm khách hàng với khách hàng trong QuickBooks và xuất các lệnh công việc đã hoàn thành thành hóa đơn nháp.
+Chủ sở hữu và quản trị viên của tổ chức kết nối công ty, liên kết các nhóm khách hàng với khách hàng trong QuickBooks và xuất các lệnh công việc đã hoàn thành dưới dạng hóa đơn nháp.
 
 Hướng dẫn từng bước nằm trong Trung tâm trợ giúp:
 
@@ -32,8 +32,8 @@ Trên một lệnh công việc **đã hoàn thành**, dùng **Xuất → QuickB
 
 Hóa đơn nháp được xuất bao gồm các dòng thanh toán tóm tắt từ chi phí lệnh công việc trong ZNTEQR. ZNTEQR vẫn là nguồn dữ liệu gốc cho chi tiết từng khoản về vật tư và nhân công.
 
-- **Nhân công.** Nhân công tính phí lấy từ các dòng chi phí của lệnh công việc.
-- **Linh kiện.** Một dòng tóm tắt không thuộc kho cho các chi phí khác của lệnh công việc.
+- **Labor (nhân công).** Nhân công tính phí lấy từ các dòng chi phí của lệnh công việc.
+- **Parts (linh kiện).** Một dòng tóm tắt không thuộc kho cho các chi phí khác của lệnh công việc.
 
 **Private Note** trên hóa đơn QuickBooks vẫn chứa ID lệnh công việc ZNTEQR, các ngày liên quan, ghi chú riêng tư và bảng chi phí chi tiết đầy đủ. **Customer Memo** chứa dòng thời gian và phần tóm tắt cách xử lý.
 

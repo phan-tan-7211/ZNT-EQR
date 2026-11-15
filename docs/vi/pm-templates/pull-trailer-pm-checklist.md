@@ -16,8 +16,8 @@
 ### Hạng mục 2: Gầm và các bộ phận
 **Mô tả:** Kiểm tra gầm xem có dây điện lòng thòng, giá đỡ lỏng, mảnh vụn hoặc đoạn khung bị hư hỏng hay không. Xác nhận không thiếu chi tiết lắp ghép nào.
 
-### Hạng mục 3: Đồ gá và phụ kiện
-**Mô tả:** Kiểm tra giá lốp dự phòng, hộp dụng cụ và các đồ gá khác. Đảm bảo phụ kiện được lắp chắc chắn.
+### Hạng mục 3: Bộ phận gắn kèm và phụ kiện
+**Mô tả:** Kiểm tra giá lốp dự phòng, hộp dụng cụ và các bộ phận gắn kèm khác. Đảm bảo phụ kiện được lắp chắc chắn.
 
 ### Hạng mục 4: Độ sạch và ăn mòn
 **Mô tả:** Xác định các khu vực bị ăn mòn hoặc bong sơn. Loại bỏ bụi bẩn có thể che khuất vết nứt hoặc hư hỏng.

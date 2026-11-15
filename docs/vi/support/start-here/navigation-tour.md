@@ -23,7 +23,7 @@ personas: ["all"]
 
 ## 2. Thanh điều hướng dưới cùng trên di động
 
-Trên điện thoại, thanh điều hướng dưới cùng hiển thị bốn mục mà kỹ thuật viên hiện trường dùng nhiều nhất: Tổng quan, Thiết bị, Kho vật tư và Lệnh công việc. Chạm vào biểu tượng menu để xem các mục còn lại.
+Trên điện thoại, thanh điều hướng dưới cùng hiển thị bốn mục mà kỹ thuật viên hiện trường dùng nhiều nhất: Tổng quan, Danh sách thiết bị, Kho vật tư và Lệnh công việc. Chạm vào biểu tượng menu để xem các mục còn lại.
 
 ![Trang tổng quan trên di động](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/start-here/mobile/01-mobile-dashboard-welcome.png)
 

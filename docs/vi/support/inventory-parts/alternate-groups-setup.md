@@ -15,7 +15,7 @@ Trên thanh bên, trong mục Thiết bị, nhấp Linh kiện thay thế. Mỗi
 
 ## 2. Nhấp Nhóm phụ tùng thay thế mới
 
-Đặt cho nhóm một tên mang tính mô tả như 'Oil Filter - CAT D6T Compatible' và có thể thêm mô tả ngắn nếu muốn.
+Đặt cho nhóm một tên mang tính mô tả như 'Lọc dầu - Tương thích CAT D6T' và có thể thêm mô tả ngắn nếu muốn.
 
 ## 3. Thêm vật tư trong kho
 

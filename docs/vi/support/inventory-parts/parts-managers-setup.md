@@ -30,7 +30,7 @@ Mỗi phần vai trò có một nút **Thêm**, mở ra bộ chọn thành viên
 
 ## 3. Gỡ quyền truy cập khi cần
 
-Nhấp biểu tượng thùng rác trên hàng của thành viên ở một trong hai phần rồi xác nhận. Quyền truy cập của họ trở về không có (hoặc về quyền còn lại của họ).
+Nhấp biểu tượng thùng rác trên hàng của thành viên ở một trong hai phần rồi xác nhận. Họ sẽ không còn quyền truy cập (hoặc chỉ còn quyền còn lại của họ).
 
 ::: tip Cũng có trên trang Thành viên
 Các nút bật/tắt Người phụ trách vật tư và Người dùng vật tư cũng xuất hiện cho từng thành viên tại **Tổ chức → Thành viên**, nhờ đó bạn có thể xem xét quyền truy cập kho vật tư cùng với các quyền khác của thành viên.

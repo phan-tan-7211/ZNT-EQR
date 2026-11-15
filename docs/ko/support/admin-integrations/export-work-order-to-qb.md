@@ -27,7 +27,7 @@ requirement: "소유자와 관리자(또는 QuickBooks 액세스 권한을 부�
 
 ![제목 아래에 예방정비 템플릿이 선택된 작업 지시 생성 대화 상자](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-05-create-work-order-pm-type.png)
 
-설비의 가동 시간을 업데이트하지 않았다면 ZNTEQR가 생성하기 전에 확인을 요청합니다.
+설비의 가동 시간을 업데이트하지 않았다면 ZNTEQR이 생성하기 전에 확인을 요청합니다.
 
 ![작업 지시를 만들기 전 가동 시간 확인](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-06-create-work-order-hours-guard.png)
 
@@ -79,7 +79,7 @@ PM 체크리스트가 있는 작업 지시는 PM 자체가 완료되기 전에�
 
 ## 6. QuickBooks에서 임시 청구서 검토하기
 
-**청구서 열기**를 누르면 QuickBooks Online의 임시 청구서로 바로 이동합니다. ZNTEQR는 작업 지시를 다음과 같이 매핑합니다.
+**청구서 열기**를 누르면 QuickBooks Online의 임시 청구서로 바로 이동합니다. ZNTEQR은 작업 지시를 다음과 같이 매핑합니다.
 
 | 작업 지시 데이터 | QuickBooks에서의 위치 |
 | --- | --- |
@@ -97,7 +97,7 @@ PM 체크리스트가 있는 작업 지시는 PM 자체가 완료되기 전에�
 ![임시 청구서 합계, 고객 메모 및 숨겨진 명세서 메모](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-16-qbo-invoice-totals.png)
 
 ::: tip 임시 청구서만 생성
-ZNTEQR는 항상 **임시 청구서**를 만듭니다. 검토와 발송은 QuickBooks에서 직접 하며, 고객에게 자동으로 이메일이 발송되는 일은 없습니다. 청구서가 발송되거나 결제되면 청구서 상태(및 잔액)가 작업 지시에 자동으로 반영됩니다.
+ZNTEQR은 항상 **임시 청구서**를 만듭니다. 검토와 발송은 QuickBooks에서 직접 하며, 고객에게 자동으로 이메일이 발송되는 일은 없습니다. 청구서가 발송되거나 결제되면 청구서 상태(및 잔액)가 작업 지시에 자동으로 반영됩니다.
 :::
 
 ## 7. 작업 지시가 변경되면 다시 내보내기

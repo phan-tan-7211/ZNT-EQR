@@ -36,7 +36,7 @@ personas: ["manager","admin","owner","technician"]
 
 ## 4. 작업 지시 상세의 설비 위치
 
-작업 지시가 설비에 연결되어 있으면 상세 페이지에 설비 기록에서 사용하는 것과 같은 위치 출처 드롭다운과 미니 지도가 포함됩니다. 배차 담당자는 기술자를 보내기 전에 유효, 팀, 설비, 스캔 출처를 미리 볼 수 있습니다.
+작업 지시가 설비에 연결되어 있으면 상세 페이지에 설비 기록에서 사용하는 것과 같은 위치 출처 드롭다운과 미니 지도가 포함됩니다. 배차 담당자는 기술자를 보내기 전에 적용 위치, 팀 위치, 설비 위치, 최근 스캔 위치 출처를 미리 볼 수 있습니다.
 
 ![작업 지시 위치 지도](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/location-maps/desktop/09-work-order-location-map.png)
 

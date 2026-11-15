@@ -15,7 +15,7 @@ Chủ sở hữu và Quản trị viên có thể thêm bất kỳ thiết bị 
 
 ## 1. Đi tới Thiết bị
 
-Trên thanh bên, chọn Thiết bị. Danh sách hiển thị mọi máy mà bạn có quyền truy cập trong các nhóm của mình.
+Trên thanh bên, chọn Danh sách thiết bị. Danh sách hiển thị mọi máy mà bạn có quyền truy cập trong các nhóm của mình.
 
 
 ## 2. Nhấp vào Tạo thiết bị

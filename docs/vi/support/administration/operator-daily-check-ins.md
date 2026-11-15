@@ -112,7 +112,7 @@ Dùng cách này khi bạn chỉ cần **tên người vận hành + số công 
 7. Mỗi buổi tối, người vận hành quét mã QR của xe mình, nhập tên và số công tơ mét rồi gửi.
 8. Cuối tháng, mở **Sổ theo dõi hằng ngày**, lọc theo khoảng ngày và thiết bị, sau đó **xuất Excel** để lưu hồ sơ số km.
 
-Quy trình này hỗ trợ **hồ sơ kiểm toán**; nó không thay thế các yêu cầu về sổ nhật ký theo quy định của DOT, FMCSA hay cơ quan khác trừ khi bộ phận tuân thủ của bạn xác nhận như vậy.
+Quy trình này hỗ trợ **hồ sơ kiểm toán**; nó không thay thế các yêu cầu về sổ nhật ký theo quy định của DOT, FMCSA hay cơ quan khác trừ khi bộ phận tuân thủ của bạn có xác nhận khác.
 
 ## Tình huống thực tế — một máy, nhiều danh sách kiểm tra
 

@@ -40,5 +40,5 @@ Nếu tải lên thất bại, hãy kiểm tra dung lượng tệp và kết n�
 
 ## Bài viết liên quan
 
-- [Đặt ảnh hiển thị cho thiết bị](../equipment-qr/set-equipment-display-image)
+- [Đặt ảnh đại diện cho thiết bị](../equipment-qr/set-equipment-display-image)
 - [Hoàn thành danh sách kiểm tra bảo trì định kỳ (PM)](./pm-checklist)

@@ -1,0 +1,22 @@
+# Pages that existed only on the previous landing site served from this
+# hostname (/about, /terms, /privacy and their /vi and /ko versions). The same
+# pages live on the web site, so old links keep working after the Help Center
+# takes over eqrdocs.zinitek.com. Each path has a twin with a trailing slash.
+/about https://eqrweb.zinitek.com/en/about 301
+/about/ https://eqrweb.zinitek.com/en/about 301
+/terms https://eqrweb.zinitek.com/en/terms 301
+/terms/ https://eqrweb.zinitek.com/en/terms 301
+/privacy https://eqrweb.zinitek.com/en/privacy 301
+/privacy/ https://eqrweb.zinitek.com/en/privacy 301
+/vi/about https://eqrweb.zinitek.com/vi/about 301
+/vi/about/ https://eqrweb.zinitek.com/vi/about 301
+/vi/terms https://eqrweb.zinitek.com/vi/terms 301
+/vi/terms/ https://eqrweb.zinitek.com/vi/terms 301
+/vi/privacy https://eqrweb.zinitek.com/vi/privacy 301
+/vi/privacy/ https://eqrweb.zinitek.com/vi/privacy 301
+/ko/about https://eqrweb.zinitek.com/ko/about 301
+/ko/about/ https://eqrweb.zinitek.com/ko/about 301
+/ko/terms https://eqrweb.zinitek.com/ko/terms 301
+/ko/terms/ https://eqrweb.zinitek.com/ko/terms 301
+/ko/privacy https://eqrweb.zinitek.com/ko/privacy 301
+/ko/privacy/ https://eqrweb.zinitek.com/ko/privacy 301

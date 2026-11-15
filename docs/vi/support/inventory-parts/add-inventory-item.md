@@ -24,7 +24,7 @@ Biểu mẫu mở ra với các trường bắt buộc và tùy chọn. Để nh
 
 ## 3. Điền thông tin cơ bản
 
-- **Tên** — mang tính mô tả, ví dụ "Oil Filter - CAT 320".
+- **Tên** — mang tính mô tả, ví dụ "Lọc dầu - CAT 320".
 - **SKU** — mã linh kiện nội bộ của bạn.
 - **Mã ngoài** — mã vạch của nhà sản xuất hoặc UPC để quét.
 - **Mô tả** — thông tin tùy chọn giúp nhân viên hiện trường nhận biết linh kiện.
@@ -34,7 +34,7 @@ Biểu mẫu mở ra với các trường bắt buộc và tùy chọn. Để nh
 - **Số lượng tồn** — số lượng tồn kho hiện tại.
 - **Ngưỡng tồn kho thấp** — ZNTEQR cảnh báo Người quản lý phụ tùng khi tồn kho giảm xuống bằng hoặc thấp hơn con số này.
 - **Đơn giá mặc định** — dùng để điền chi phí cho lệnh công việc.
-- **Vị trí** — tên gọi tắt **Tên vị trí** tùy chọn (ví dụ "Shelf A-3"). Nhãn này không đặt ghim trên bản đồ. Hãy đặt **địa chỉ lưu kho** có cấu trúc trên trang chi tiết vật tư hoặc kế thừa [vị trí mặc định của kho vật tư trong tổ chức](../admin-integrations/organization-settings).
+- **Vị trí** — tên gọi tắt **Tên vị trí** tùy chọn (ví dụ "Kệ A-3"). Nhãn này không đặt ghim trên bản đồ. Hãy đặt **địa chỉ lưu kho** có cấu trúc trên trang chi tiết vật tư hoặc kế thừa [vị trí mặc định của kho vật tư trong tổ chức](../admin-integrations/organization-settings).
 
 ## 5. Lưu và in mã QR
 

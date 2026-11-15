@@ -27,7 +27,7 @@ Dùng tính năng chỉnh sửa nhiều hàng để áp dụng cùng một giá 
 
 ## 4. Lưu và kiểm tra
 
-Nhấp Commit để lưu tất cả các chỉnh sửa đang chờ. Nếu có hàng nào không vượt qua bước kiểm tra hợp lệ hoặc cập nhật thất bại, trang chỉnh sửa kho hàng loạt sẽ báo lỗi để bạn chỉ cần sửa những vật tư đó.
+Nhấp Lưu cập nhật để lưu tất cả các chỉnh sửa đang chờ. Nếu có hàng nào không vượt qua bước kiểm tra hợp lệ hoặc cập nhật thất bại, trang chỉnh sửa kho hàng loạt sẽ báo lỗi để bạn chỉ cần sửa những vật tư đó.
 
 ## Bài viết liên quan
 

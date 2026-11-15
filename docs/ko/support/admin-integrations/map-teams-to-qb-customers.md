@@ -19,11 +19,11 @@ ZNTEQR에서는 서비스를 제공하는 외부 고객을 **고객 유형의 �
 
 **팀**으로 이동하여 고객의 팀을 엽니다. 이미 연결된 팀은 팀 목록에 녹색 **QuickBooks 동기화** 배지가 표시됩니다.
 
-![3-A Equipment에 QuickBooks 동기화 배지가 표시된 팀 목록](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
+![한 팀에 QuickBooks 동기화 배지가 표시된 팀 목록](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
 
 ## 2. 고객 계정 카드 찾기
 
-고객 유형 팀에서는 **고객 계정** 카드가 팀 페이지 맨 위에 있습니다. 이 카드는 팀의 청구 및 서비스 식별 정보입니다. QuickBooks 동기화는 팀 수정이 아니라 이곳에서 관리합니다.
+고객 유형 팀에서는 **고객 계정** 카드가 팀 페이지 맨 위에 있습니다. 이 카드는 팀의 청구 및 서비스 식별 정보입니다. QuickBooks 동기화는 팀 편집이 아니라 이곳에서 관리합니다.
 
 ## 3. QuickBooks 고객 연결하기
 

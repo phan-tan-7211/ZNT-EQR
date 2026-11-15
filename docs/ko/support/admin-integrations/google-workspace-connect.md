@@ -17,8 +17,8 @@ requirement: "도메인의 Google Workspace 최고 관리자이면서 ZNTEQR 조
 
 1. **대시보드 → 조직 → 연동**을 엽니다(처음 설정하는 경우 **대시보드 → 온보딩 → 작업 공간**).
 2. **Google Workspace 연결**을 클릭하고 Google Workspace 관리자 계정으로 로그인합니다.
-3. Google 동의 화면에서 **디렉터리** 범위를 승인합니다. ZNTEQR는 온보딩 직후 구성원 가져오기와 디렉터리 동기화를 바로 시작할 수 있도록 먼저 신원 정보와 `admin.directory.user.readonly`를 요청합니다.
-4. Google Drive 내보내기 대상을 구성하거나 연동 페이지에서 **인증 완료**를 클릭하면, ZNTEQR는 증분 승인(`include_granted_scopes=true`)을 사용해 Drive, Docs 및 Sheets 범위를 **필요한 시점에** 요청합니다.
+3. Google 동의 화면에서 **디렉터리** 범위를 승인합니다. ZNTEQR은 온보딩 직후 구성원 가져오기와 디렉터리 동기화를 바로 시작할 수 있도록 먼저 신원 정보와 `admin.directory.user.readonly`를 요청합니다.
+4. Google Drive 내보내기 대상을 구성하거나 연동 페이지에서 **인증 완료**를 클릭하면, ZNTEQR은 증분 승인(`include_granted_scopes=true`)을 사용해 Drive, Docs 및 Sheets 범위를 **필요한 시점에** 요청합니다.
 
 ## 인증 완료(내보내기 범위)
 

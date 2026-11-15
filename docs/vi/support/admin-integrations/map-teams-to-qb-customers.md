@@ -19,7 +19,7 @@ Trong ZNTEQR, một khách hàng bên ngoài mà bạn phục vụ được th�
 
 Vào **Nhóm** và mở nhóm của khách hàng. Những nhóm đã được liên kết sẽ hiển thị huy hiệu **QuickBooks đã đồng bộ** màu xanh lá trong danh sách Nhóm.
 
-![Danh sách Nhóm với huy hiệu QuickBooks đã đồng bộ trên 3-A Equipment](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
+![Danh sách Nhóm với huy hiệu QuickBooks đã đồng bộ trên một nhóm](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
 
 ## 2. Tìm thẻ Tài khoản khách hàng
 

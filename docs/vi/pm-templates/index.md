@@ -7,11 +7,11 @@ Các mẫu danh mục kiểm tra bảo trì định kỳ cho những loại thi�
 - [PM xe nâng](./forklift-pm-checklist)
 - [PM rơ-moóc kéo](./pull-trailer-pm-checklist)
 - [PM xe nâng cắt kéo](./scissor-lift-pm-checklist)
-- [PM máy xúc lật mini](./skid-steer-pm-checklist)
+- [PM máy xúc trượt](./skid-steer-pm-checklist)
 
 ## Mẫu ZNTEQR và mẫu của tổ chức
 
-Các mẫu ở trên được cung cấp sẵn cùng ZNTEQR trong mục **Mẫu ZNTEQR**. Bạn gán chúng cho thiết bị ngay trên trang Mẫu bảo trì định kỳ. Chỉ nhân bản một mẫu khi bạn cần một bản sao của tổ chức để có thể chỉnh sửa.
+Các mẫu ở trên được cung cấp sẵn cùng ZNTEQR trong mục **Mẫu ZNTEQR**. Bạn gán chúng cho thiết bị ngay trên trang Mẫu bảo trì định kỳ. Chỉ sao chép một mẫu khi bạn cần một bản sao của tổ chức để có thể chỉnh sửa.
 
 ## Gán một mẫu cho nhiều thiết bị cùng lúc
 

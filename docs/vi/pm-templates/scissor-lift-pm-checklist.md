@@ -2,7 +2,7 @@
 
 **Tên mẫu:** Scissor Lift PM (Default)\
 **Tổng số hạng mục:** 74\
-**Tổng số mục:** 10
+**Số phần:** 10
 
 74 hạng mục. Mẫu mặc định của ZNTEQR dành cho xe nâng cắt kéo.
 
@@ -33,7 +33,7 @@
 ## 2. Ắc quy và bộ sạc
 
 ### Hạng mục 1: Mức và tình trạng dung dịch điện phân của ắc quy
-**Mô tả:** (Dòng máy điện) Mở ngăn ắc quy và kiểm tra mức dung dịch điện phân của từng ngăn ắc quy (nếu là ắc quy axit-chì loại nước). Dung dịch phải ngập đủ các bản cực. Châm thêm nước cất khi cần. Bỏ qua nếu là ắc quy AGM/miễn bảo dưỡng.
+**Mô tả:** (Dòng máy điện) Mở khoang ắc quy và kiểm tra mức dung dịch điện phân của từng ngăn ắc quy (nếu là ắc quy axit-chì loại nước). Dung dịch phải ngập đủ các bản cực. Châm thêm nước cất khi cần. Bỏ qua nếu là ắc quy AGM/miễn bảo dưỡng.
 
 ### Hạng mục 2: Cọc bình và dây cáp ắc quy
 **Mô tả:** Kiểm tra tất cả cọc bình ắc quy xem có bị ăn mòn không và các mối nối có chặt không. Làm sạch mọi vết ăn mòn phát hiện được. Đảm bảo đầu cốt cáp chắc chắn và dây dẫn không bị hư hỏng.
