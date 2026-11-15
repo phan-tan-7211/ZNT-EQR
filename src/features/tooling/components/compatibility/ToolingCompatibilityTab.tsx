@@ -23,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadFailedAlert } from '@/features/tooling/components/compatibility/CompatibilityShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useCreateToolingCompatibility,
@@ -581,16 +582,7 @@ export function ToolingCompatibilityTab({ tool, canManage }: ToolingTabProps) {
       );
     }
     if (error) {
-      return (
-        <Alert variant="destructive">
-          <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
-            <span>{t('toolingCompat.common.loadFailed')}</span>
-            <Button variant="outline" size="sm" onClick={() => void refetch()}>
-              {t('toolingCompat.common.retry')}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      );
+      return <LoadFailedAlert onRetry={() => void refetch()} />;
     }
     if (rules.length === 0) {
       return (
