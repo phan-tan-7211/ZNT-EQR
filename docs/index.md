@@ -6,7 +6,7 @@ hero:
   text: Docs for your fleet, work orders, and field teams
   tagline: Step-by-step guides for technicians, managers, admins, and equipment owners — the same product family as eqr.zinitek.com.
   image:
-    src: /eqr-logo/icon.svg
+    src: /brand/znteqr-icon.png
     alt: ZNTEQR logo
   actions:
     - theme: brand

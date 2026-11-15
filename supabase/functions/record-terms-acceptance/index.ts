@@ -12,10 +12,7 @@ import {
   createErrorResponse,
 } from '../_shared/supabase-clients.ts';
 import { MissingSecretError } from '../_shared/require-secret.ts';
-import {
-  PRIVACY_VERSION_HASH,
-  TERMS_VERSION_HASH,
-} from '../_shared/legal-policy-versions.ts';
+import { checkClientLegalPolicyVersions } from '../_shared/legal-policy-versions.ts';
 
 const FUNCTION_NAME = 'record-terms-acceptance';
 
@@ -47,15 +44,13 @@ Deno.serve(
         return createErrorResponse('Invalid JSON body', 400, { req });
       }
 
-      const clientTerms = typeof body.terms_version_hash === 'string' ? body.terms_version_hash.trim() : '';
-      const clientPrivacy =
-        typeof body.privacy_version_hash === 'string' ? body.privacy_version_hash.trim() : '';
+      const versions = checkClientLegalPolicyVersions(body.terms_version_hash, body.privacy_version_hash);
 
-      if (!clientTerms || !clientPrivacy || clientTerms.length > 256 || clientPrivacy.length > 256) {
+      if (!versions.ok && versions.reason === 'invalid') {
         return createErrorResponse('Invalid request body: legal version hashes invalid', 400, { req });
       }
 
-      if (clientTerms !== TERMS_VERSION_HASH || clientPrivacy !== PRIVACY_VERSION_HASH) {
+      if (!versions.ok) {
         return createErrorResponse(
           'Legal policy version mismatch; refresh the app and accept the current Terms and Privacy Policy.',
           409,
@@ -79,8 +74,10 @@ Deno.serve(
         accepted_at: acceptedAt,
         ip_address: ip,
         user_agent: userAgent,
-        terms_version_hash: TERMS_VERSION_HASH,
-        privacy_version_hash: PRIVACY_VERSION_HASH,
+        // What the client sent (current ids or a pre-rename alias of the same texts), so the row
+        // names the version the user was shown.
+        terms_version_hash: versions.ids.termsVersionHash,
+        privacy_version_hash: versions.ids.privacyVersionHash,
       });
 
       if (error) {

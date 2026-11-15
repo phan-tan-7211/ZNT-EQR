@@ -1,5 +1,4 @@
 import { Smartphone, WifiOff, Hand, MonitorSmartphone } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, FeaturePageContent, ImageGridScreenshot, Step } from './featurePageTypes';
 
 export const content: FeaturePageContent = {
@@ -82,15 +81,12 @@ export const showcases: ImageGridScreenshot[] = [
     kind: 'image-grid',
     images: [
       {
-        imageUrl: landingImage('mobile-work-orders-2026-04.webp'),
         imageAlt: 'Mobile work orders list showing scan-created and in-progress work orders',
       },
       {
-        imageUrl: landingImage('mobile-work-order-detail-2026-04.webp'),
         imageAlt: 'Mobile work order detail showing equipment, location, team, and PM checklist status',
       },
       {
-        imageUrl: landingImage('mobile-pm-checklist-2026-04.webp'),
         imageAlt: 'Mobile PM checklist with completed sections for excavator preventative maintenance',
       },
     ],

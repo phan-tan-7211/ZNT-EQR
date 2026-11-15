@@ -55,12 +55,12 @@ const RepairShops = () => {
           <div className="container px-4 mx-auto">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-8 sm:gap-16 text-center">
               <div>
-                <p className="text-3xl font-bold text-primary">100%</p>
-                <p className="text-sm text-muted-foreground mt-1">Field adoption</p>
+                <p className="text-3xl font-bold text-primary">1 scan</p>
+                <p className="text-sm text-muted-foreground mt-1">From QR label to open work order</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-primary">50%</p>
-                <p className="text-sm text-muted-foreground mt-1">Faster work order close</p>
+                <p className="text-3xl font-bold text-primary">Offline</p>
+                <p className="text-sm text-muted-foreground mt-1">Keeps working without signal</p>
               </div>
               <div>
                 <p className="text-3xl font-bold text-primary">$0</p>
@@ -91,7 +91,7 @@ const RepairShops = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-24 bg-muted/30">
+        <section className="py-24 bg-background">
           <div className="container px-4 mx-auto">
             <div className="text-center max-w-3xl mx-auto">
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">

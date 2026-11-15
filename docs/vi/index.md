@@ -6,7 +6,7 @@ hero:
   text: Tài liệu cho đội thiết bị, lệnh công việc và các nhóm hiện trường của bạn
   tagline: Hướng dẫn từng bước cho kỹ thuật viên, quản lý, quản trị viên và chủ sở hữu thiết bị — cùng dòng sản phẩm với eqr.zinitek.com.
   image:
-    src: /eqr-logo/icon.svg
+    src: /brand/znteqr-icon.png
     alt: Logo ZNTEQR
   actions:
     - theme: brand

@@ -51,11 +51,19 @@ test.describe.serial('Help Center CSP hydration and branding @pr-evidence', () =
       return Boolean(app?.__vue_app__);
     });
 
-    // Branding proof: nav logo + hero logo render from /eqr-logo/icon.svg.
+    // Branding proof: nav logo + hero logo render the ZNTEQR icon, and no
+    // retired logo path is linked from the page head or body.
     const navLogo = page.locator('.VPNavBarTitle img.logo');
     await expect(navLogo).toBeVisible();
-    await expect(navLogo).toHaveAttribute('src', /eqr-logo\/icon\.svg/);
-    await expect(page.locator('.VPHero .VPImage')).toBeVisible();
+    await expect(navLogo).toHaveAttribute('src', '/brand/znteqr-icon.png');
+    const heroImage = page.locator('.VPHero .VPImage');
+    await expect(heroImage).toBeVisible();
+    await expect(heroImage).toHaveAttribute('src', '/brand/znteqr-icon.png');
+    await expect
+      .poll(async () => heroImage.evaluate((img: HTMLImageElement) => img.naturalWidth))
+      .toBeGreaterThan(0);
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/brand/znteqr-icon.png');
+    expect(await page.content()).not.toContain('/eqr-logo/');
 
     // #1358 — product wordmark (ZNTEQR), not "ZNTEQR Help" as primary title.
     await expect(page.locator('.VPNavBarTitle .title')).toContainText('ZNTEQR');
@@ -108,9 +116,9 @@ test.describe.serial('Help Center CSP hydration and branding @pr-evidence', () =
     const favicon = await request.get(`${docsServer.baseUrl}/favicon.ico`);
     expect(favicon.status()).toBe(200);
 
-    const logo = await request.get(`${docsServer.baseUrl}/eqr-logo/icon.svg`);
+    const logo = await request.get(`${docsServer.baseUrl}/brand/znteqr-icon.png`);
     expect(logo.status()).toBe(200);
-    expect(logo.headers()['content-type']).toContain('image/svg+xml');
+    expect(logo.headers()['content-type']).toContain('image/png');
   });
 
   test('feature cards, hero button, and force-dark chrome work under production CSP', async ({
