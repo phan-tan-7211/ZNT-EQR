@@ -13,7 +13,7 @@ là hướng dẫn từng bước dành cho người dùng cuối — các hư�
 - **[Thẻ tham khảo nhanh về tải ảnh lên](../how-to/image-upload/quick-reference-card.md)**
   — bảng tóm tắt một trang dành cho kỹ thuật viên làm việc tại hiện trường.
 - **[Hướng dẫn tải ảnh lên cho kỹ thuật viên](../how-to/image-upload/technician-image-upload-guide.md)**
-  — hướng dẫn theo từng bước đánh số, có ảnh chụp màn hình, cho quy trình lệnh công việc kèm ảnh.
+  — hướng dẫn theo từng bước đánh số cho quy trình lệnh công việc kèm ảnh.
 
 Phần còn lại của tài liệu được trình bày dưới dạng tài liệu tham chiếu cho lập trình viên,
 quản trị viên và kỹ sư hỗ trợ, những người cần nắm toàn bộ vòng đời và sơ đồ phân quyền
@@ -166,7 +166,7 @@ ZNTEQR không có trang trạng thái). Người dùng đã đăng nhập có th
 ## Tài liệu liên quan
 
 - [Phân quyền](./permissions.md). Ma trận RBAC đầy đủ.
-- [Hướng dẫn tải ảnh lên cho kỹ thuật viên](../how-to/image-upload/technician-image-upload-guide.md). Hướng dẫn theo từng bước đánh số, có ảnh chụp màn hình.
+- [Hướng dẫn tải ảnh lên cho kỹ thuật viên](../how-to/image-upload/technician-image-upload-guide.md). Hướng dẫn theo từng bước đánh số.
 - [QuickBooks Online](../integrations/quickbooks.md). Kết nối, liên kết nhóm, xuất hóa đơn nháp.
 
 ---

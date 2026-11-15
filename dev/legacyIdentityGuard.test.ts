@@ -20,6 +20,11 @@ const LEGACY_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
   // The brand was written as one word (optionally with - _ or .). Ordinary
   // copy such as "equip QR labels" (verb + space) is allowed.
   { label: 'previous product name', pattern: fragments('(?<![a-z])', 'equ', 'ip', '[-_.]?', 'q', 'r') },
+  // The same name inside a camelCase identifier (case-sensitive on purpose).
+  {
+    label: 'previous product name',
+    pattern: new RegExp(['(?<=[a-z0-9])', 'Equ', 'ip', '[-_.]?', 'Q', '[Rr]'].join('')),
+  },
   { label: 'previous company name', pattern: fragments('colum', 'bia', SEP, 'cloud', SEP, 'works') },
   { label: 'previous company name', pattern: fragments('cloud', '[-_.]?', 'works') },
   { label: 'previous customer name', pattern: fragments('(?<![a-z0-9])', '3', '[\\s-]?', 'a', '[\\s._-]?', 'equip') },
@@ -91,6 +96,8 @@ describe('legacy identity guard patterns', () => {
     `M. ${codes(72, 97, 110, 107, 105, 110, 115)}`,
     'CW' + ' Rentals',
     `const cloud${'Works'}Links`,
+    `legacy${codes(69, 113, 117, 105, 112)}QrPrefix`,
+    `use${codes(69, 113, 117, 105, 112)}QR`,
   ])('flags %s', (text) => {
     expect(matches(text)).toBe(true);
   });

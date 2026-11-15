@@ -232,16 +232,29 @@ async function carryOverLegacyRuntimeCaches(): Promise<void> {
   });
 }
 
+// The copy is started by the first request this worker sees after it takes
+// over, not inside `activate`: browsers hold navigations while a worker is
+// activating, and copying up to ~1,100 entries takes a few seconds. A copy
+// interrupted by the browser stopping the worker resumes on the next start
+// (URLs already copied are skipped, and a legacy cache is deleted only after
+// its copy).
+let legacyCarryOver: Promise<void> | undefined;
+
+function startLegacyCarryOver(): Promise<void> {
+  legacyCarryOver ??= carryOverLegacyRuntimeCaches().catch((error: unknown) => {
+    logError('[SW] Failed to carry over legacy caches:', error);
+  });
+  return legacyCarryOver;
+}
+
 self.addEventListener('activate', (event) => {
   log('[SW] Service worker activated');
-  event.waitUntil(
-    Promise.all([
-      carryOverLegacyRuntimeCaches().catch((error: unknown) => {
-        logError('[SW] Failed to carry over legacy caches:', error);
-      }),
-      self.clients.claim(),
-    ]),
-  );
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', (event) => {
+  // Keeps the worker alive until the copy finishes; never answers the request.
+  event.waitUntil(startLegacyCarryOver());
 });
 
 // ── 3. Workbox precache (Vite-injected manifest) ─────────────────────────────
