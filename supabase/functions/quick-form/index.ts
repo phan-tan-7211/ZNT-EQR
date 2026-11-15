@@ -23,7 +23,7 @@ import {
   validateQuickFormValues,
 } from "../_shared/quick-form-validation.ts";
 import { requireQuickFormToken } from "../_shared/quick-form-public-auth.ts";
-import { isCaptchaEnforced } from "../_shared/hcaptcha-gate.ts";
+import { isCaptchaEnforced, verifyCaptchaToken } from "../_shared/hcaptcha-gate.ts";
 
 /** Public endpoint: Supabase session auth is intentionally omitted; access is gated by the form token hash. */
 
@@ -50,27 +50,8 @@ function isCaptchaRequired(): boolean {
   return isCaptchaEnforced(optionalSecret("HCAPTCHA_SECRET_KEY"));
 }
 
-async function verifyCaptcha(token: string | undefined): Promise<boolean> {
-  if (!isCaptchaRequired()) return true;
-  const secret = optionalSecret("HCAPTCHA_SECRET_KEY");
-  if (!secret) {
-    console.error("[QUICK-FORM] HCAPTCHA_SECRET_KEY is not configured; rejecting submission (fail-closed)");
-    return false;
-  }
-  if (!token) return false;
-
-  const form = new FormData();
-  form.append("secret", secret);
-  form.append("response", token);
-
-  try {
-    const res = await fetch("https://hcaptcha.com/siteverify", { method: "POST", body: form });
-    const result = await res.json();
-    return result.success === true;
-  } catch {
-    console.error("[QUICK-FORM] hCaptcha verification failed");
-    return false;
-  }
+function verifyCaptcha(token: string | undefined): Promise<boolean> {
+  return verifyCaptchaToken(optionalSecret("HCAPTCHA_SECRET_KEY"), token, { logTag: "QUICK-FORM" });
 }
 
 Deno.serve(withCorrelationId(async (req, _ctx) => {

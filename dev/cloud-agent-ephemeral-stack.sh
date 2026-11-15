@@ -180,6 +180,17 @@ fi
 
 ca_assert_branch_ref_safe "$project_ref" "$api_url"
 
+# Agent branches get no edge secrets, so public QR endpoints (quick-form,
+# operator-check-in, submit-privacy-request) would reject every submission
+# (fail-closed captcha gate). Opt this throwaway branch out by its own ref;
+# the value has no effect on any other project.
+if ca_management_post "/projects/${project_ref}/secrets" \
+  "[{\"name\":\"HCAPTCHA_ALLOW_MISSING_SECRET\",\"value\":\"${project_ref}\"}]" >/dev/null; then
+  ca_ok "Captcha opt-out set for agent branch ${project_ref}"
+else
+  ca_warn "Could not set HCAPTCHA_ALLOW_MISSING_SECRET on ${project_ref}; public QR submissions will be rejected on this branch."
+fi
+
 ca_log "Fetching keys + applying Quick Login seed (service_role stays in Node)..."
 export CLOUD_AGENT_SUPABASE_URL="$api_url"
 export CLOUD_AGENT_SUPABASE_PROJECT_REF="$project_ref"

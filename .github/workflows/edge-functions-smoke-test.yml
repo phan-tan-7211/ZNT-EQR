@@ -4,7 +4,8 @@ name: Edge Functions Smoke Test
 # misconfiguration mode (missing required secret) is not present.
 #
 # Required repo-level GitHub Actions secret:
-#   SUPABASE_ANON_KEY (production anon/public key)
+#   SUPABASE_ANON_KEY (production anon/public key) for the maps-key probe.
+# The hCaptcha probe needs no secret: verify-hcaptcha runs with verify_jwt = false.
 
 on:
   push:
@@ -69,4 +70,47 @@ jobs:
           fi
 
           echo "::warning::Unexpected HTTP $HTTP from public-google-maps-key (expected 401). Function is reachable but the response shape changed."
+          exit 0
+
+  hcaptcha-secret:
+    # The public QR endpoints (quick-form, operator-check-in,
+    # submit-privacy-request) reject every submission when the production
+    # project has no HCAPTCHA_SECRET_KEY. verify-hcaptcha loads the same secret
+    # before it looks at the request, so an empty body tells the two cases
+    # apart without sending a token: 400 = secret present, 500 = secret missing.
+    name: verify-hcaptcha returns 400 (HCAPTCHA_SECRET_KEY is set)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe verify-hcaptcha
+        shell: bash
+        env:
+          SUPABASE_URL: https://wgynakhoppqkrutnslmv.supabase.co
+        run: |
+          set -u
+          ENDPOINT="${SUPABASE_URL%/}/functions/v1/verify-hcaptcha"
+          echo "Probing $ENDPOINT (env=production)"
+
+          HTTP=$(curl --silent --show-error --max-time 15 \
+            --output /tmp/hcaptcha-body.json \
+            --write-out '%{http_code}' \
+            -X POST "$ENDPOINT" \
+            -H "Content-Type: application/json" \
+            -d '{}' || echo "000")
+
+          echo "HTTP status: $HTTP"
+          echo "Body (first 500 chars):"
+          head -c 500 /tmp/hcaptcha-body.json || true
+          echo
+
+          if [ "$HTTP" = "500" ]; then
+            echo "::error title=HCAPTCHA_SECRET_KEY missing on production::verify-hcaptcha returned 500. Without HCAPTCHA_SECRET_KEY the public Quick Form, daily check-in and privacy-request endpoints reject every submission. Set the secret on the production Supabase project (Edge Functions > Secrets)."
+            exit 1
+          fi
+
+          if [ "$HTTP" = "400" ]; then
+            echo "::notice::verify-hcaptcha returned 400 (token required), so HCAPTCHA_SECRET_KEY is configured on production."
+            exit 0
+          fi
+
+          echo "::warning::Unexpected HTTP $HTTP from verify-hcaptcha (expected 400). Could not tell whether HCAPTCHA_SECRET_KEY is configured."
           exit 0

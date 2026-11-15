@@ -12,3 +12,10 @@ Deno.test("timingSafeEqualStrings rejects different strings", async () => {
   assertEquals(await timingSafeEqualStrings("short", "a-much-longer-value"), false);
   assertEquals(await timingSafeEqualStrings("", "x"), false);
 });
+
+Deno.test("timingSafeEqualStrings does not conflate ill-formed UTF-16 strings", async () => {
+  // TextEncoder would map both lone surrogates to U+FFFD and report a match.
+  assertEquals(await timingSafeEqualStrings("\uD800", "\uD801"), false);
+  assertEquals(await timingSafeEqualStrings("a�", "a\uD800"), false);
+  assertEquals(await timingSafeEqualStrings("a\uD800", "a\uD800"), true);
+});

@@ -6,7 +6,8 @@
  * request is linked to their user_id automatically.
  *
  * Abuse controls:
- *   - hCaptcha verification (when HCAPTCHA_SECRET_KEY is configured)
+ *   - hCaptcha verification through the shared fail-closed gate (a hosted
+ *     project without HCAPTCHA_SECRET_KEY rejects; only the local stack skips)
  *   - Per-email rate limiting (max 3 requests per email per 24 hours)
  *   - Duplicate suppression (same email + type within 1 hour)
  */
@@ -20,6 +21,7 @@ import {
   withCorrelationId,
 } from "../_shared/supabase-clients.ts";
 import { optionalSecret } from "../_shared/require-secret.ts";
+import { isCaptchaEnforced, verifyCaptchaToken } from "../_shared/hcaptcha-gate.ts";
 import { privacyRequestSizeError } from "../_shared/privacy-request-validation.ts";
 
 const VALID_TYPES = ["access", "deletion", "correction", "opt_out", "limit_use"] as const;
@@ -29,29 +31,6 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RATE_LIMIT_MAX_REQUESTS = 3;
 const RATE_LIMIT_WINDOW_HOURS = 24;
 const DEDUPE_WINDOW_MINUTES = 60;
-
-async function verifyCaptcha(token: string): Promise<boolean> {
-  // hCaptcha is optional for this endpoint; absent secret means
-  // CAPTCHA verification is skipped in dev / test environments.
-  const secret = optionalSecret("HCAPTCHA_SECRET_KEY");
-  if (!secret) return true;
-
-  const form = new FormData();
-  form.append("secret", secret);
-  form.append("response", token);
-
-  try {
-    const res = await fetch("https://hcaptcha.com/siteverify", {
-      method: "POST",
-      body: form,
-    });
-    const result = await res.json();
-    return result.success === true;
-  } catch {
-    console.error("[PRIVACY-REQUEST] hCaptcha verification failed");
-    return false;
-  }
-}
 
 async function checkRateLimit(
   admin: ReturnType<typeof createAdminSupabaseClient>,
@@ -151,12 +130,18 @@ Deno.serve(withCorrelationId(async (req, _ctx) => {
       return createErrorResponse(sizeError, 400, { req });
     }
 
-    const hcaptchaConfigured = Boolean(optionalSecret("HCAPTCHA_SECRET_KEY"));
-    if (hcaptchaConfigured) {
-      if (!captchaToken || typeof captchaToken !== "string") {
+    // Shared fail-closed gate: skipped only on the local stack (or a branch
+    // that opted out by ref); a hosted project without the secret rejects.
+    const hcaptchaSecret = optionalSecret("HCAPTCHA_SECRET_KEY");
+    if (isCaptchaEnforced(hcaptchaSecret)) {
+      if (hcaptchaSecret && (!captchaToken || typeof captchaToken !== "string")) {
         return createErrorResponse("CAPTCHA verification is required", 400, { req });
       }
-      const captchaValid = await verifyCaptcha(captchaToken);
+      const captchaValid = await verifyCaptchaToken(
+        hcaptchaSecret,
+        typeof captchaToken === "string" ? captchaToken : undefined,
+        { logTag: "PRIVACY-REQUEST" },
+      );
       if (!captchaValid) {
         return createErrorResponse("CAPTCHA verification failed", 400, { req });
       }

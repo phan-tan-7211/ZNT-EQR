@@ -57,8 +57,8 @@ once the cutover in `preview-persistent-branch.md` begins.
 
 | Secret Name | Required For | Example Value | Notes |
 |------------|--------------|---------------|-------|
-| `HCAPTCHA_SECRET_KEY` | `verify-hcaptcha` | `0x...` | hCaptcha secret key for server-side verification |
-| `HCAPTCHA_ALLOW_MISSING_SECRET` | `quick-form`, `operator-check-in` | `true` | Optional, **non-production only**. Hosted projects reject public QR submissions when `HCAPTCHA_SECRET_KEY` is missing (fail-closed); set this on a throwaway branch that intentionally runs without hCaptcha. Never set on production. |
+| `HCAPTCHA_SECRET_KEY` | `quick-form`, `operator-check-in`, `submit-privacy-request`, `verify-hcaptcha` | `0x...` | hCaptcha secret key for server-side verification. **Required on every hosted project**: without it the three public endpoints reject submissions. |
+| `HCAPTCHA_ALLOW_MISSING_SECRET` | `quick-form`, `operator-check-in`, `submit-privacy-request` | `<this branch's project ref>` | Optional, **throwaway branches only**. Hosted projects reject public submissions when `HCAPTCHA_SECRET_KEY` is missing (fail-closed). A branch that intentionally runs without hCaptcha opts out by setting this to **its own project ref** (the first label of its `SUPABASE_URL`). Any other value, including `true`, is ignored, so the flag cannot disable captcha on another project. `dev/cloud-agent-ephemeral-stack.sh` sets it for `agent-*` branches. Do not set it on the production project. |
 
 ### Encryption & Cryptography
 
