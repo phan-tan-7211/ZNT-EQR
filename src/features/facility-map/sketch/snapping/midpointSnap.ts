@@ -1,8 +1,8 @@
-import { distance } from '../core/geometry';
 import type {
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestEntityPointsSnap } from './closestSnap';
 
 export type MidpointSnapResult = {
   point: SketchPoint;
@@ -69,24 +69,10 @@ export const findMidpointSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): MidpointSnapResult | null => {
-  let best: MidpointSnapResult | null = null;
-
-  entities.forEach((entity) => {
-    getEntityMidpointSnapPoints(entity).forEach((candidate) => {
-      const candidateDistance = distance(point, candidate);
-      if (
-        candidateDistance < threshold &&
-        (!best || candidateDistance < best.distance)
-      ) {
-        best = {
-          point: { ...candidate },
-          entityId: entity.id,
-          distance: candidateDistance,
-        };
-      }
-    });
-  });
-
-  return best;
-};
+): MidpointSnapResult | null =>
+  findClosestEntityPointsSnap(
+    point,
+    entities,
+    threshold,
+    getEntityMidpointSnapPoints,
+  );
