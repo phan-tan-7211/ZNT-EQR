@@ -14,7 +14,7 @@ Keep these aligned with the Help Center articles.
 ## Documentation files
 
 - **[Technician image upload guide](/how-to/image-upload/technician-image-upload-guide)** — a
-  numbered-step guide with screenshots for the core work-order-plus-photo flow.
+  numbered-step guide for the core work-order-plus-photo flow.
   Mirrors the in-app article but is easier to print or share with a new hire.
 - **[Quick reference card](/how-to/image-upload/quick-reference-card)** — a laminated-card style
   cheat sheet for field technicians.

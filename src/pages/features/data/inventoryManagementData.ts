@@ -7,7 +7,6 @@ import {
   Settings2,
   Warehouse,
 } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, Capability, FeaturePageContent, ImageScreenshot, Step } from './featurePageTypes';
 
 export type { Benefit, Capability, Step } from './featurePageTypes';
@@ -125,7 +124,6 @@ export const steps: Step[] = [
 export const showcases: Screenshot[] = [
   {
     kind: 'image',
-    imageUrl: landingImage('inventory-list-2026-04.webp'),
     imageAlt: 'Inventory list view showing parts with stock levels, SKUs, and low stock indicators',
     title: 'Inventory List View',
     description:
@@ -133,7 +131,6 @@ export const showcases: Screenshot[] = [
   },
   {
     kind: 'image',
-    imageUrl: landingImage('inventory-item-detail-2026-04.webp'),
     imageAlt: 'Inventory item detail page showing stock quantity, threshold, unit cost, and transaction history tabs',
     title: 'Item Detail & Stock Information',
     description:

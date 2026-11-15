@@ -19,9 +19,6 @@
 2. **Hoặc đi thẳng** đến trang thiết bị nếu bạn có ID thiết bị
 3. Trang thiết bị sẽ hiển thị thông tin cơ bản về máy
 
-> **Hình 1:** Trang thiết bị ban đầu hiển thị thông tin cơ bản.
-> *(Ảnh chụp màn hình cho hướng dẫn này nằm trong `docs/how-to/image-upload/screenshots/`; hãy thêm tệp PNG theo README của thư mục nếu bạn cần chèn hình minh họa vào trang được xuất bản.)*
-
 ### Bước 2: Tạo lệnh công việc
 
 1. Nhấp vào thẻ **"Lệnh công việc"** trên trang thiết bị
@@ -30,9 +27,6 @@
    - **Tiêu đề**: Nhập tiêu đề mô tả rõ công việc (ví dụ: "Sửa hệ thống thủy lực - Thay xích")
    - **Ưu tiên**: Chọn mức ưu tiên phù hợp
    - **Mô tả**: Mô tả chi tiết công việc cần làm
-
-> **Hình 2:** Tạo lệnh công việc mới.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/03-work-order-creation-form.png` — tài nguyên tùy chọn.)*
 
 ### Bước 3: Tải ảnh lên kèm ghi chú
 
@@ -47,18 +41,12 @@
    - Chọn một hoặc nhiều ảnh từ thiết bị của bạn
    - Ảnh sẽ tự động được tải lên khi bạn lưu ghi chú
 
-> **Hình 3:** Tải ảnh lên kèm ghi chú chi tiết.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/09-notes-section-with-image-upload.png` — tài nguyên tùy chọn.)*
-
 ### Bước 4: Đặt ảnh đại diện cho thiết bị
 
 1. Sau khi tải ảnh lên, vào thẻ **"Hình ảnh"** trên trang thiết bị
 2. Tìm ảnh bạn muốn dùng làm ảnh đại diện chính
 3. Nhấp nút **"Đặt làm ảnh đại diện"** trên ảnh mong muốn
 4. Ảnh đó sẽ hiển thị làm ảnh chính của thiết bị
-
-> **Hình 4:** Đặt một ảnh làm ảnh đại diện của thiết bị.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/final-images-tab-state.png` — tài nguyên tùy chọn.)*
 
 ## Làm việc với danh mục kiểm tra bảo trì định kỳ (PM)
 
@@ -67,9 +55,6 @@
 1. Khi tạo lệnh công việc, đánh dấu tùy chọn **"Kèm danh mục kiểm tra bảo trì"**
 2. Chọn một mẫu bảo trì định kỳ (ví dụ: "Forklift PM Checklist")
 3. Lệnh công việc sẽ kèm theo một danh mục kiểm tra bảo trì
-
-> **Hình 5:** Tạo lệnh công việc có danh mục kiểm tra bảo trì.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/04-work-order-form-with-pm-checklist.png` — tài nguyên tùy chọn.)*
 
 ### Bước 6: Hoàn thành các mục trong danh mục kiểm tra bảo trì
 
@@ -80,17 +65,11 @@
    - Thêm ghi chú chi tiết giải thích vấn đề
    - Tải lên ảnh cho thấy vấn đề
 
-> **Hình 6:** Hoàn thành các mục trong danh mục kiểm tra bảo trì kèm ghi chú và ảnh.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/06-pm-checklist-section.png` — tài nguyên tùy chọn.)*
-
 ### Bước 7: Lưu tiến độ
 
 1. Nhấp **"Lưu thay đổi"** sau khi cập nhật các mục trong danh mục
 2. Hệ thống sẽ tự động lưu tiến độ của bạn
 3. Bạn có thể quay lại danh mục sau để làm tiếp
-
-> **Hình 7:** Lưu tiến độ danh mục kiểm tra bảo trì.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/08-pm-checklist-after-set-all-ok.png` — tài nguyên tùy chọn.)*
 
 ## Quản lý trạng thái lệnh công việc
 
@@ -102,9 +81,6 @@
    - **Đang thực hiện**: Công việc đang được tiến hành
    - **Hoàn thành**: Mọi công việc đã xong
    - **Đã hủy**: Lệnh công việc đã bị hủy
-
-> **Hình 8:** Cập nhật trạng thái lệnh công việc.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/work-order-complete-view.png` — tài nguyên tùy chọn.)*
 
 ## Thêm hạng mục và chi phí
 
@@ -118,9 +94,6 @@
    - **Đơn giá**: Chi phí cho mỗi đơn vị
    - **Mô tả**: Thông tin bổ sung
 
-> **Hình 9:** Thêm linh kiện và chi phí vào lệnh công việc.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/work-order-add-note-form.png` — tài nguyên tùy chọn.)*
-
 ## Ghi chú riêng tư
 
 ### Bước 10: Thêm ghi chú riêng tư
@@ -132,9 +105,6 @@
    - Lời nhắc cá nhân
    - Thông tin nhạy cảm
 
-> **Hình 10:** Thêm ghi chú riêng tư mà khách hàng sẽ không thấy.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/note-with-uploaded-image.png` — tài nguyên tùy chọn.)*
-
 ## Xem tất cả ảnh của thiết bị
 
 ### Bước 11: Mở thư viện ảnh của thiết bị
@@ -143,9 +113,6 @@
 2. Xem tất cả ảnh đã tải lên qua lệnh công việc và ghi chú thiết bị
 3. Ảnh được sắp xếp theo ngày và nguồn
 4. Nhấp vào bất kỳ ảnh nào để xem ở kích thước đầy đủ
-
-> **Hình 11:** Xem tất cả ảnh của thiết bị trong thư viện ảnh.
-> *(Đường dẫn ảnh chụp màn hình: `screenshots/images-tab-with-both-images.png` — tài nguyên tùy chọn.)*
 
 ## Khắc phục sự cố
 

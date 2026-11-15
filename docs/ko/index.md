@@ -6,7 +6,7 @@ hero:
   text: 설비, 작업 지시, 현장 팀을 위한 문서
   tagline: 기술자, 매니저, 관리자, 설비 소유자를 위한 단계별 가이드 — eqr.zinitek.com과 같은 제품군입니다.
   image:
-    src: /eqr-logo/icon.svg
+    src: /brand/znteqr-icon.png
     alt: ZNTEQR 로고
   actions:
     - theme: brand

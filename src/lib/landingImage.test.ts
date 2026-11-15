@@ -3,9 +3,16 @@ import { landingImage } from './landingImage';
 
 describe('landingImage', () => {
   it('returns a same-origin path under /images/landing/', () => {
-    expect(landingImage('work-orders-list-2026-04.webp')).toBe(
-      '/images/landing/work-orders-list-2026-04.webp',
+    expect(landingImage('homepage-collage/col-3.webp')).toBe(
+      '/images/landing/homepage-collage/col-3.webp',
     );
+  });
+
+  it('no longer resolves the retired 2026-04 product stills', () => {
+    // They showed the previous product identity and real people's details.
+    for (const retired of ['work-orders-list-2026-04.webp', 'teams-list-2026-04.webp', 'team-detail-2026-04.webp']) {
+      expect(() => landingImage(retired)).toThrow(/unknown/i);
+    }
   });
 
   it('resolves collage strip keys', () => {

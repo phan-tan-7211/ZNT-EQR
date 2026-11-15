@@ -22,9 +22,14 @@ export interface Step {
   description: string;
 }
 
+/**
+ * A product screenshot with its caption. `imageUrl` stays unset until a
+ * screenshot taken in a fictional demo organisation exists; the caption then
+ * renders on its own. Keep `imageAlt` so the translated alt text is ready.
+ */
 export interface ImageScreenshot {
   kind: 'image';
-  imageUrl: string;
+  imageUrl?: string;
   imageAlt: string;
   title: string;
   description: string;
@@ -38,9 +43,10 @@ export interface DemoVideoScreenshot {
   description: string;
 }
 
+/** Several screenshots under one caption; entries without `imageUrl` are skipped. */
 export interface ImageGridScreenshot {
   kind: 'image-grid';
-  images: { imageUrl: string; imageAlt: string }[];
+  images: { imageUrl?: string; imageAlt: string }[];
   title: string;
   description: string;
 }

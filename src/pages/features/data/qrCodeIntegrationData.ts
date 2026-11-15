@@ -1,5 +1,4 @@
 import { QrCode, ScanLine, Smartphone, Tags } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, FeaturePageContent, ImageScreenshot, Step } from './featurePageTypes';
 
 type Screenshot = ImageScreenshot;
@@ -79,7 +78,6 @@ export const steps: Step[] = [
 export const showcases: Screenshot[] = [
   {
     kind: 'image',
-    imageUrl: landingImage('equipment-qr-code-modal-2026-04.webp'),
     imageAlt: 'ZNTEQR Equipment QR Code modal showing scannable QR code with equipment URL and download options',
     title: 'Equipment QR Codes',
     description:
@@ -87,7 +85,6 @@ export const showcases: Screenshot[] = [
   },
   {
     kind: 'image',
-    imageUrl: landingImage('equipment-list-2026-04.webp'),
     imageAlt: 'ZNTEQR Equipment list showing QR code buttons on each equipment card with team assignments and last maintenance dates',
     title: 'Quick Access from Equipment List',
     description:

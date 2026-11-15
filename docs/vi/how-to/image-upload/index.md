@@ -14,7 +14,7 @@ Hãy giữ các tài liệu này thống nhất với các bài viết trong Tru
 ## Các tệp tài liệu
 
 - **[Hướng dẫn tải ảnh lên cho kỹ thuật viên](/vi/how-to/image-upload/technician-image-upload-guide)** — hướng dẫn
-  theo từng bước đánh số, có ảnh chụp màn hình, cho quy trình cốt lõi là lệnh công việc kèm ảnh.
+  theo từng bước đánh số cho quy trình cốt lõi là lệnh công việc kèm ảnh.
   Nội dung tương ứng với bài viết trong ứng dụng nhưng dễ in hoặc chia sẻ với nhân viên mới hơn.
 - **[Thẻ tham khảo nhanh](/vi/how-to/image-upload/quick-reference-card)** — bảng tóm tắt
   kiểu thẻ ép nhựa dành cho kỹ thuật viên hiện trường.
