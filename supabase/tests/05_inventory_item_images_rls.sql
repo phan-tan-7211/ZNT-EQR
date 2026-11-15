@@ -23,7 +23,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '20000000-0000-0000-0000-000000000001'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'imgtest-user1@equipqr.test',
+  'imgtest-user1@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,
@@ -39,7 +39,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '20000000-0000-0000-0000-000000000002'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'imgtest-user2@equipqr.test',
+  'imgtest-user2@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(), NOW(), NOW(),
   '{"provider": "email", "providers": ["email"]}'::jsonb,

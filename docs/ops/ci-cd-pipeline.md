@@ -35,7 +35,7 @@ preview today; ephemeral branches only for PRs that touch supabase/**.
 | **Integration preview** | Push/merge to git **`preview`** | `<https://preview.eqr-zinitek.pages.dev>` | **Current live:** production API (`wgynakhoppqkrutnslmv.supabase.co`). **Approved target:** persistent dataless branch per `docs/ops/preview-persistent-branch.md` |
 | **PR Preview** | Feature PRs / work-branch pushes | Per-deployment `https://<hash>.eqr-zinitek.pages.dev` (GitHub **Cloudflare Pages** check) | Prod API by default; ephemeral Supabase when `supabase/**` changes |
 
-> **Train (#1282):** feat → preview → main. Authoritative loop: **`docs/ops/git-and-deploy.md`**. Retired: Vercel (all projects and `*.vercel.app` hosts), `preview-domain-alias.yml`, Vercel custom **`staging`**, persistent Supabase **`olsdirkvvfegvclbpgrg`**. History: `docs/ops/preview-architecture-migration.md`.
+> **Train (#1282):** feat → preview → main. Authoritative loop: **`docs/ops/git-and-deploy.md`**. Retired: Vercel (all projects and `*.vercel.app` hosts), `preview-domain-alias.yml`, Vercel custom **`staging`**, persistent Supabase **`olsdirkvvfegvclbpgrg`**.
 >
 > **Target decision (not yet live):** `docs/ops/preview-persistent-branch.md`
 > records the approved move away from production Supabase for
@@ -92,7 +92,7 @@ preview today; ephemeral branches only for PRs that touch supabase/**.
 
 **Trigger:** `deployment_status` events
 
-**Purpose:** Log success/failure for every GitHub `deployment_status` event (`success` or `failure`) and fail the job on a failed deployment. The Vercel-era filter that ignored the `equipqr-docs` project (then serving `equipqr.info`) was removed with Vercel.
+**Purpose:** Log success/failure for every GitHub `deployment_status` event (`success` or `failure`) and fail the job on a failed deployment.
 
 ### 6. Export Database Schema (`export-schema.yml`)
 
@@ -159,7 +159,7 @@ Technical documentation is deployed as a **separate Cloudflare Pages project** (
 | Output directory | `.vitepress/dist` |
 | Headers | [`docs/public/_headers`](../public/_headers) |
 | Production hostname | `https://eqrdocs.zinitek.com` (custom domain on the docs project) |
-| Retired | Vercel project `equipqr-docs` and the former `equipqr.info` / `www.equipqr.info` hostnames |
+| Retired | The former Vercel docs project and its hostnames |
 
 **Deployment cadence:** production builds of the docs project run from **`main`**. Keep `eqrdocs.zinitek.com` attached to the docs project only, never to the SPA project `eqr-zinitek`.
 
@@ -176,7 +176,7 @@ Local preview: from repo root, `npm run docs:dev` or `npm run docs:preview` afte
 - **Current live preview app:** still uses the production project above
 - **Approved target preview backend:** a new persistent dataless branch for `preview.eqr-zinitek.pages.dev` (not yet cut over; see `preview-persistent-branch.md`)
 - **Ephemeral PR branches:** Created automatically when `supabase/**` changes on a PR (schema validation only)
-- **Retired persistent preview branch:** `olsdirkvvfegvclbpgrg` — decommission after #1033 cutover (see `preview-architecture-migration.md`)
+- **Retired persistent preview branch:** `olsdirkvvfegvclbpgrg` — decommissioned after the #1033 cutover
 
 #### Auth Site URL (current live vs target)
 

@@ -12,7 +12,7 @@ import {
   unknownOnlyIds,
 } from './lint-catalog.mjs';
 
-const repoRoot = path.resolve('/equipqr-lint-catalog');
+const repoRoot = path.resolve('/znteqr-lint-catalog');
 
 describe('matchesFile', () => {
   it('returns false for match.kind never', () => {

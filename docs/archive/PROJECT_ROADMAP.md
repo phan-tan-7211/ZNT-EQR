@@ -1,4 +1,4 @@
-# EquipQR Project Roadmap
+# ZNTEQR Project Roadmap
 
 Last updated: 2026-05-09
 

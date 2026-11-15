@@ -94,7 +94,7 @@ async function main() {
     Accept: 'application/vnd.github+json',
     Authorization: `Bearer ${token}`,
     'X-GitHub-Api-Version': '2022-11-28',
-    'User-Agent': 'equipqr-vitest-perf',
+    'User-Agent': 'znteqr-vitest-perf',
   };
 
   const listUrl = `https://api.github.com/repos/${owner}/${name}/issues/${prNumber}/comments`;

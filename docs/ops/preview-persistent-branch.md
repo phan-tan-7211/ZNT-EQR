@@ -9,8 +9,7 @@
 **Current live state:** `preview.eqr-zinitek.pages.dev` still points at production
 Supabase (`wgynakhoppqkrutnslmv` / `https://wgynakhoppqkrutnslmv.supabase.co`) until the
 cutover checklist below is executed.  
-**Related docs:** [preview-architecture-migration](./preview-architecture-migration.md),
-[supabase-branching](./supabase-branching.md),
+**Related docs:** [supabase-branching](./supabase-branching.md),
 [cloud-agent-ephemeral-stack](./cloud-agent-ephemeral-stack.md),
 [supabase-branch-secrets](./supabase-branch-secrets.md).
 
@@ -26,7 +25,7 @@ isolated backend.
 | Option | Cost / risk profile |
 |--------|----------------------|
 | Keep preview on production Supabase | No extra branch spend, but preview sign-in and QA continue to touch production Auth and live data. Quick Login must stay disabled there. |
-| Move preview to a persistent Supabase branch | Roughly **$9.80/mo** (`$0.01344/hr`) per [`preview-architecture-migration.md`](./preview-architecture-migration.md), but preview regains isolated Auth, dataless test rows, and preview-only Quick Login. |
+| Move preview to a persistent Supabase branch | Roughly **$9.80/mo** (`$0.01344/hr`) (estimate from the #1033 migration), but preview regains isolated Auth, dataless test rows, and preview-only Quick Login. |
 
 Important constraints locked by Product:
 
@@ -161,7 +160,6 @@ If the preview cutover fails, rollback is intentionally small:
 
 ## References
 
-- [Preview Architecture Migration (#1033) — historical](./preview-architecture-migration.md)
 - [Supabase Database Branching](./supabase-branching.md)
 - [Cloud Agent Ephemeral Supabase Stack](./cloud-agent-ephemeral-stack.md)
 - [Supabase Branch Secrets Configuration](./supabase-branch-secrets.md)

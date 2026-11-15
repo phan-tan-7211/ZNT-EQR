@@ -33,7 +33,7 @@ const MINIMAL_DIST_TEMPLATE = `<!DOCTYPE html>
     <meta property="og:url" content="https://eqr.zinitek.com" />
     <meta property="og:image:alt" content="Old alt" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@equipqr" />
+    <meta name="twitter:site" content="@znteqr" />
     <meta name="twitter:title" content="Tw Old" />
     <meta name="twitter:description" content="Tw Desc Old" />
     <meta name="twitter:image" content="https://eqr.zinitek.com/og-image.png" />
@@ -122,7 +122,7 @@ describe('prerenderMarketingHtmlTemplate', () => {
 
 describe('writeAppShellHtml', () => {
   it('writes the untouched Vite template with an empty root for SPA fallback', () => {
-    const distDir = mkdtempSync(join(tmpdir(), 'equipqr-marketing-'));
+    const distDir = mkdtempSync(join(tmpdir(), 'znteqr-marketing-'));
     try {
       const outPath = writeAppShellHtml(distDir, MINIMAL_DIST_TEMPLATE);
       const shell = readFileSync(outPath, 'utf-8');
@@ -138,7 +138,7 @@ describe('writeAppShellHtml', () => {
 
 describe('writeMarketingHtmlFiles', () => {
   it('preserves app-shell.html before prerendering marketing routes', () => {
-    const projectRoot = mkdtempSync(join(tmpdir(), 'equipqr-marketing-dist-'));
+    const projectRoot = mkdtempSync(join(tmpdir(), 'znteqr-marketing-dist-'));
     const distDir = join(projectRoot, 'dist');
     try {
       mkdirSync(distDir, { recursive: true });
@@ -158,7 +158,7 @@ describe('writeMarketingHtmlFiles', () => {
   });
 
   it('keeps app-shell empty, marketing paths prerendered, and no static dashboard file', () => {
-    const projectRoot = mkdtempSync(join(tmpdir(), 'equipqr-spa-routing-'));
+    const projectRoot = mkdtempSync(join(tmpdir(), 'znteqr-spa-routing-'));
     const distDir = join(projectRoot, 'dist');
     try {
       mkdirSync(distDir, { recursive: true });
@@ -185,7 +185,7 @@ describe('writeMarketingHtmlFiles', () => {
       '<div id="root"></div>',
       '<div id="root" data-vite-root></div>'
     );
-    const projectRoot = mkdtempSync(join(tmpdir(), 'equipqr-root-attrs-'));
+    const projectRoot = mkdtempSync(join(tmpdir(), 'znteqr-root-attrs-'));
     const distDir = join(projectRoot, 'dist');
     try {
       mkdirSync(distDir, { recursive: true });

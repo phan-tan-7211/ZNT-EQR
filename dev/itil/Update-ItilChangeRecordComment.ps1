@@ -67,7 +67,7 @@ $newBody = Get-Content -LiteralPath $BodyFile -Raw -Encoding UTF8
 $slug = Get-ItilGhOwnerRepoSlug
 $parts = Split-ItilOwnerRepo $slug
 
-$payloadPath = Join-Path $env:TEMP ("equipqr-itil-comment-patch-{0}.json" -f [Guid]::NewGuid().ToString('N'))
+$payloadPath = Join-Path $env:TEMP ("znteqr-itil-comment-patch-{0}.json" -f [Guid]::NewGuid().ToString('N'))
 
 try {
     $payloadHash = @{ body = $newBody }

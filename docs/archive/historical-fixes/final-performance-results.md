@@ -177,7 +177,7 @@ If desired, these can be addressed in future maintenance:
 
 ### 🏆 **Performance Transformation Complete**
 
-The EquipQR database has been transformed from having **280+ critical performance warnings** to having only **~85 lower-priority warnings** (mostly INFO level or non-critical overlapping policies). 
+The ZNTEQR database has been transformed from having **280+ critical performance warnings** to having only **~85 lower-priority warnings** (mostly INFO level or non-critical overlapping policies). 
 
 **This represents a comprehensive database performance optimization that will provide immediate and lasting benefits for all users.**
 

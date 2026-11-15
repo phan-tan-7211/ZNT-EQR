@@ -2,7 +2,7 @@
 /**
  * Kill-switch service worker for the Help Center docs site (eqrdocs.zinitek.com).
  *
- * The docs host at the time, equipqr.info (now retired), briefly served the
+ * The docs host at the time (now retired) briefly served the
  * ZNTEQR SPA (May 2026) and registered a Workbox PWA worker at scope /. After
  * the domain moved to the VitePress docs project, returning visitors kept the
  * stranded worker and its precached app shell. This script replaces that

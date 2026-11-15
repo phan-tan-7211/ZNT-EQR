@@ -35,7 +35,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '11000000-0000-0000-0000-000000000001'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-audit-admin@equipqr.test',
+  'pgtap-audit-admin@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -71,7 +71,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '11000000-0000-0000-0000-000000000002'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-audit-outsider@equipqr.test',
+  'pgtap-audit-outsider@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -107,7 +107,7 @@ INSERT INTO auth.users (
 ) VALUES (
   '11000000-0000-0000-0000-000000000003'::uuid,
   '00000000-0000-0000-0000-000000000000'::uuid,
-  'pgtap-audit-member@equipqr.test',
+  'pgtap-audit-member@znteqr.test',
   extensions.crypt('password123', extensions.gen_salt('bf')),
   NOW(),
   NOW(),
@@ -125,9 +125,9 @@ INSERT INTO auth.users (
 
 INSERT INTO public.profiles (id, email, name)
 VALUES
-  ('11000000-0000-0000-0000-000000000001'::uuid, 'pgtap-audit-admin@equipqr.test', 'pgTAP Audit Admin'),
-  ('11000000-0000-0000-0000-000000000002'::uuid, 'pgtap-audit-outsider@equipqr.test', 'pgTAP Audit Outsider'),
-  ('11000000-0000-0000-0000-000000000003'::uuid, 'pgtap-audit-member@equipqr.test', 'pgTAP Audit Member')
+  ('11000000-0000-0000-0000-000000000001'::uuid, 'pgtap-audit-admin@znteqr.test', 'pgTAP Audit Admin'),
+  ('11000000-0000-0000-0000-000000000002'::uuid, 'pgtap-audit-outsider@znteqr.test', 'pgTAP Audit Outsider'),
+  ('11000000-0000-0000-0000-000000000003'::uuid, 'pgtap-audit-member@znteqr.test', 'pgTAP Audit Member')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.organizations (id, name)

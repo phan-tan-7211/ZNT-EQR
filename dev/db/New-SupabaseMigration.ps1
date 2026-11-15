@@ -41,7 +41,7 @@ if (-not (Test-Path -LiteralPath $supabaseExe)) {
   throw "Supabase CLI not found at $supabaseExe. Run npm ci first."
 }
 
-$pidFile = Join-Path $env:TEMP ("equipqr-supabase-migration-{0}.pid" -f [guid]::NewGuid().ToString('N'))
+$pidFile = Join-Path $env:TEMP ("znteqr-supabase-migration-{0}.pid" -f [guid]::NewGuid().ToString('N'))
 
 $migrationsDir = Join-Path $repoRoot 'supabase\migrations'
 $existingMigrationNames = @(

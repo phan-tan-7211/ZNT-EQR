@@ -17,13 +17,13 @@ SELECT u.id, '00000000-0000-0000-0000-000000000000'::uuid, u.email, extensions.c
   NOW(), NOW(), NOW(), '{"provider":"email","providers":["email"]}'::jsonb, jsonb_build_object('name', u.email),
   false, 'authenticated', 'authenticated', '', '', '', ''
 FROM (VALUES
-  ('39000000-0000-0000-0000-000000000001'::uuid, 'tl-owner@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000002'::uuid, 'tl-admin@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000003'::uuid, 'tl-manager@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000004'::uuid, 'tl-tech@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000005'::uuid, 'tl-requestor@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000006'::uuid, 'tl-plain@equipqr.test'),
-  ('39000000-0000-0000-0000-000000000007'::uuid, 'tl-outsider@equipqr.test')
+  ('39000000-0000-0000-0000-000000000001'::uuid, 'tl-owner@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000002'::uuid, 'tl-admin@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000003'::uuid, 'tl-manager@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000004'::uuid, 'tl-tech@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000005'::uuid, 'tl-requestor@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000006'::uuid, 'tl-plain@znteqr.test'),
+  ('39000000-0000-0000-0000-000000000007'::uuid, 'tl-outsider@znteqr.test')
 ) AS u(id, email)
 ON CONFLICT (id) DO NOTHING;
 

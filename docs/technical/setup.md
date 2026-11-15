@@ -8,7 +8,7 @@ This guide combines quick start instructions, environment configuration, and tro
 
 ```bash
 git clone <repository-url>
-cd equipqr
+cd ZNT-EQR
 ```
 
 ### 2. Install Dependencies

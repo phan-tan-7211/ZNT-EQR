@@ -1,8 +1,8 @@
-# Monetization Removal - EquipQR
+# Monetization Removal - ZNTEQR
 
 ## Summary
 
-This document tracks the removal of Stripe and billing functionality from EquipQR. The app is now fully free for all users with no payment required.
+This document tracks the removal of Stripe and billing functionality from ZNTEQR. The app is now fully free for all users with no payment required.
 
 **Date**: January 2025  
 **Status**: Complete ✅

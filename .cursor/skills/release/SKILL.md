@@ -124,7 +124,7 @@ If `git diff --name-status "$sinceTag..HEAD"` touches `src/**/*.tsx`, capture pe
 ## Step 6: Open or update release PR
 
 ```powershell
-gh pr create --base main --head preview --title "Release vX.Y.Z" --body-file "$env:TEMP\equipqr-release-pr-body.md"
+gh pr create --base main --head preview --title "Release vX.Y.Z" --body-file "$env:TEMP\znteqr-release-pr-body.md"
 # or gh pr edit when updating an existing release PR
 ```
 

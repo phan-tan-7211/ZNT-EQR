@@ -48,7 +48,7 @@ function appRoutePreviewFallbackPlugin(): PluginOption {
   const appRoutePrefixes = ['/dashboard', '/auth', '/invitation', '/qr', '/e', '/debug-'];
 
   return {
-    name: 'equipqr-app-route-preview-fallback',
+    name: 'znteqr-app-route-preview-fallback',
     configurePreviewServer(server) {
       server.middlewares.use((req, res, next) => {
         const pathname = (req.url ?? '').split('?', 1)[0];

@@ -71,8 +71,8 @@ Bootstrap optional verification after migration (uses `SUPABASE_URL` / `VITE_SUP
 - **`GH_SESSION_TOKEN` (User scope)** for GitHub inline video upload — a GitHub `user_session` cookie, **not** a PAT. One-time setup:
   ```powershell
   gh extension install drogers0/gh-image
-  gh image extract-token | Set-Content -Path "$env:USERPROFILE\.equipqr-gh-session-token" -NoNewline -Encoding ascii
-  [Environment]::SetEnvironmentVariable('GH_SESSION_TOKEN', (Get-Content "$env:USERPROFILE\.equipqr-gh-session-token" -Raw).Trim(), 'User')
+  gh image extract-token | Set-Content -Path "$env:USERPROFILE\.znteqr-gh-session-token" -NoNewline -Encoding ascii
+  [Environment]::SetEnvironmentVariable('GH_SESSION_TOKEN', (Get-Content "$env:USERPROFILE\.znteqr-gh-session-token" -Raw).Trim(), 'User')
   ```
   Refresh when GitHub invalidates the session (`gh image check-token`).
 - `gh` authenticated when using `-Publish`

@@ -93,7 +93,7 @@ INSERT INTO public.organizations (
     '2024-01-01 00:00:00+00',
     '2024-01-01 00:00:00+00'
   ),
-  -- Multi Org Consulting (Free) - Personal org for multi@equipqr.test
+  -- Multi Org Consulting (Free) - Personal org for multi@znteqr.test
   (
     '660e8400-e29b-41d4-a716-446655440007'::uuid,
     'Multi Org Consulting',

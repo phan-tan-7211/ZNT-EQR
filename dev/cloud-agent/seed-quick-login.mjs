@@ -111,7 +111,7 @@ export const QUICK_LOGIN_PERSONAS = [
   },
   {
     id: 'bb0e8400-e29b-41d4-a716-446655440008',
-    email: 'multi@equipqr.test',
+    email: 'multi@znteqr.test',
     name: 'Multi Org User',
     organizationName: 'Multi Org Consulting',
     plan: 'free',

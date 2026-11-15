@@ -168,7 +168,6 @@ For public `VITE_*` values, update the Cloudflare Pages **Preview** and **Produc
 
 **6. Re-run `-Check`** — both edge `-Check` commands must exit 0, and the Cloudflare Pages variables must match the vault, before closing a rotation task.
 
-See also `docs/ops/preview-architecture-migration.md` (#1033) for consolidating cloud preview on `edge-env-prod-secrets`.
 
 ---
 

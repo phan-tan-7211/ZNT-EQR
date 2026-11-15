@@ -19,7 +19,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.join(__dirname, '..');
 
 /** Ephemeral WSL sync target — never use a user-owned project directory. */
-const WSL_SANDBOX = '~/.cache/equipqr/test-ci';
+const WSL_SANDBOX = '~/.cache/znteqr/test-ci';
 
 function toWslPath(winPath) {
   const resolved = path.resolve(winPath);
@@ -37,8 +37,8 @@ const repoWsl = toWslPath(repoRoot);
 const bashScript = `
 set -euo pipefail
 WSL_HOME="/home/$(whoami)"
-SANDBOX="$WSL_HOME/.cache/equipqr/test-ci"
-EXPECTED_SANDBOX="$WSL_HOME/.cache/equipqr/test-ci"
+SANDBOX="$WSL_HOME/.cache/znteqr/test-ci"
+EXPECTED_SANDBOX="$WSL_HOME/.cache/znteqr/test-ci"
 if [ "$SANDBOX" != "$EXPECTED_SANDBOX" ]; then
   echo "❌ Unexpected sandbox path: $SANDBOX"
   exit 1
@@ -62,7 +62,7 @@ node dev/test-ci-sharded.mjs --shards=4
 
 const tmpRoot = path.join(repoRoot, 'tmp');
 fs.mkdirSync(tmpRoot, { recursive: true });
-const scriptDir = fs.mkdtempSync(path.join(tmpRoot, 'equipqr-test-ci-'));
+const scriptDir = fs.mkdtempSync(path.join(tmpRoot, 'znteqr-test-ci-'));
 const scriptPath = path.join(scriptDir, 'run.sh');
 fs.writeFileSync(scriptPath, `${bashScript}\n`, { encoding: 'utf8', mode: 0o700, flag: 'wx' });
 const scriptWsl = toWslPath(scriptPath);

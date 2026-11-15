@@ -11,5 +11,5 @@ VALUES
   ('bb0e8400-e29b-41d4-a716-446655440005'::uuid, 'tech@metro.test', 'Mike Mechanic', NOW(), NOW()),
   ('bb0e8400-e29b-41d4-a716-446655440006'::uuid, 'owner@valley.test', 'Victor Valley', NOW(), NOW()),
   ('bb0e8400-e29b-41d4-a716-446655440007'::uuid, 'owner@industrial.test', 'Irene Industrial', NOW(), NOW()),
-  ('bb0e8400-e29b-41d4-a716-446655440008'::uuid, 'multi@equipqr.test', 'Multi Org User', NOW(), NOW())
+  ('bb0e8400-e29b-41d4-a716-446655440008'::uuid, 'multi@znteqr.test', 'Multi Org User', NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
