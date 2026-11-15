@@ -1,6 +1,7 @@
 /**
  * Semantic version tokens for Terms + Privacy evidence rows.
- * Bump these whenever published legal pages materially change.
+ * Bump these whenever published legal pages materially change, and empty
+ * LEGAL_POLICY_VERSION_ID_ALIASES (below) in the same change.
  *
  * Edge Function `record-terms-acceptance` duplicates these in
  * `supabase/functions/_shared/legal-policy-versions.ts` — keep both files in sync.
@@ -33,8 +34,12 @@ const RETIRED_ID_PREFIX = String.fromCharCode(101, 113, 117, 105, 112, 113, 114)
  * Remove this list, together with its twin in
  * `supabase/functions/_shared/legal-policy-versions.ts`, in the same release that
  * bumps TERMS_VERSION_HASH or PRIVACY_VERSION_HASH (the aliases then name a
- * superseded text), or earlier once no app bundle and no unconfirmed sign-up from
- * before the rename (2026-11-15) can still be in use.
+ * superseded text), and not earlier. The terms_acceptances lookup in
+ * `termsAcceptanceRecording.ts` finds rows recorded under the alias ids only
+ * through this list, and some of those users have the current ids in
+ * user_metadata (recordTermsAcceptance's 409 fallback records under the aliases
+ * while a function from before the rename is deployed). Without the list their
+ * next session would record a second acceptance event.
  */
 export const LEGAL_POLICY_VERSION_ID_ALIASES: readonly LegalPolicyVersionIds[] = [
   {

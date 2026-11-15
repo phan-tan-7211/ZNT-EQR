@@ -16,6 +16,20 @@ describe('legal policy version ids shared by the app and the Edge Function', () 
     expect(edge.LEGAL_POLICY_VERSION_ID_ALIASES).toEqual(app.LEGAL_POLICY_VERSION_ID_ALIASES);
   });
 
+  it('keeps aliases only of the current texts (empty the list when an id is bumped)', () => {
+    // An alias is the current id under the previous product prefix: `<product>-<policy>-<date>`.
+    const withCurrentPrefix = (id: string) => `znteqr${id.slice(id.indexOf('-'))}`;
+    const bumpHint =
+      'TERMS_VERSION_HASH or PRIVACY_VERSION_HASH was bumped: empty LEGAL_POLICY_VERSION_ID_ALIASES in both runtimes';
+
+    for (const alias of app.LEGAL_POLICY_VERSION_ID_ALIASES) {
+      expect(alias.termsVersionHash).not.toBe(app.TERMS_VERSION_HASH);
+      expect(alias.privacyVersionHash).not.toBe(app.PRIVACY_VERSION_HASH);
+      expect(withCurrentPrefix(alias.termsVersionHash), bumpHint).toBe(app.TERMS_VERSION_HASH);
+      expect(withCurrentPrefix(alias.privacyVersionHash), bumpHint).toBe(app.PRIVACY_VERSION_HASH);
+    }
+  });
+
   it('accepts, and records as sent, every id pair the app sends or reads from storage', () => {
     const pairs = [app.CURRENT_LEGAL_POLICY_VERSION_IDS, ...app.LEGAL_POLICY_VERSION_ID_ALIASES];
     for (const ids of pairs) {

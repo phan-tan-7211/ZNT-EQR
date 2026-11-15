@@ -1,6 +1,7 @@
 /**
  * Canonical legal policy version tokens for terms_acceptances evidence.
- * Must stay identical to `src/lib/legalPolicyVersions.ts` (bump both together).
+ * Must stay identical to `src/lib/legalPolicyVersions.ts` (bump both together,
+ * and empty LEGAL_POLICY_VERSION_ID_ALIASES in both in the same change).
  *
  * No imports: keeps this module runnable with a plain `deno test`.
  */
@@ -24,8 +25,9 @@ const RETIRED_ID_PREFIX = String.fromCharCode(101, 113, 117, 105, 112, 113, 114)
  *
  * Remove this list, together with its twin in `src/lib/legalPolicyVersions.ts`,
  * in the same release that bumps TERMS_VERSION_HASH or PRIVACY_VERSION_HASH (the
- * aliases then name a superseded text), or earlier once no app bundle and no
- * unconfirmed sign-up from before the rename (2026-11-15) can still be in use.
+ * aliases then name a superseded text), and not earlier: the app finds the rows
+ * recorded under the alias ids only through its twin list, and without it would
+ * record a second acceptance event for those users.
  */
 export const LEGAL_POLICY_VERSION_ID_ALIASES: readonly LegalPolicyVersionIds[] = [
   {
