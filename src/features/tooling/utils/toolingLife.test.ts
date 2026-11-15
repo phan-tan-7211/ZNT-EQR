@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   formatToolingNumber,
+  parseOptionalNumber,
   toolingIssueBlockers,
   toolingLifePercent,
   toolingLifeTone,
@@ -103,6 +104,28 @@ describe('toolingIssueBlockers', () => {
         inspection_overdue: true,
       }),
     ).toEqual(['issued', 'not_approved', 'not_usable', 'damaged', 'life_limit', 'inspection_overdue']);
+  });
+});
+
+describe('parseOptionalNumber', () => {
+  it('returns null for an empty or whitespace-only input', () => {
+    expect(parseOptionalNumber('')).toBeNull();
+    expect(parseOptionalNumber('   ')).toBeNull();
+  });
+
+  it('parses trimmed integers, decimals, negatives and zero', () => {
+    expect(parseOptionalNumber('120')).toBe(120);
+    expect(parseOptionalNumber(' 1.5 ')).toBe(1.5);
+    expect(parseOptionalNumber('-100')).toBe(-100);
+    expect(parseOptionalNumber('0')).toBe(0);
+    expect(parseOptionalNumber('1e3')).toBe(1000);
+  });
+
+  it('returns undefined for input that is not a finite number', () => {
+    expect(parseOptionalNumber('abc')).toBeUndefined();
+    expect(parseOptionalNumber('12abc')).toBeUndefined();
+    expect(parseOptionalNumber('1,5')).toBeUndefined();
+    expect(parseOptionalNumber('Infinity')).toBeUndefined();
   });
 });
 

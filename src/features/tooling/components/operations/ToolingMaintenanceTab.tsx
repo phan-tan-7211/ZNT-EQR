@@ -2,31 +2,27 @@ import { useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Ban, CalendarClock, ClipboardCheck, ClipboardList, Hammer, Plus, Search, Trash2, Wrench } from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import EmptyState from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { ToolingUsabilityBadge } from '@/features/tooling/components/ToolingStatusBadges';
+import {
+  FieldError,
+  LoadStateBoundary,
+  OperationFormDialog,
+  RecordListBoundary,
+  UsabilityReasonDialog,
+} from '@/features/tooling/components/operations/ToolingOperationShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useRecordToolingVerification,
-  useSetToolingUsability,
   useToolingVerifications,
   useToolingWorkOrders,
 } from '@/features/tooling/hooks/useTooling';
@@ -76,15 +72,6 @@ function isVerificationResult(value: string): value is ToolingVerificationResult
 /** Date-only values (YYYY-MM-DD) are anchored at noon UTC so time zones never shift the day. */
 function dateOnly(value: string): string {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T12:00:00Z` : value;
-}
-
-function FieldError({ show, message }: { show: boolean; message: string }) {
-  if (!show) return null;
-  return (
-    <p className="text-sm text-destructive" role="alert">
-      {message}
-    </p>
-  );
 }
 
 function useWorkOrderLabels() {
@@ -226,51 +213,44 @@ function WorkOrdersCard({
         {workOrders.length > 0 && createButton}
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('toolingOps.common.loading')}>
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-12 w-full" />
-          </div>
-        ) : failed ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingOps.common.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : workOrders.length === 0 ? (
-          <EmptyState
-            icon={ClipboardList}
-            title={t('toolingOps.workOrders.emptyTitle')}
-            description={t('toolingOps.workOrders.emptyDescription')}
-            action={createButton}
-            className="py-8"
-          />
-        ) : (
-          <ul className="divide-y rounded-md border">
-            {workOrders.map((wo) => (
-              <li key={wo.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0 space-y-1">
-                  <Link
-                    to={`/dashboard/work-orders/${wo.id}`}
-                    className="break-words font-medium text-primary underline-offset-4 hover:underline"
-                  >
-                    {wo.title}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">
-                    {t('toolingOps.workOrders.created', { date: formatDate(wo.created_date) })}
-                    {wo.completed_date ? ` · ${t('toolingOps.workOrders.completed', { date: formatDate(wo.completed_date) })}` : ''}
-                    {!wo.completed_date && wo.due_date ? ` · ${t('toolingOps.workOrders.due', { date: formatDate(dateOnly(wo.due_date)) })}` : ''}
-                  </p>
-                </div>
-                <div className="flex flex-wrap items-center gap-1.5">
-                  {wo.has_pm && <Badge variant="outline">{t('toolingOps.workOrders.pm')}</Badge>}
-                  <Badge variant={wo.status === 'completed' ? 'secondary' : 'default'}>{labels.status(wo.status)}</Badge>
-                  <Badge variant={wo.priority === 'high' ? 'destructive' : 'outline'}>
-                    {t('toolingOps.workOrders.priorityLabel', { priority: labels.priority(wo.priority) })}
-                  </Badge>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        <LoadStateBoundary loading={loading} failed={failed} skeletonClassName="h-12 w-full">
+          {workOrders.length === 0 ? (
+            <EmptyState
+              icon={ClipboardList}
+              title={t('toolingOps.workOrders.emptyTitle')}
+              description={t('toolingOps.workOrders.emptyDescription')}
+              action={createButton}
+              className="py-8"
+            />
+          ) : (
+            <ul className="divide-y rounded-md border">
+              {workOrders.map((wo) => (
+                <li key={wo.id} className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0 space-y-1">
+                    <Link
+                      to={`/dashboard/work-orders/${wo.id}`}
+                      className="break-words font-medium text-primary underline-offset-4 hover:underline"
+                    >
+                      {wo.title}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      {t('toolingOps.workOrders.created', { date: formatDate(wo.created_date) })}
+                      {wo.completed_date ? ` · ${t('toolingOps.workOrders.completed', { date: formatDate(wo.completed_date) })}` : ''}
+                      {!wo.completed_date && wo.due_date ? ` · ${t('toolingOps.workOrders.due', { date: formatDate(dateOnly(wo.due_date)) })}` : ''}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {wo.has_pm && <Badge variant="outline">{t('toolingOps.workOrders.pm')}</Badge>}
+                    <Badge variant={wo.status === 'completed' ? 'secondary' : 'default'}>{labels.status(wo.status)}</Badge>
+                    <Badge variant={wo.priority === 'high' ? 'destructive' : 'outline'}>
+                      {t('toolingOps.workOrders.priorityLabel', { priority: labels.priority(wo.priority) })}
+                    </Badge>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </LoadStateBoundary>
       </CardContent>
     </Card>
   );
@@ -290,65 +270,28 @@ function OutOfServiceDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const { t } = useI18n();
-  const setUsability = useSetToolingUsability(tool.id);
-  const [reason, setReason] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const reasonMissing = reason.trim().length === 0;
   const stateLabel = t(`tooling.usability.${state}`);
 
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    setSubmitted(true);
-    if (reasonMissing) return;
-    setUsability.mutate(
-      { state, reason: reason.trim() },
-      {
-        onSuccess: () => {
-          toast.success(t('toolingOps.outOfService.success', { state: stateLabel }));
-          onOpenChange(false);
-        },
-        onError: (error) => toast.error(toolingErrorMessage(error, t)),
-      },
-    );
-  };
-
   return (
-    <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t(`toolingOps.outOfService.actions.${state}`)}</DialogTitle>
-            <DialogDescription>{t(`toolingOps.outOfService.descriptions.${state}`)}</DialogDescription>
-          </DialogHeader>
-          <p className="text-sm">
-            {t('toolingOps.outOfService.transition', {
-              from: t(`tooling.usability.${tool.usability_state}`),
-              to: stateLabel,
-            })}
-          </p>
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-oos-reason">{t('tooling.reason')}</Label>
-            <Textarea
-              id="tooling-oos-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              maxLength={1000}
-              aria-invalid={submitted && reasonMissing}
-            />
-            <FieldError show={submitted && reasonMissing} message={t('tooling.reasonRequired')} />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={setUsability.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" variant={state === 'retired' ? 'destructive' : 'default'} disabled={setUsability.isPending}>
-              {setUsability.isPending ? t('tooling.saving') : t('tooling.confirm')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <UsabilityReasonDialog
+      toolingId={tool.id}
+      state={state}
+      open
+      onOpenChange={onOpenChange}
+      title={t(`toolingOps.outOfService.actions.${state}`)}
+      description={t(`toolingOps.outOfService.descriptions.${state}`)}
+      reasonFieldId="tooling-oos-reason"
+      successMessage={t('toolingOps.outOfService.success', { state: stateLabel })}
+      submitLabel={t('tooling.confirm')}
+      submitVariant={state === 'retired' ? 'destructive' : 'default'}
+    >
+      <p className="text-sm">
+        {t('toolingOps.outOfService.transition', {
+          from: t(`tooling.usability.${tool.usability_state}`),
+          to: stateLabel,
+        })}
+      </p>
+    </UsabilityReasonDialog>
   );
 }
 
@@ -421,154 +364,144 @@ function RecordInspectionDialog({
   };
 
   return (
-    <Dialog open onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t('toolingOps.inspection.title')}</DialogTitle>
-            <DialogDescription>{t('toolingOps.inspection.description')}</DialogDescription>
-          </DialogHeader>
+    <OperationFormDialog
+      open
+      onOpenChange={onOpenChange}
+      title={t('toolingOps.inspection.title')}
+      description={t('toolingOps.inspection.description')}
+      onSubmit={handleSubmit}
+      pending={record.isPending}
+      submitLabel={t('toolingOps.inspection.submit')}
+    >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="tooling-inspection-type">{t('toolingOps.inspection.type')}</Label>
+          <Select value={type} onValueChange={(value) => isVerificationType(value) && setType(value)}>
+            <SelectTrigger id="tooling-inspection-type" aria-label={t('toolingOps.inspection.type')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TOOLING_VERIFICATION_TYPES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`tooling.verificationTypes.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="tooling-inspection-result">{t('toolingOps.inspection.result')}</Label>
+          <Select
+            value={result}
+            onValueChange={(value) => {
+              if (!isVerificationResult(value)) return;
+              setResult(value);
+              if (value !== 'pass') setReturnToService(false);
+            }}
+          >
+            <SelectTrigger
+              id="tooling-inspection-result"
+              aria-label={t('toolingOps.inspection.result')}
+              aria-invalid={submitted && resultMissing}
+            >
+              <SelectValue placeholder={t('toolingOps.inspection.resultPlaceholder')} />
+            </SelectTrigger>
+            <SelectContent>
+              {TOOLING_VERIFICATION_RESULTS.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {t(`tooling.verificationResults.${value}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FieldError show={submitted && resultMissing} message={t('toolingOps.inspection.resultRequired')} />
+        </div>
+      </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <Label htmlFor="tooling-inspection-type">{t('toolingOps.inspection.type')}</Label>
-              <Select value={type} onValueChange={(value) => isVerificationType(value) && setType(value)}>
-                <SelectTrigger id="tooling-inspection-type" aria-label={t('toolingOps.inspection.type')}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOOLING_VERIFICATION_TYPES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`tooling.verificationTypes.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="tooling-inspection-result">{t('toolingOps.inspection.result')}</Label>
-              <Select
-                value={result}
-                onValueChange={(value) => {
-                  if (!isVerificationResult(value)) return;
-                  setResult(value);
-                  if (value !== 'pass') setReturnToService(false);
-                }}
-              >
-                <SelectTrigger
-                  id="tooling-inspection-result"
-                  aria-label={t('toolingOps.inspection.result')}
-                  aria-invalid={submitted && resultMissing}
-                >
-                  <SelectValue placeholder={t('toolingOps.inspection.resultPlaceholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {TOOLING_VERIFICATION_RESULTS.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {t(`tooling.verificationResults.${value}`)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FieldError show={submitted && resultMissing} message={t('toolingOps.inspection.resultRequired')} />
-            </div>
-          </div>
+      {result === 'fail' && (
+        <p className={cn('text-xs', failWhileIssued ? 'text-destructive' : 'text-muted-foreground')} role={failWhileIssued ? 'alert' : undefined}>
+          {failWhileIssued ? t('tooling.errors.TOOLING_ISSUED_RETURN_FIRST') : t('toolingOps.inspection.failQuarantines')}
+        </p>
+      )}
 
-          {result === 'fail' && (
-            <p className={cn('text-xs', failWhileIssued ? 'text-destructive' : 'text-muted-foreground')} role={failWhileIssued ? 'alert' : undefined}>
-              {failWhileIssued ? t('tooling.errors.TOOLING_ISSUED_RETURN_FIRST') : t('toolingOps.inspection.failQuarantines')}
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-inspection-findings">
+          {t('toolingOps.inspection.findings')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Textarea id="tooling-inspection-findings" value={findings} onChange={(e) => setFindings(e.target.value)} rows={3} maxLength={4000} />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-inspection-wo">
+          {t('toolingOps.inspection.workOrder')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Select value={workOrderId} onValueChange={setWorkOrderId}>
+          <SelectTrigger id="tooling-inspection-wo" aria-label={t('toolingOps.inspection.workOrder')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE}>{t('toolingOps.common.noneOption')}</SelectItem>
+            {workOrders.map((wo) => (
+              <SelectItem key={wo.id} value={wo.id}>
+                {wo.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="flex items-start gap-2 rounded-md border p-3">
+        <Checkbox
+          id="tooling-inspection-maintenance"
+          checked={maintenanceCompleted}
+          onCheckedChange={(checked) => setMaintenanceCompleted(checked === true)}
+          className="mt-0.5"
+        />
+        <div className="space-y-1">
+          <Label htmlFor="tooling-inspection-maintenance">{t('toolingOps.inspection.maintenanceCompleted')}</Label>
+          <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.maintenanceHelp')}</p>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-inspection-next">
+          {t('toolingOps.inspection.nextDue')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Input
+          id="tooling-inspection-next"
+          type="date"
+          value={nextDue}
+          onChange={(e) => setNextDue(e.target.value)}
+          aria-invalid={submitted && nextDueInvalid}
+        />
+        <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.nextDueHelp')}</p>
+        <FieldError show={submitted && nextDueInvalid} message={t('toolingOps.inspection.nextDueInvalid')} />
+      </div>
+
+      {canManage && (
+        <div className={cn('flex items-start gap-2 rounded-md border p-3', rtsEnabled && 'border-emerald-500/40 bg-emerald-500/5')}>
+          <Checkbox
+            id="tooling-inspection-rts"
+            checked={rtsEnabled && returnToService}
+            disabled={!rtsEnabled}
+            onCheckedChange={(checked) => setReturnToService(checked === true)}
+            className="mt-0.5"
+            aria-describedby="tooling-inspection-rts-help"
+          />
+          <div className="space-y-1">
+            <Label htmlFor="tooling-inspection-rts" className={cn(!rtsEnabled && 'text-muted-foreground')}>
+              {t('toolingOps.inspection.returnToService')}
+            </Label>
+            <p id="tooling-inspection-rts-help" className="text-xs text-muted-foreground">
+              {rtsHint}
             </p>
-          )}
-
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-inspection-findings">
-              {t('toolingOps.inspection.findings')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Textarea id="tooling-inspection-findings" value={findings} onChange={(e) => setFindings(e.target.value)} rows={3} maxLength={4000} />
           </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-inspection-wo">
-              {t('toolingOps.inspection.workOrder')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Select value={workOrderId} onValueChange={setWorkOrderId}>
-              <SelectTrigger id="tooling-inspection-wo" aria-label={t('toolingOps.inspection.workOrder')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>{t('toolingOps.common.noneOption')}</SelectItem>
-                {workOrders.map((wo) => (
-                  <SelectItem key={wo.id} value={wo.id}>
-                    {wo.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-start gap-2 rounded-md border p-3">
-            <Checkbox
-              id="tooling-inspection-maintenance"
-              checked={maintenanceCompleted}
-              onCheckedChange={(checked) => setMaintenanceCompleted(checked === true)}
-              className="mt-0.5"
-            />
-            <div className="space-y-1">
-              <Label htmlFor="tooling-inspection-maintenance">{t('toolingOps.inspection.maintenanceCompleted')}</Label>
-              <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.maintenanceHelp')}</p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-inspection-next">
-              {t('toolingOps.inspection.nextDue')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Input
-              id="tooling-inspection-next"
-              type="date"
-              value={nextDue}
-              onChange={(e) => setNextDue(e.target.value)}
-              aria-invalid={submitted && nextDueInvalid}
-            />
-            <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.nextDueHelp')}</p>
-            <FieldError show={submitted && nextDueInvalid} message={t('toolingOps.inspection.nextDueInvalid')} />
-          </div>
-
-          {canManage && (
-            <div className={cn('flex items-start gap-2 rounded-md border p-3', rtsEnabled && 'border-emerald-500/40 bg-emerald-500/5')}>
-              <Checkbox
-                id="tooling-inspection-rts"
-                checked={rtsEnabled && returnToService}
-                disabled={!rtsEnabled}
-                onCheckedChange={(checked) => setReturnToService(checked === true)}
-                className="mt-0.5"
-                aria-describedby="tooling-inspection-rts-help"
-              />
-              <div className="space-y-1">
-                <Label htmlFor="tooling-inspection-rts" className={cn(!rtsEnabled && 'text-muted-foreground')}>
-                  {t('toolingOps.inspection.returnToService')}
-                </Label>
-                <p id="tooling-inspection-rts-help" className="text-xs text-muted-foreground">
-                  {rtsHint}
-                </p>
-              </div>
-            </div>
-          )}
-          {!canManage && outOfService && (
-            <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.rtsAdminOnly')}</p>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={record.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" disabled={record.isPending}>
-              {record.isPending ? t('tooling.saving') : t('toolingOps.inspection.submit')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+      {!canManage && outOfService && (
+        <p className="text-xs text-muted-foreground">{t('toolingOps.inspection.rtsAdminOnly')}</p>
+      )}
+    </OperationFormDialog>
   );
 }
 
@@ -644,102 +577,94 @@ function InspectionHistory({
         <CardDescription>{t('toolingOps.inspections.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('toolingOps.common.loading')}>
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : failed ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingOps.common.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : verifications.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">{t('toolingOps.inspections.empty')}</p>
-        ) : (
-          <>
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('toolingOps.inspections.time')}</TableHead>
-                    <TableHead>{t('toolingOps.inspection.type')}</TableHead>
-                    <TableHead>{t('toolingOps.inspection.result')}</TableHead>
-                    <TableHead>{t('toolingOps.inspection.findings')}</TableHead>
-                    <TableHead>{t('toolingOps.inspection.workOrder')}</TableHead>
-                    <TableHead>{t('toolingOps.inspections.maintenance')}</TableHead>
-                    <TableHead>{t('toolingOps.inspections.usability')}</TableHead>
-                    <TableHead>{t('toolingOps.inspections.inspector')}</TableHead>
-                    <TableHead>{t('toolingOps.inspections.returnToService')}</TableHead>
+        <RecordListBoundary
+          loading={loading}
+          failed={failed}
+          empty={verifications.length === 0}
+          emptyMessage={t('toolingOps.inspections.empty')}
+        >
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('toolingOps.inspections.time')}</TableHead>
+                  <TableHead>{t('toolingOps.inspection.type')}</TableHead>
+                  <TableHead>{t('toolingOps.inspection.result')}</TableHead>
+                  <TableHead>{t('toolingOps.inspection.findings')}</TableHead>
+                  <TableHead>{t('toolingOps.inspection.workOrder')}</TableHead>
+                  <TableHead>{t('toolingOps.inspections.maintenance')}</TableHead>
+                  <TableHead>{t('toolingOps.inspections.usability')}</TableHead>
+                  <TableHead>{t('toolingOps.inspections.inspector')}</TableHead>
+                  <TableHead>{t('toolingOps.inspections.returnToService')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {verifications.map((v) => (
+                  <TableRow key={v.id}>
+                    <TableCell className="whitespace-nowrap">{formatDateTime(v.inspected_at)}</TableCell>
+                    <TableCell>{t(`tooling.verificationTypes.${v.verification_type}`)}</TableCell>
+                    <TableCell>
+                      <ResultBadge result={v.result} />
+                    </TableCell>
+                    <TableCell className="max-w-[16rem] break-words">{v.findings ?? none}</TableCell>
+                    <TableCell className="max-w-[12rem]">{woLink(v)}</TableCell>
+                    <TableCell>{v.maintenance_completed ? t('tooling.yes') : t('tooling.no')}</TableCell>
+                    <TableCell>
+                      <UsabilityTransition verification={v} />
+                    </TableCell>
+                    <TableCell>{v.inspected_by_name ?? none}</TableCell>
+                    <TableCell className="text-xs">{approval(v)}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {verifications.map((v) => (
-                    <TableRow key={v.id}>
-                      <TableCell className="whitespace-nowrap">{formatDateTime(v.inspected_at)}</TableCell>
-                      <TableCell>{t(`tooling.verificationTypes.${v.verification_type}`)}</TableCell>
-                      <TableCell>
-                        <ResultBadge result={v.result} />
-                      </TableCell>
-                      <TableCell className="max-w-[16rem] break-words">{v.findings ?? none}</TableCell>
-                      <TableCell className="max-w-[12rem]">{woLink(v)}</TableCell>
-                      <TableCell>{v.maintenance_completed ? t('tooling.yes') : t('tooling.no')}</TableCell>
-                      <TableCell>
-                        <UsabilityTransition verification={v} />
-                      </TableCell>
-                      <TableCell>{v.inspected_by_name ?? none}</TableCell>
-                      <TableCell className="text-xs">{approval(v)}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <ul className="space-y-3 md:hidden">
-              {verifications.map((v) => (
-                <li key={v.id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="break-words font-medium">{t(`tooling.verificationTypes.${v.verification_type}`)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTime(v.inspected_at)} · {v.inspected_by_name ?? none}
-                      </p>
-                    </div>
-                    <ResultBadge result={v.result} />
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ul className="space-y-3 md:hidden">
+            {verifications.map((v) => (
+              <li key={v.id} className="rounded-md border p-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="break-words font-medium">{t(`tooling.verificationTypes.${v.verification_type}`)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(v.inspected_at)} · {v.inspected_by_name ?? none}
+                    </p>
                   </div>
-                  <dl className="mt-2 grid grid-cols-1 gap-2">
-                    {v.findings && (
-                      <div>
-                        <dt className="text-xs text-muted-foreground">{t('toolingOps.inspection.findings')}</dt>
-                        <dd className="break-words">{v.findings}</dd>
-                      </div>
-                    )}
+                  <ResultBadge result={v.result} />
+                </div>
+                <dl className="mt-2 grid grid-cols-1 gap-2">
+                  {v.findings && (
                     <div>
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.usability')}</dt>
-                      <dd>
-                        <UsabilityTransition verification={v} />
-                      </dd>
+                      <dt className="text-xs text-muted-foreground">{t('toolingOps.inspection.findings')}</dt>
+                      <dd className="break-words">{v.findings}</dd>
                     </div>
+                  )}
+                  <div>
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.usability')}</dt>
+                    <dd>
+                      <UsabilityTransition verification={v} />
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.maintenance')}</dt>
+                    <dd>{v.maintenance_completed ? t('tooling.yes') : t('tooling.no')}</dd>
+                  </div>
+                  {v.work_order_id && (
                     <div>
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.maintenance')}</dt>
-                      <dd>{v.maintenance_completed ? t('tooling.yes') : t('tooling.no')}</dd>
+                      <dt className="text-xs text-muted-foreground">{t('toolingOps.inspection.workOrder')}</dt>
+                      <dd>{woLink(v)}</dd>
                     </div>
-                    {v.work_order_id && (
-                      <div>
-                        <dt className="text-xs text-muted-foreground">{t('toolingOps.inspection.workOrder')}</dt>
-                        <dd>{woLink(v)}</dd>
-                      </div>
-                    )}
-                    {v.returned_to_service && (
-                      <div>
-                        <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.returnToService')}</dt>
-                        <dd className="break-words">{approval(v)}</dd>
-                      </div>
-                    )}
-                  </dl>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+                  )}
+                  {v.returned_to_service && (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">{t('toolingOps.inspections.returnToService')}</dt>
+                      <dd className="break-words">{approval(v)}</dd>
+                    </div>
+                  )}
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </RecordListBoundary>
       </CardContent>
     </Card>
   );

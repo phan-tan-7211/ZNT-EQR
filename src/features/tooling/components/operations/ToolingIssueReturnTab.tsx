@@ -6,14 +6,6 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +13,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import { useOrganizationMembersQuery } from '@/features/organization/hooks/useOrganizationMembers';
+import {
+  FieldError,
+  OperationFormDialog,
+  RecordListBoundary,
+  UsabilityReasonDialog,
+} from '@/features/tooling/components/operations/ToolingOperationShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useIssueTooling,
@@ -28,7 +26,6 @@ import {
   useProductParts,
   useProductionOperations,
   useReturnTooling,
-  useSetToolingUsability,
   useToolingAssignments,
   useToolingCompatibility,
   useTransferToolingLocation,
@@ -42,7 +39,7 @@ import {
 } from '@/features/tooling/types';
 import { toolingKeys } from '@/features/tooling/hooks/toolingKeys';
 import { extractToolingErrorCode, toolingErrorMessage } from '@/features/tooling/utils/toolingErrors';
-import { formatToolingNumber, toolingIssueBlockers } from '@/features/tooling/utils/toolingLife';
+import { formatToolingNumber, parseOptionalNumber, toolingIssueBlockers } from '@/features/tooling/utils/toolingLife';
 import { useAuth } from '@/hooks/useAuth';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
 import { useI18n } from '@/i18n';
@@ -51,14 +48,6 @@ const NONE = '__none__';
 
 type Option = { id: string; label: string };
 type Translate = (key: string, params?: Record<string, string | number>) => string;
-
-/** Empty → null, invalid → undefined. */
-function parseOptionalNumber(value: string): number | null | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
 
 function isConditionValue(value: string): value is ToolingCondition {
   return (TOOLING_CONDITIONS as readonly string[]).includes(value);
@@ -237,113 +226,99 @@ function IssueToolDialog({ tool, open, onOpenChange }: { tool: ToolingOverview; 
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t('toolingOps.issue.dialogTitle')}</DialogTitle>
-            <DialogDescription>{t('toolingOps.issue.dialogDescription', { name: tool.name })}</DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-issue-recipient">{t('toolingOps.issue.recipient')}</Label>
-            <Select value={recipient} onValueChange={setRecipient} disabled={membersLoading}>
-              <SelectTrigger
-                id="tooling-issue-recipient"
-                aria-label={t('toolingOps.issue.recipient')}
-                aria-invalid={submitted && recipientMissing}
-              >
-                <SelectValue
-                  placeholder={membersLoading ? t('toolingOps.issue.membersLoading') : t('toolingOps.issue.recipientPlaceholder')}
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {activeMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {submitted && recipientMissing && (
-              <p className="text-sm text-destructive" role="alert">
-                {t('toolingOps.issue.recipientRequired')}
-              </p>
-            )}
-          </div>
-
-          <fieldset className="space-y-3 rounded-md border p-3">
-            <legend className="px-1 text-sm font-medium">{t('toolingOps.issue.contextTitle')}</legend>
-            <p className="text-xs text-muted-foreground">{t('toolingOps.issue.contextHelp')}</p>
-            {restrictToRules && <p className="text-xs text-muted-foreground">{t('toolingOps.issue.contextFromRules')}</p>}
-            <OptionalSelect
-              id="tooling-issue-product"
-              label={t('toolingOps.issue.product')}
-              value={productId}
-              onChange={setProductId}
-              options={productOptions}
-              noneLabel={t('toolingOps.common.noneOption')}
+    <OperationFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('toolingOps.issue.dialogTitle')}
+      description={t('toolingOps.issue.dialogDescription', { name: tool.name })}
+      onSubmit={handleSubmit}
+      pending={issue.isPending}
+      submitLabel={t('toolingOps.issue.submit')}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-issue-recipient">{t('toolingOps.issue.recipient')}</Label>
+        <Select value={recipient} onValueChange={setRecipient} disabled={membersLoading}>
+          <SelectTrigger
+            id="tooling-issue-recipient"
+            aria-label={t('toolingOps.issue.recipient')}
+            aria-invalid={submitted && recipientMissing}
+          >
+            <SelectValue
+              placeholder={membersLoading ? t('toolingOps.issue.membersLoading') : t('toolingOps.issue.recipientPlaceholder')}
             />
-            <OptionalSelect
-              id="tooling-issue-operation"
-              label={t('toolingOps.issue.operation')}
-              value={operationId}
-              onChange={setOperationId}
-              options={operationOptions}
-              noneLabel={t('toolingOps.common.noneOption')}
-            />
-            <OptionalSelect
-              id="tooling-issue-machine"
-              label={t('toolingOps.issue.machine')}
-              value={machineId}
-              onChange={setMachineId}
-              options={machineOptions}
-              noneLabel={t('toolingOps.common.noneOption')}
-            />
-          </fieldset>
+          </SelectTrigger>
+          <SelectContent>
+            {activeMembers.map((member) => (
+              <SelectItem key={member.id} value={member.id}>
+                {member.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FieldError show={submitted && recipientMissing} message={t('toolingOps.issue.recipientRequired')} />
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-issue-location">
-              {t('toolingOps.issue.issueLocation')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Input id="tooling-issue-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} />
-          </div>
+      <fieldset className="space-y-3 rounded-md border p-3">
+        <legend className="px-1 text-sm font-medium">{t('toolingOps.issue.contextTitle')}</legend>
+        <p className="text-xs text-muted-foreground">{t('toolingOps.issue.contextHelp')}</p>
+        {restrictToRules && <p className="text-xs text-muted-foreground">{t('toolingOps.issue.contextFromRules')}</p>}
+        <OptionalSelect
+          id="tooling-issue-product"
+          label={t('toolingOps.issue.product')}
+          value={productId}
+          onChange={setProductId}
+          options={productOptions}
+          noneLabel={t('toolingOps.common.noneOption')}
+        />
+        <OptionalSelect
+          id="tooling-issue-operation"
+          label={t('toolingOps.issue.operation')}
+          value={operationId}
+          onChange={setOperationId}
+          options={operationOptions}
+          noneLabel={t('toolingOps.common.noneOption')}
+        />
+        <OptionalSelect
+          id="tooling-issue-machine"
+          label={t('toolingOps.issue.machine')}
+          value={machineId}
+          onChange={setMachineId}
+          options={machineOptions}
+          noneLabel={t('toolingOps.common.noneOption')}
+        />
+      </fieldset>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-issue-condition">{t('toolingOps.issue.conditionAtIssue')}</Label>
-            <Select value={condition} onValueChange={(value) => isConditionValue(value) && setCondition(value)}>
-              <SelectTrigger id="tooling-issue-condition" aria-label={t('toolingOps.issue.conditionAtIssue')}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TOOLING_CONDITIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {t(`tooling.conditions.${value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {condition === 'damaged' && <p className="text-xs text-destructive">{t('toolingOps.issue.damagedBlocked')}</p>}
-          </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-issue-location">
+          {t('toolingOps.issue.issueLocation')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Input id="tooling-issue-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} />
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-issue-notes">
-              {t('tooling.notes')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Textarea id="tooling-issue-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
-          </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-issue-condition">{t('toolingOps.issue.conditionAtIssue')}</Label>
+        <Select value={condition} onValueChange={(value) => isConditionValue(value) && setCondition(value)}>
+          <SelectTrigger id="tooling-issue-condition" aria-label={t('toolingOps.issue.conditionAtIssue')}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {TOOLING_CONDITIONS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`tooling.conditions.${value}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {condition === 'damaged' && <p className="text-xs text-destructive">{t('toolingOps.issue.damagedBlocked')}</p>}
+      </div>
 
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={issue.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" disabled={issue.isPending}>
-              {issue.isPending ? t('tooling.saving') : t('toolingOps.issue.submit')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-issue-notes">
+          {t('tooling.notes')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Textarea id="tooling-issue-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
+      </div>
+    </OperationFormDialog>
   );
 }
 
@@ -388,95 +363,75 @@ function ReturnToolDialog({ tool, open, onOpenChange }: { tool: ToolingOverview;
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t('toolingOps.return.dialogTitle')}</DialogTitle>
-            <DialogDescription>
-              {t('toolingOps.return.dialogDescription', {
-                name: tool.name,
-                holder: tool.issued_to_name ?? t('tooling.none'),
-              })}
-            </DialogDescription>
-          </DialogHeader>
+    <OperationFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('toolingOps.return.dialogTitle')}
+      description={t('toolingOps.return.dialogDescription', {
+        name: tool.name,
+        holder: tool.issued_to_name ?? t('tooling.none'),
+      })}
+      onSubmit={handleSubmit}
+      pending={returnTool.isPending}
+      submitLabel={t('toolingOps.return.submit')}
+    >
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-return-condition">{t('toolingOps.return.condition')}</Label>
+        <Select value={condition} onValueChange={(value) => isConditionValue(value) && setCondition(value)}>
+          <SelectTrigger
+            id="tooling-return-condition"
+            aria-label={t('toolingOps.return.condition')}
+            aria-invalid={submitted && conditionMissing}
+          >
+            <SelectValue placeholder={t('toolingOps.return.conditionPlaceholder')} />
+          </SelectTrigger>
+          <SelectContent>
+            {TOOLING_CONDITIONS.map((value) => (
+              <SelectItem key={value} value={value}>
+                {t(`tooling.conditions.${value}`)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <FieldError show={submitted && conditionMissing} message={t('toolingOps.return.conditionRequired')} />
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-return-condition">{t('toolingOps.return.condition')}</Label>
-            <Select value={condition} onValueChange={(value) => isConditionValue(value) && setCondition(value)}>
-              <SelectTrigger
-                id="tooling-return-condition"
-                aria-label={t('toolingOps.return.condition')}
-                aria-invalid={submitted && conditionMissing}
-              >
-                <SelectValue placeholder={t('toolingOps.return.conditionPlaceholder')} />
-              </SelectTrigger>
-              <SelectContent>
-                {TOOLING_CONDITIONS.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {t(`tooling.conditions.${value}`)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {submitted && conditionMissing && (
-              <p className="text-sm text-destructive" role="alert">
-                {t('toolingOps.return.conditionRequired')}
-              </p>
-            )}
-          </div>
+      {condition === 'damaged' && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" aria-hidden="true" />
+          <AlertDescription>{t('toolingOps.return.damagedWarning')}</AlertDescription>
+        </Alert>
+      )}
 
-          {condition === 'damaged' && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-              <AlertDescription>{t('toolingOps.return.damagedWarning')}</AlertDescription>
-            </Alert>
-          )}
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-return-location">{t('toolingOps.return.returnLocation')}</Label>
+        <Input id="tooling-return-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} />
+        <p className="text-xs text-muted-foreground">{t('toolingOps.return.returnLocationHelp')}</p>
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-return-location">{t('toolingOps.return.returnLocation')}</Label>
-            <Input id="tooling-return-location" value={location} onChange={(e) => setLocation(e.target.value)} maxLength={200} />
-            <p className="text-xs text-muted-foreground">{t('toolingOps.return.returnLocationHelp')}</p>
-          </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-return-usage">{t('toolingOps.return.usageQuantity', { unit: unitLabel })}</Label>
+        <Input
+          id="tooling-return-usage"
+          type="number"
+          inputMode="decimal"
+          min={0}
+          step="any"
+          value={usage}
+          onChange={(e) => setUsage(e.target.value)}
+          aria-invalid={submitted && usageInvalid}
+        />
+        <p className="text-xs text-muted-foreground">{t('toolingOps.return.usageHelp')}</p>
+        <FieldError show={submitted && usageInvalid} message={t('toolingOps.common.invalidNumber')} />
+      </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-return-usage">{t('toolingOps.return.usageQuantity', { unit: unitLabel })}</Label>
-            <Input
-              id="tooling-return-usage"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              step="any"
-              value={usage}
-              onChange={(e) => setUsage(e.target.value)}
-              aria-invalid={submitted && usageInvalid}
-            />
-            <p className="text-xs text-muted-foreground">{t('toolingOps.return.usageHelp')}</p>
-            {submitted && usageInvalid && (
-              <p className="text-sm text-destructive" role="alert">
-                {t('toolingOps.common.invalidNumber')}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-return-notes">
-              {t('tooling.notes')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Textarea id="tooling-return-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
-          </div>
-
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={returnTool.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" disabled={returnTool.isPending}>
-              {returnTool.isPending ? t('tooling.saving') : t('toolingOps.return.submit')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-return-notes">
+          {t('tooling.notes')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Textarea id="tooling-return-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} maxLength={2000} />
+      </div>
+    </OperationFormDialog>
   );
 }
 
@@ -509,49 +464,38 @@ function TransferDialog({ tool, open, onOpenChange }: { tool: ToolingOverview; o
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t('toolingOps.transfer.dialogTitle')}</DialogTitle>
-            <DialogDescription>{t('toolingOps.transfer.dialogDescription')}</DialogDescription>
-          </DialogHeader>
-          <p className="text-sm">
-            <span className="text-muted-foreground">{t('toolingOps.transfer.currentLocation')}: </span>
-            {tool.storage_location ?? t('tooling.none')}
-          </p>
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-transfer-location">{t('toolingOps.transfer.newLocation')}</Label>
-            <Input
-              id="tooling-transfer-location"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              maxLength={200}
-              aria-invalid={submitted && locationMissing}
-            />
-            {submitted && locationMissing && (
-              <p className="text-sm text-destructive" role="alert">
-                {t('toolingOps.transfer.locationRequired')}
-              </p>
-            )}
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-transfer-reason">
-              {t('tooling.reason')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
-            </Label>
-            <Textarea id="tooling-transfer-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={1000} />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={transfer.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" disabled={transfer.isPending}>
-              {transfer.isPending ? t('tooling.saving') : t('toolingOps.transfer.submit')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <OperationFormDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('toolingOps.transfer.dialogTitle')}
+      description={t('toolingOps.transfer.dialogDescription')}
+      onSubmit={handleSubmit}
+      pending={transfer.isPending}
+      submitLabel={t('toolingOps.transfer.submit')}
+      width="md"
+    >
+      <p className="text-sm">
+        <span className="text-muted-foreground">{t('toolingOps.transfer.currentLocation')}: </span>
+        {tool.storage_location ?? t('tooling.none')}
+      </p>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-transfer-location">{t('toolingOps.transfer.newLocation')}</Label>
+        <Input
+          id="tooling-transfer-location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          maxLength={200}
+          aria-invalid={submitted && locationMissing}
+        />
+        <FieldError show={submitted && locationMissing} message={t('toolingOps.transfer.locationRequired')} />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="tooling-transfer-reason">
+          {t('tooling.reason')} <span className="text-muted-foreground">({t('tooling.optional')})</span>
+        </Label>
+        <Textarea id="tooling-transfer-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={1000} />
+      </div>
+    </OperationFormDialog>
   );
 }
 
@@ -561,62 +505,20 @@ function TransferDialog({ tool, open, onOpenChange }: { tool: ToolingOverview; o
 
 function QuarantineDialog({ tool, open, onOpenChange }: { tool: ToolingOverview; open: boolean; onOpenChange: (open: boolean) => void }) {
   const { t } = useI18n();
-  const setUsability = useSetToolingUsability(tool.id);
-  const [reason, setReason] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const reasonMissing = reason.trim().length === 0;
-
-  const handleSubmit = (event: FormEvent) => {
-    event.preventDefault();
-    setSubmitted(true);
-    if (reasonMissing) return;
-    setUsability.mutate(
-      { state: 'quarantined', reason: reason.trim() },
-      {
-        onSuccess: () => {
-          toast.success(t('toolingOps.quarantine.success'));
-          onOpenChange(false);
-        },
-        onError: (error) => toast.error(toolingErrorMessage(error, t)),
-      },
-    );
-  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{t('toolingOps.quarantine.dialogTitle')}</DialogTitle>
-            <DialogDescription>{t('toolingOps.quarantine.dialogDescription')}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-1.5">
-            <Label htmlFor="tooling-quarantine-reason">{t('tooling.reason')}</Label>
-            <Textarea
-              id="tooling-quarantine-reason"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              rows={3}
-              maxLength={1000}
-              aria-invalid={submitted && reasonMissing}
-            />
-            {submitted && reasonMissing && (
-              <p className="text-sm text-destructive" role="alert">
-                {t('tooling.reasonRequired')}
-              </p>
-            )}
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={setUsability.isPending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" variant="destructive" disabled={setUsability.isPending}>
-              {setUsability.isPending ? t('tooling.saving') : t('toolingOps.quarantine.submit')}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+    <UsabilityReasonDialog
+      toolingId={tool.id}
+      state="quarantined"
+      open={open}
+      onOpenChange={onOpenChange}
+      title={t('toolingOps.quarantine.dialogTitle')}
+      description={t('toolingOps.quarantine.dialogDescription')}
+      reasonFieldId="tooling-quarantine-reason"
+      successMessage={t('toolingOps.quarantine.success')}
+      submitLabel={t('toolingOps.quarantine.submit')}
+      submitVariant="destructive"
+    />
   );
 }
 
@@ -723,124 +625,116 @@ function AssignmentHistory({ tool, assignments, loading, failed }: { tool: Tooli
         <CardDescription>{t('toolingOps.history.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('toolingOps.common.loading')}>
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
+        <RecordListBoundary
+          loading={loading}
+          failed={failed}
+          empty={assignments.length === 0}
+          emptyMessage={t('toolingOps.history.empty')}
+        >
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('toolingOps.history.issued')}</TableHead>
+                  <TableHead>{t('toolingOps.issue.holder')}</TableHead>
+                  <TableHead>{t('toolingOps.history.context')}</TableHead>
+                  <TableHead>{t('toolingOps.history.condition')}</TableHead>
+                  <TableHead>{t('toolingOps.history.returned')}</TableHead>
+                  <TableHead>{t('toolingOps.history.location')}</TableHead>
+                  <TableHead className="text-right">{t('toolingOps.history.usageAtReturn')}</TableHead>
+                  <TableHead>{t('toolingOps.history.status')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {assignments.map((assignment) => {
+                  const context = assignmentContext(assignment);
+                  return (
+                    <TableRow key={assignment.id}>
+                      <TableCell className="whitespace-nowrap">
+                        <div>{formatDateTime(assignment.issued_at)}</div>
+                        <div className="text-xs text-muted-foreground">{assignment.issued_by_name ?? none}</div>
+                      </TableCell>
+                      <TableCell>{assignment.issued_to_name ?? none}</TableCell>
+                      <TableCell className="max-w-[16rem]">
+                        {context.length ? (
+                          <ul className="space-y-0.5 text-xs">
+                            {context.map((item) => (
+                              <li key={item} className="break-words">
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          none
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap">{conditionTransition(assignment, t)}</TableCell>
+                      <TableCell className="whitespace-nowrap">
+                        {assignment.returned_at ? (
+                          <>
+                            <div>{formatDateTime(assignment.returned_at)}</div>
+                            <div className="text-xs text-muted-foreground">{assignment.returned_by_name ?? none}</div>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">{t('toolingOps.history.notReturned')}</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="max-w-[12rem] break-words text-xs">
+                        {assignment.issue_location ?? none}
+                        {assignment.return_location ? ` → ${assignment.return_location}` : ''}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-right">{usageText(assignment.usage_at_return)}</TableCell>
+                      <TableCell>
+                        <AssignmentStatusBadge assignment={assignment} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
-        ) : failed ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingOps.common.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : assignments.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">{t('toolingOps.history.empty')}</p>
-        ) : (
-          <>
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('toolingOps.history.issued')}</TableHead>
-                    <TableHead>{t('toolingOps.issue.holder')}</TableHead>
-                    <TableHead>{t('toolingOps.history.context')}</TableHead>
-                    <TableHead>{t('toolingOps.history.condition')}</TableHead>
-                    <TableHead>{t('toolingOps.history.returned')}</TableHead>
-                    <TableHead>{t('toolingOps.history.location')}</TableHead>
-                    <TableHead className="text-right">{t('toolingOps.history.usageAtReturn')}</TableHead>
-                    <TableHead>{t('toolingOps.history.status')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {assignments.map((assignment) => {
-                    const context = assignmentContext(assignment);
-                    return (
-                      <TableRow key={assignment.id}>
-                        <TableCell className="whitespace-nowrap">
-                          <div>{formatDateTime(assignment.issued_at)}</div>
-                          <div className="text-xs text-muted-foreground">{assignment.issued_by_name ?? none}</div>
-                        </TableCell>
-                        <TableCell>{assignment.issued_to_name ?? none}</TableCell>
-                        <TableCell className="max-w-[16rem]">
-                          {context.length ? (
-                            <ul className="space-y-0.5 text-xs">
-                              {context.map((item) => (
-                                <li key={item} className="break-words">
-                                  {item}
-                                </li>
-                              ))}
-                            </ul>
-                          ) : (
-                            none
-                          )}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap">{conditionTransition(assignment, t)}</TableCell>
-                        <TableCell className="whitespace-nowrap">
-                          {assignment.returned_at ? (
-                            <>
-                              <div>{formatDateTime(assignment.returned_at)}</div>
-                              <div className="text-xs text-muted-foreground">{assignment.returned_by_name ?? none}</div>
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground">{t('toolingOps.history.notReturned')}</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="max-w-[12rem] break-words text-xs">
-                          {assignment.issue_location ?? none}
-                          {assignment.return_location ? ` → ${assignment.return_location}` : ''}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-right">{usageText(assignment.usage_at_return)}</TableCell>
-                        <TableCell>
-                          <AssignmentStatusBadge assignment={assignment} />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            <ul className="space-y-3 md:hidden">
-              {assignments.map((assignment) => {
-                const context = assignmentContext(assignment);
-                return (
-                  <li key={assignment.id} className="rounded-md border p-3 text-sm">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="break-words font-medium">{assignment.issued_to_name ?? none}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t('toolingOps.history.issuedLine', {
-                            time: formatDateTime(assignment.issued_at),
-                            name: assignment.issued_by_name ?? none,
-                          })}
-                        </p>
-                      </div>
-                      <AssignmentStatusBadge assignment={assignment} />
+          <ul className="space-y-3 md:hidden">
+            {assignments.map((assignment) => {
+              const context = assignmentContext(assignment);
+              return (
+                <li key={assignment.id} className="rounded-md border p-3 text-sm">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="break-words font-medium">{assignment.issued_to_name ?? none}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {t('toolingOps.history.issuedLine', {
+                          time: formatDateTime(assignment.issued_at),
+                          name: assignment.issued_by_name ?? none,
+                        })}
+                      </p>
                     </div>
-                    <dl className="mt-2 grid grid-cols-1 gap-2">
-                      {context.length > 0 && <DetailRow label={t('toolingOps.history.context')} value={context.join(' / ')} />}
-                      <DetailRow label={t('toolingOps.history.condition')} value={conditionTransition(assignment, t)} />
-                      <DetailRow
-                        label={t('toolingOps.history.returned')}
-                        value={
-                          assignment.returned_at
-                            ? t('toolingOps.history.returnedLine', {
-                                time: formatDateTime(assignment.returned_at),
-                                name: assignment.returned_by_name ?? none,
-                              })
-                            : t('toolingOps.history.notReturned')
-                        }
-                      />
-                      <DetailRow
-                        label={t('toolingOps.history.location')}
-                        value={`${assignment.issue_location ?? none}${assignment.return_location ? ` → ${assignment.return_location}` : ''}`}
-                      />
-                      <DetailRow label={t('toolingOps.history.usageAtReturn')} value={usageText(assignment.usage_at_return)} />
-                    </dl>
-                  </li>
-                );
-              })}
-            </ul>
-          </>
-        )}
+                    <AssignmentStatusBadge assignment={assignment} />
+                  </div>
+                  <dl className="mt-2 grid grid-cols-1 gap-2">
+                    {context.length > 0 && <DetailRow label={t('toolingOps.history.context')} value={context.join(' / ')} />}
+                    <DetailRow label={t('toolingOps.history.condition')} value={conditionTransition(assignment, t)} />
+                    <DetailRow
+                      label={t('toolingOps.history.returned')}
+                      value={
+                        assignment.returned_at
+                          ? t('toolingOps.history.returnedLine', {
+                              time: formatDateTime(assignment.returned_at),
+                              name: assignment.returned_by_name ?? none,
+                            })
+                          : t('toolingOps.history.notReturned')
+                      }
+                    />
+                    <DetailRow
+                      label={t('toolingOps.history.location')}
+                      value={`${assignment.issue_location ?? none}${assignment.return_location ? ` → ${assignment.return_location}` : ''}`}
+                    />
+                    <DetailRow label={t('toolingOps.history.usageAtReturn')} value={usageText(assignment.usage_at_return)} />
+                  </dl>
+                </li>
+              );
+            })}
+          </ul>
+        </RecordListBoundary>
       </CardContent>
     </Card>
   );
