@@ -10,8 +10,9 @@ import { logger } from '@/utils/logger';
 import { toast } from 'sonner';
 import { validateImageFile } from '@/services/imageUploadService';
 import { getRuntimeFinalHardcodedAuditCopy } from '@/i18n/finalHardcodedAuditRuntime';
+import { whenLegacyStorageMigrated } from '@/lib/legacyStorageMigration';
 
-const STORE_PREFIX = 'equipqr-offline-blob';
+const STORE_PREFIX = 'znteqr-offline-blob';
 
 export interface OfflineBlobRecord {
   blob: Blob;
@@ -85,6 +86,8 @@ export async function loadOfflineImageFiles(
   orgId: string,
   refIds: string[],
 ): Promise<File[]> {
+  // A photo staged by an earlier release may still be moving to the current key.
+  await whenLegacyStorageMigrated();
   const files: File[] = [];
 
   for (const refId of refIds) {
@@ -109,6 +112,8 @@ export async function deleteOfflineImageRefs(
   orgId: string,
   refIds: string[],
 ): Promise<void> {
+  // Deleting before a legacy copy arrives would leave that copy behind.
+  await whenLegacyStorageMigrated();
   await Promise.all(
     refIds.map(async (refId) => {
       try {
@@ -124,6 +129,7 @@ export async function deleteOfflineImageRefs(
 export async function clearOfflineBlobsForUser(userId: string): Promise<void> {
   const prefix = `${STORE_PREFIX}:${userId}:`;
   try {
+    await whenLegacyStorageMigrated();
     const allKeys = await keys<IDBValidKey>();
     const scoped = allKeys.filter(
       (k): k is string => typeof k === 'string' && k.startsWith(prefix),

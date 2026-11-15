@@ -8623,7 +8623,7 @@ COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."used_at" IS 'Timestamp w
 
 
 
-COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."origin_url" IS 'The origin URL (e.g., http://localhost:5173 or https://equipqr.app) to redirect back to after OAuth completes.';
+COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."origin_url" IS 'The origin URL (e.g., http://localhost:5173 or https://eqr.zinitek.com) to redirect back to after OAuth completes.';
 
 
 
@@ -8641,7 +8641,7 @@ CREATE TABLE IF NOT EXISTS "public"."quickbooks_team_customers" (
 ALTER TABLE "public"."quickbooks_team_customers" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."quickbooks_team_customers" IS 'Maps EquipQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
+COMMENT ON TABLE "public"."quickbooks_team_customers" IS 'Maps ZNTEQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
 
 
 

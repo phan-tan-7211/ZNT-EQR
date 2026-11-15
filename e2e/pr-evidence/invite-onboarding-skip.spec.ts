@@ -44,7 +44,7 @@ test.describe('PR evidence: invite onboarding skip @pr-evidence', () => {
       timeout: 30_000,
     });
 
-    expect(await page.evaluate(() => localStorage.getItem('equipqr_current_organization'))).toBe(
+    expect(await page.evaluate(() => localStorage.getItem('znteqr_current_organization'))).toBe(
       apexOrgId,
     );
 

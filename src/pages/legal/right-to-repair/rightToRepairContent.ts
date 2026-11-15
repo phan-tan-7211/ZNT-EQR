@@ -1,9 +1,6 @@
 import type {
   ZnteqrCommitment,
   LandscapeCase,
-  LandscapeLens,
-  LandscapeMechanism,
-  LandscapeSector,
 } from '@/pages/legal/right-to-repair/types';
 
 export const RIGHT_TO_REPAIR_PATH = '/right-to-repair';
@@ -14,8 +11,6 @@ export const RIGHT_TO_REPAIR_SEO = {
     'ZNTEQR supports your right to repair equipment you already own. We will not hold your records hostage. This page is a public stance, not a contract.',
   path: RIGHT_TO_REPAIR_PATH,
 } as const;
-
-export const RIGHT_TO_REPAIR_REVIEWED_ON = 'August 19, 2026';
 
 export const ZNTEQR_REPAIR_COMMITMENTS: readonly ZnteqrCommitment[] = [
   {
@@ -34,30 +29,6 @@ export const ZNTEQR_REPAIR_COMMITMENTS: readonly ZnteqrCommitment[] = [
     body: 'ZNTEQR is a records and work-order system. We do not pair replacement parts to our software, withhold diagnostics as a rent, or brick equipment from the cloud.',
   },
 ];
-
-export const LENS_LABELS: Record<LandscapeLens | 'all', string> = {
-  all: 'All layers',
-  software: 'Software',
-  hardware: 'Hardware',
-  physical: 'Physical repair',
-};
-
-export const SECTOR_LABELS: Record<LandscapeSector | 'all', string> = {
-  all: 'All sectors',
-  enterprise: 'Enterprise',
-  consumer: 'Consumer',
-  'agriculture-fleet': 'Agriculture and fleet',
-};
-
-export const MECHANISM_LABELS: Record<LandscapeMechanism | 'all', string> = {
-  all: 'All mechanisms',
-  'cloud-tether': 'Cloud tether',
-  'subscription-lock': 'Subscription lock',
-  'parts-pairing': 'Parts pairing',
-  'firmware-paywall': 'Firmware paywall',
-  'diagnostic-lockout': 'Diagnostic lockout',
-  'buy-vs-license': 'Buy vs license',
-};
 
 export const LANDSCAPE_CASES: readonly LandscapeCase[] = [
   {

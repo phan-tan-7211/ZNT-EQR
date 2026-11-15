@@ -1,4 +1,4 @@
-import type { Language } from '@/i18n/I18nProvider';
+import { resolvePreferredLanguage } from '@/i18n/languageStorage';
 
 export const errorHandlingResources = {
   en: {
@@ -33,17 +33,7 @@ export const errorHandlingResources = {
   },
 } as const;
 
-export function resolveErrorHandlingLanguage(): Language {
-  if (typeof window === 'undefined') return 'en';
-  const saved = window.localStorage.getItem('znteqr-language');
-  if (saved === 'vi' || saved === 'en' || saved === 'ko') return saved;
-  const browserLanguage = window.navigator.language.toLowerCase();
-  if (browserLanguage.startsWith('vi')) return 'vi';
-  if (browserLanguage.startsWith('ko')) return 'ko';
-  return 'en';
-}
-
-export function getErrorHandlingCopy(language = resolveErrorHandlingLanguage()) {
+export function getErrorHandlingCopy(language = resolvePreferredLanguage()) {
   return errorHandlingResources[language];
 }
 

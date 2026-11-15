@@ -31,6 +31,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExternalLink } from '@/components/ui/external-link';
 import { OPERATOR_DAILY_CHECK_INS_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import { useOperatorChecklistTemplates } from '@/features/operator-check-ins/hooks/useOperatorChecklistTemplates';
 import {
   useCreateEquipmentOperatorCheckinAssignment,
@@ -168,7 +169,7 @@ export function EquipmentOperatorCheckinConfig({
   equipmentName,
   onOpenQrCodeForAssignment,
 }: EquipmentOperatorCheckinConfigProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { data: templates = [], isLoading: templatesLoading } =
     useOperatorChecklistTemplates(organizationId);
   const { data: assignments = [], isLoading: assignmentsLoading } =
@@ -262,7 +263,7 @@ export function EquipmentOperatorCheckinConfig({
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
           {t('operatorEquipment.intro', { name: equipmentName })}{' '}
-          <ExternalLink href={OPERATOR_DAILY_CHECK_INS_DOCS_URL} className="text-sm">
+          <ExternalLink href={localizeDocsUrl(OPERATOR_DAILY_CHECK_INS_DOCS_URL, language)} className="text-sm">
             {t('operatorEquipment.guide')}
           </ExternalLink>
         </p>

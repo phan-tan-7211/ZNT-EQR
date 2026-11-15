@@ -4,19 +4,6 @@ import {
   type InventoryTableRowViewModel,
 } from '@/features/inventory/utils/inventoryListViewModel';
 
-export const QUICK_FILTER_LABELS: Record<InventoryQuickFilterKey, string> = {
-  'low-stock': 'Low stock',
-  'out-of-stock': 'Out of stock',
-  'negative-stock': 'Negative stock',
-  'has-alternates': 'Has alternates',
-  'missing-location': 'Missing location name',
-  'missing-unit-cost': 'Missing unit cost',
-  'missing-sku': 'Missing SKU',
-  'missing-data': 'Missing data',
-  'recently-adjusted': 'Recently adjusted',
-  'reorder-needed': 'Reorder needed',
-};
-
 export function matchesQuickFilter(
   row: InventoryTableRowViewModel,
   filter: InventoryQuickFilterKey,

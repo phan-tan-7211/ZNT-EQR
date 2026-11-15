@@ -49,7 +49,3 @@ export const deleteWorkOrderCascade = async (workOrderId: string): Promise<void>
     throw error;
   }
 };
-
-export const deleteWorkOrder = async (workOrderId: string): Promise<void> => {
-  return deleteWorkOrderCascade(workOrderId);
-};

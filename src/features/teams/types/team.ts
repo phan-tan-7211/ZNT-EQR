@@ -81,21 +81,6 @@ export function isTeamView(value: unknown): value is TeamView {
   return typeof value === 'string' && (TEAM_VIEWS as readonly string[]).includes(value);
 }
 
-export const TEAM_VIEW_LABELS: Record<TeamView, string> = {
-  internal: 'Internal Team',
-  department: 'Department',
-  customer: 'Customer',
-};
-
-export const TEAM_VIEW_DESCRIPTIONS: Record<TeamView, string> = {
-  internal:
-    'A group of subject matter experts inside your organization — members and collaboration first.',
-  department:
-    'An entire department — fleet metrics, maintenance posture, and workload at a glance.',
-  customer:
-    'An external customer whose equipment your organization services — account, contacts, and service history first.',
-};
-
 // ============================================
 // Customer Account Types
 // ============================================

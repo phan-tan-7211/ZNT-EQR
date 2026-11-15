@@ -303,7 +303,9 @@ describe('QRCodeIntegration Feature Page', () => {
       showcases.forEach((screenshot) => {
         expect(screenshot).toHaveProperty('title');
         expect(screenshot).toHaveProperty('description');
-        expect(screenshot).toHaveProperty('imageUrl');
+        // No screenshot until one from a fictional demo organisation exists;
+        // showcaseImages.test.ts checks that any image URL points at a real file.
+        expect(screenshot.kind).toBe('image');
         expect(screenshot).toHaveProperty('imageAlt');
       });
     });

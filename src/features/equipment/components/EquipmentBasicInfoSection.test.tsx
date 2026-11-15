@@ -43,7 +43,7 @@ const SAMPLE_MATCH: DuplicateEquipmentMatch = {
   serial_number: '123456789',
   status: 'active',
   team_id: 'team-1',
-  team_name: '3-A Equipment',
+  team_name: 'A-1 Equipment',
 };
 
 describe('EquipmentBasicInfoSection', () => {

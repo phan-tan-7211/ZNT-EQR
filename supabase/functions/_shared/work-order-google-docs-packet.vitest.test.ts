@@ -4,7 +4,7 @@ import { buildExecutivePacketRequests } from './work-order-google-docs-packet';
 describe('buildExecutivePacketRequests', () => {
   it('uses the Docs API page break request shape for evidence sections', () => {
     const result = buildExecutivePacketRequests({
-      organization: { name: 'CW Rentals', logoUrl: null },
+      organization: { name: 'Demo Rentals', logoUrl: null },
       team: { name: 'Alpha Team', imageUrl: null },
       customer: { name: 'Acme Corp' },
       equipment: {

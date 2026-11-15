@@ -15,7 +15,7 @@ export const publicChromeResources = {
       doNotSell: 'Do Not Sell or Share', dsr: 'DSR Cockpit',
     },
     header: {
-      features: 'Features', about: 'About', customers: 'Customers', pricing: 'Pricing',
+      features: 'Features', about: 'About', customers: 'Advantages', pricing: 'Pricing',
       workOrders: 'Work orders', qrCodes: 'QR codes', quickBooks: 'QuickBooks',
       popularFeatures: 'Popular features', getStarted: 'Get Started',
       openMenu: 'Open navigation menu', siteNavigation: 'Site navigation',
@@ -81,7 +81,7 @@ export const publicChromeResources = {
       doNotSell: 'Không bán hoặc chia sẻ', dsr: 'Bảng điều khiển DSR',
     },
     header: {
-      features: 'Tính năng', about: 'Giới thiệu', customers: 'Khách hàng', pricing: 'Bảng giá',
+      features: 'Tính năng', about: 'Giới thiệu', customers: 'Ưu điểm', pricing: 'Bảng giá',
       workOrders: 'Lệnh công việc', qrCodes: 'Mã QR', quickBooks: 'QuickBooks',
       popularFeatures: 'Tính năng nổi bật', getStarted: 'Bắt đầu',
       openMenu: 'Mở menu điều hướng', siteNavigation: 'Điều hướng trang',
@@ -147,7 +147,7 @@ export const publicChromeResources = {
       doNotSell: '판매 또는 공유 거부', dsr: 'DSR 관리 화면',
     },
     header: {
-      features: '기능', about: '소개', customers: '고객', pricing: '요금',
+      features: '기능', about: '소개', customers: '장점', pricing: '요금',
       workOrders: '작업 지시', qrCodes: 'QR 코드', quickBooks: 'QuickBooks',
       popularFeatures: '주요 기능', getStarted: '시작하기',
       openMenu: '탐색 메뉴 열기', siteNavigation: '사이트 탐색',

@@ -48,7 +48,7 @@ export function shiftCalendarAnchor(
   }
 }
 
-export const WORK_ORDERS_VIEW_MODE_KEY = 'equipqr:work-orders-view-mode' as const;
+export const WORK_ORDERS_VIEW_MODE_KEY = 'znteqr:work-orders-view-mode' as const;
 
 export type PersistedViewMode = 'list' | 'calendar';
 

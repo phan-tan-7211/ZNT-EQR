@@ -16,7 +16,7 @@ import {
 
 describe('WORK_ORDERS_VIEW_MODE_KEY', () => {
   it('matches the cookie-consent allowlist key', () => {
-    expect(WORK_ORDERS_VIEW_MODE_KEY).toBe('equipqr:work-orders-view-mode');
+    expect(WORK_ORDERS_VIEW_MODE_KEY).toBe('znteqr:work-orders-view-mode');
   });
 });
 

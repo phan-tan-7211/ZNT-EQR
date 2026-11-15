@@ -345,7 +345,7 @@ describe('EquipmentService', () => {
             serial_number: '123456789',
             status: 'active',
             team_id: 'team-1',
-            team: { name: '3-A Equipment' },
+            team: { name: 'A-1 Equipment' },
           },
           error: null,
         }),
@@ -363,7 +363,7 @@ describe('EquipmentService', () => {
         serial_number: '123456789',
         status: 'active',
         team_id: 'team-1',
-        team_name: '3-A Equipment',
+        team_name: 'A-1 Equipment',
       });
     });
 

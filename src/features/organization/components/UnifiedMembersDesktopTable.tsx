@@ -1,5 +1,4 @@
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -11,6 +10,7 @@ import { PartsConsumerMarkIcon } from '@/components/icons/PartsConsumerMarkIcon'
 import { PartsManagerMarkIcon } from '@/components/icons/PartsManagerMarkIcon';
 import { QuickBooksMarkIcon } from '@/components/icons/QuickBooksMarkIcon';
 import { UnifiedMemberAvatar } from '@/features/organization/components/UnifiedMemberAvatar';
+import { UnifiedMemberRoleControl } from '@/features/organization/components/UnifiedMemberRoleControl';
 import { UnifiedMemberRowActions } from '@/features/organization/components/UnifiedMemberRowActions';
 import type { UnifiedMembersListViewProps } from '@/features/organization/components/unifiedMembersListViewProps';
 import {
@@ -18,8 +18,8 @@ import {
   getStatusIcon,
   getUnifiedMemberDisplayName,
 } from '@/features/organization/utils/unifiedMemberPresentation';
+import { useUnifiedMemberLabels } from '@/features/organization/hooks/useUnifiedMemberLabels';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
-import { getRoleBadgeVariant } from '@/utils/badgeVariants';
 import { useI18n } from '@/i18n';
 
 const thClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foreground';
@@ -27,12 +27,6 @@ const thClass = 'text-xs font-semibold uppercase tracking-wide text-muted-foregr
 export function UnifiedMembersDesktopTable({
   unifiedMembers,
   canManageMembers,
-  currentUserId,
-  resendPending,
-  cancelPending,
-  removePending,
-  revokeGwsPending,
-  mergePending,
   permissionContext,
   partsManagerUserIds,
   partsConsumerUserIds,
@@ -43,23 +37,11 @@ export function UnifiedMembersDesktopTable({
   onQuickBooksToggle,
   onPartsManagerToggle,
   onPartsConsumerToggle,
-  onResendInvitation,
-  onCancelInvitation,
-  onRevokeGwsClaim,
-  onRequestDataMerge,
-  onRemoveMember,
+  ...rowActionProps
 }: UnifiedMembersListViewProps) {
   const { t } = useI18n();
   const { formatDate } = useFormatTimestamp();
-  const roleLabel = (role: string) => role === 'owner' || role === 'admin' || role === 'member'
-    ? t(`organizationMembers.${role}`) : role;
-  const statusLabel = (status: string) => status === 'active' ? t('organizationMembers.active')
-    : status === 'pending_invite' ? t('organizationMembers.pendingInvite') : t('organizationMembers.pendingGoogle');
-  const displayNameLabels = {
-    pendingInvite: t('organizationMembers.pendingInvite'),
-    pendingGoogle: t('organizationMembers.pendingGoogleName'),
-    unknown: t('organizationMembers.unknownName'),
-  };
+  const { statusLabel, displayNameLabels } = useUnifiedMemberLabels();
   const { isOwner, quickBooksEnabled, canManagePartsManagers, canManagePartsConsumers } =
     permissionContext;
   const showQuickBooksColumn = isOwner && quickBooksEnabled;
@@ -140,24 +122,12 @@ export function UnifiedMembersDesktopTable({
               </TableCell>
               <TableCell className="py-3 font-mono text-sm">{member.email}</TableCell>
               <TableCell className="py-3">
-                {canManageMembers && member.organizationRole !== 'owner' && member.type === 'member' ? (
-                  <Select
-                    value={roleLabel(member.organizationRole)}
-                    onValueChange={(value) => onRoleChange(member.id, value as 'admin' | 'member')}
-                  >
-                    <SelectTrigger className="w-24 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">{t('organizationMembers.admin')}</SelectItem>
-                      <SelectItem value="member">{t('organizationMembers.member')}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <Badge variant={getRoleBadgeVariant(member.organizationRole)} className="capitalize">
-                    {roleLabel(member.organizationRole)}
-                  </Badge>
-                )}
+                <UnifiedMemberRoleControl
+                  member={member}
+                  canManageMembers={canManageMembers}
+                  onRoleChange={onRoleChange}
+                  layout="desktop"
+                />
               </TableCell>
               <TableCell className="py-3">
                 {member.status === 'pending_gws' ? (
@@ -223,17 +193,7 @@ export function UnifiedMembersDesktopTable({
                   <UnifiedMemberRowActions
                     member={member}
                     canManageMembers={canManageMembers}
-                    currentUserId={currentUserId}
-                    resendPending={resendPending}
-                    cancelPending={cancelPending}
-                    removePending={removePending}
-                    revokeGwsPending={revokeGwsPending}
-                    mergePending={mergePending}
-                    onResendInvitation={onResendInvitation}
-                    onCancelInvitation={onCancelInvitation}
-                    onRevokeGwsClaim={onRevokeGwsClaim}
-                    onRequestDataMerge={onRequestDataMerge}
-                    onRemoveMember={onRemoveMember}
+                    {...rowActionProps}
                   />
                 </TableCell>
               )}

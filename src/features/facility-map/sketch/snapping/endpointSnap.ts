@@ -1,8 +1,9 @@
-import { arcPoint, distance } from '../core/geometry';
+import { arcPoint } from '../core/geometry';
 import type {
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestEntityPointsSnap } from './closestSnap';
 
 export type EndpointSnapResult = {
   point: SketchPoint;
@@ -42,24 +43,10 @@ export const findEndpointSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): EndpointSnapResult | null => {
-  let best: EndpointSnapResult | null = null;
-
-  entities.forEach((entity) => {
-    getEntityEndpointSnapPoints(entity).forEach((candidate) => {
-      const candidateDistance = distance(point, candidate);
-      if (
-        candidateDistance < threshold &&
-        (!best || candidateDistance < best.distance)
-      ) {
-        best = {
-          point: { ...candidate },
-          entityId: entity.id,
-          distance: candidateDistance,
-        };
-      }
-    });
-  });
-
-  return best;
-};
+): EndpointSnapResult | null =>
+  findClosestEntityPointsSnap(
+    point,
+    entities,
+    threshold,
+    getEntityEndpointSnapPoints,
+  );

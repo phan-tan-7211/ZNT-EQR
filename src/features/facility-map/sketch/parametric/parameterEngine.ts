@@ -1,7 +1,4 @@
-import type {
-  SketchParameter,
-  SketchParameterDimension,
-} from '../core/types';
+import type { SketchParameter } from '../core/types';
 import {
   evaluateExpression,
   type ExpressionValue,
@@ -225,15 +222,3 @@ export const canDeleteParameter = (
     ? { ok: false, dependents }
     : { ok: true };
 };
-
-export const createParameter = (
-  id: string,
-  name: string,
-  expression: string,
-  dimension?: SketchParameterDimension,
-): SketchParameter => ({
-  id,
-  name,
-  expression,
-  dimension,
-});

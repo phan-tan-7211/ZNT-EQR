@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n/I18nProvider';
 import { Link } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
 import { ExternalLink } from '@/components/ui/external-link';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +34,7 @@ type LegalFooterViewProps = {
 };
 
 function LegalFooterView({ canManageDsr }: LegalFooterViewProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   return (
     <footer className="hidden h-8 shrink-0 border-t border-border bg-background/50 backdrop-blur-sm md:block">
       <div className="container mx-auto h-full px-4">
@@ -57,7 +58,7 @@ function LegalFooterView({ canManageDsr }: LegalFooterViewProps): JSX.Element {
             className="flex shrink-0 flex-nowrap items-center gap-x-2 whitespace-nowrap"
           >
             <ExternalLink
-              href="https://eqrdocs.zinitek.com/support"
+              href={localizeDocsUrl('https://eqrdocs.zinitek.com/support', language)}
               className={linkClassName}
               showIcon={false}
             >

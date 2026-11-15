@@ -11,12 +11,38 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
-## [3.44.4] - 2026-11-15
+## [3.44.8] - 2026-11-15
 
 ### Security
 
 - **Public forms** - Quick Forms, daily check-ins and privacy requests are now rejected if spam protection is not configured on the server, instead of being accepted without a CAPTCHA check.
 - **Push notifications** - Hardened the internal authorization check on the push notification service.
+
+## [3.44.7] - 2026-11-15
+
+### Changed
+
+- **Code clean-up** - Screens and helpers that had been copied in several places (tooling catalogs and operation tabs, member lists, location editors, the PM template picker, data tables, image viewers and others) now share one implementation, so they behave the same everywhere. Nothing changes in how the app looks or works.
+
+## [3.44.6] - 2026-11-15
+
+### Changed
+
+- **Dependencies** - Updated the menu, accordion, avatar, scroll and separator components, form handling, CSV import and the offline cache library to their latest compatible releases. Nothing changes in how the app works.
+
+## [3.44.5] - 2026-11-15
+
+### Changed
+
+- **Brand clean-up** - Saved preferences, your cookie choice, unsynced offline work and cached equipment images now live under the ZNTEQR name in your browser; they are carried over automatically the first time you open the app after this update, including anything saved in a tab that was still running the previous version.
+- **Landing pages** - The home and repair-shops pages no longer show a customer testimonial or its figures, and feature pages no longer show outdated product screenshots.
+- **Logo** - The Help Center icon, its home-page image and older logo links now show the ZNTEQR logo.
+
+## [3.44.4] - 2026-11-15
+
+### Changed
+
+- **Help links** - Help Center links in the app now open the guide in your language (Vietnamese or Korean) instead of always opening the English one.
 
 ## [3.44.3] - 2026-11-15
 

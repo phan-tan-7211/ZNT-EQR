@@ -26,14 +26,6 @@ export const LOCATION_SOURCE_LABELS: Record<LocationSource, string> = {
   legacy: 'Legacy coordinates',
 };
 
-export const FLEET_MAP_SOURCE_LABELS: Record<FleetMapSource, string> = {
-  team: 'Team location',
-  manual: 'Assigned Address',
-  scan: 'QR Scan GPS',
-  legacy: 'Legacy Coordinates',
-  geocoded: 'Geocoded',
-};
-
 export interface EffectiveLocation {
   lat: number;
   lng: number;

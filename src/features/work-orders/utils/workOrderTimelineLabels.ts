@@ -1,6 +1,3 @@
-export const formatStatusLabel = (status: string) =>
-  status.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase());
-
 export const getStatusChangeTitle = (oldStatus: string | null, newStatus: string) => {
   if (!oldStatus) {
     return 'Created';
@@ -24,22 +21,6 @@ export const getStatusChangeTitle = (oldStatus: string | null, newStatus: string
     default:
       return 'Status Updated';
   }
-};
-
-export const getStatusChangeDescription = (
-  oldStatus: string | null,
-  newStatus: string,
-  reason?: string,
-) => {
-  if (!oldStatus) {
-    return 'Work order was submitted';
-  }
-
-  let baseDescription = `Status changed from ${formatStatusLabel(oldStatus)} to ${formatStatusLabel(newStatus)}`;
-  if (reason && reason !== 'Status updated') {
-    baseDescription += ` — ${reason}`;
-  }
-  return baseDescription;
 };
 
 export type WorkOrderCreationContext = {

@@ -8,11 +8,6 @@ export const desktopHoverEditIconClassName = cn(
   'opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100',
 );
 
-export const responsiveHoverEditIconClassName = cn(
-  inlineEditIconClassName,
-  'md:opacity-0 md:transition-opacity md:group-hover:opacity-100 md:group-focus-within:opacity-100 md:focus-visible:opacity-100',
-);
-
 /** Applied with a base flex row on mobile to push the edit trigger to the card edge. */
 export const mobileInlineEditRowExtrasClassName = 'justify-between gap-3';
 

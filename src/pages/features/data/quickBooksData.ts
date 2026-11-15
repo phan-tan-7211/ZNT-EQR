@@ -1,5 +1,4 @@
 import { Receipt, FileSpreadsheet, Link2, RefreshCw } from 'lucide-react';
-import { landingImage } from '@/lib/landingImage';
 import type { Benefit, FeaturePageContent, ShowcaseItem, Step } from './featurePageTypes';
 
 export const content: FeaturePageContent = {
@@ -89,7 +88,6 @@ export const showcases: ShowcaseItem[] = [
   },
   {
     kind: 'image',
-    imageUrl: landingImage('quickbooks-settings-2026-04.webp'),
     imageAlt:
       'Organization Settings showing QuickBooks Online connected, Google Workspace connected, and QR scan location toggle',
     title: 'QuickBooks Connected in Organization Settings',
@@ -98,7 +96,6 @@ export const showcases: ShowcaseItem[] = [
   },
   {
     kind: 'image',
-    imageUrl: landingImage('work-order-detail-2026-04.webp'),
     imageAlt: 'Completed work order detail page showing equipment information, PM checklist status, and assignment',
     title: 'Export Completed Work Orders in One Click',
     description:

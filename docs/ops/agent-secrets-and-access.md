@@ -33,7 +33,7 @@ Constants and helpers: `dev/op/znt-agents-vault.ps1`.
 
 | Token env var | Service account | Permissions | Typical use |
 |---|---|---|---|
-| `OP_SERVICE_ACCOUNT_TOKEN` | `op-svc-equipqr-agents` | Read | `op read`, `op inject`, metadata, CI |
+| `OP_SERVICE_ACCOUNT_TOKEN` | `op-svc-znteqr-agents` | Read | `op read`, `op inject`, metadata, CI |
 | `OP_SAT_ZNTEQR` | Write SAT (maintainer-provisioned) | Read, Write & Share on vault | `op item create`, `op item edit` |
 
 Cloud Agents and GitHub Actions use the read-only token as a repo/org secret. Never commit either token.

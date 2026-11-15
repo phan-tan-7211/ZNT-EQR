@@ -130,7 +130,7 @@ export const SimpleOrganizationProvider: React.FC<{ children: React.ReactNode }>
   );
 
   // Synchronization monitoring and recovery — session org is authoritative when it diverges
-  // from equipqr_current_organization (e.g. QR redirect switched session without updating this key).
+  // from znteqr_current_organization (e.g. QR redirect switched session without updating this key).
   const syncWithSession = useCallback(() => {
     if (!sessionContext?.sessionData?.currentOrganizationId || !currentOrganizationId) {
       return;

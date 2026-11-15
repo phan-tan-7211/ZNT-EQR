@@ -1,8 +1,8 @@
-import { distance } from '../core/geometry';
 import type {
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestEntitySnap } from './closestSnap';
 
 export type CircleCenterSnapResult = {
   point: SketchPoint;
@@ -21,25 +21,5 @@ export const findCircleCenterSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): CircleCenterSnapResult | null => {
-  let best: CircleCenterSnapResult | null = null;
-
-  entities.forEach((entity) => {
-    const candidate = getCircleCenterSnapPoint(entity);
-    if (!candidate) return;
-
-    const candidateDistance = distance(point, candidate);
-    if (
-      candidateDistance < threshold &&
-      (!best || candidateDistance < best.distance)
-    ) {
-      best = {
-        point: { ...candidate },
-        entityId: entity.id,
-        distance: candidateDistance,
-      };
-    }
-  });
-
-  return best;
-};
+): CircleCenterSnapResult | null =>
+  findClosestEntitySnap(point, entities, threshold, getCircleCenterSnapPoint);

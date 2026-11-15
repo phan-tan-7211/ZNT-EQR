@@ -11,7 +11,7 @@
 
   Also writes the GCP service-account JSON from the `gcp-read` 1Password item
   (legacy `gcp-viewer` is still used as a fallback) to
-  %USERPROFILE%\.config\gcloud\equipqr-agent-viewer.json so the gcloud MCP
+  %USERPROFILE%\.config\gcloud\znteqr-agent-viewer.json so the gcloud MCP
   can locate it via GOOGLE_APPLICATION_CREDENTIALS.
 
   Idempotent. Safe to run on every dev-start. Requires that you are signed in
@@ -40,7 +40,7 @@ $templatePath = Join-Path $repoRoot 'dev\mcp.template.json'
 $cursorDir = Join-Path $env:USERPROFILE '.cursor'
 $mcpJsonPath = Join-Path $cursorDir 'mcp.json'
 $gcpKeyDir = Join-Path $env:USERPROFILE '.config\gcloud'
-$gcpKeyPath = Join-Path $gcpKeyDir 'equipqr-agent-viewer.json'
+$gcpKeyPath = Join-Path $gcpKeyDir 'znteqr-agent-viewer.json'
 
 function Write-Step { param([string]$Msg) Write-Host "  [render-mcp] $Msg" }
 function Write-Ok { param([string]$Msg) Write-Host "  [render-mcp] OK   $Msg" -ForegroundColor Green }
@@ -209,8 +209,8 @@ if (-not $SkipGcp) {
                     if ($activateExit -eq 0) {
                         try {
                             $null = & gcloud config set account $saEmail --quiet 2>&1
-                            $null = & gcloud config set project equipqr-prod --quiet 2>&1
-                            Write-Ok "gcloud active account: $saEmail (project: equipqr-prod)"
+                            $null = & gcloud config set project znteqr-prod --quiet 2>&1
+                            Write-Ok "gcloud active account: $saEmail (project: znteqr-prod)"
                             Write-Ok "  To switch back to your user account: gcloud config set account phantan7211@gmail.com"
                         } catch {
                             Write-Warn ("gcloud config set failed: " + ($_.Exception.Message))

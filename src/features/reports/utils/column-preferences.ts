@@ -2,7 +2,7 @@ import type { ReportType } from '@/features/reports/types/reports';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
 // Storage key prefix for column preferences
-const COLUMN_PREFS_KEY = 'equipqr_export_columns_';
+const COLUMN_PREFS_KEY = 'znteqr_export_columns_';
 
 /**
  * Get saved column preferences from localStorage

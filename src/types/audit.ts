@@ -218,6 +218,10 @@ export const ACTION_LABELS: Record<AuditAction, string> = {
 /**
  * Field labels for common audit fields
  * Maps database field names to human-readable labels
+ *
+ * Single English definition: the CSV export reads it directly and the
+ * `auditExplorer.fields` i18n strings reuse it for `en`. When adding a key,
+ * add its vi/ko translation in src/i18n/auditExplorerResources.ts.
  */
 export const FIELD_LABELS: Record<string, string> = {
   // Equipment fields

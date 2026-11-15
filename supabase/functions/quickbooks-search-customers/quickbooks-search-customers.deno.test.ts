@@ -122,12 +122,12 @@ Deno.test("buildQBOContacts does not include token fields in output", () => {
 });
 
 Deno.test("buildCustomerQueries does not use unsupported QBO OR filters", () => {
-  const queries = buildCustomerQueries("Matthew Hankins");
+  const queries = buildCustomerQueries("Jordan Rivers");
 
   assertEquals(queries.length, 2);
   assertEquals(queries.some((query) => /\sOR\s/i.test(query)), false);
-  assertEquals(queries[0].includes("DisplayName LIKE '%Matthew Hankins%'"), true);
-  assertEquals(queries[1].includes("CompanyName LIKE '%Matthew Hankins%'"), true);
+  assertEquals(queries[0].includes("DisplayName LIKE '%Jordan Rivers%'"), true);
+  assertEquals(queries[1].includes("CompanyName LIKE '%Jordan Rivers%'"), true);
 });
 
 Deno.test("buildCustomerQueries returns one active-customer query when search is empty", () => {
@@ -138,7 +138,7 @@ Deno.test("buildCustomerQueries returns one active-customer query when search is
 });
 
 Deno.test("sanitizeCustomerSearchQuery strips unsupported QBO special characters", () => {
-  assertEquals(sanitizeCustomerSearchQuery("3-A Equipment; DROP"), "3-A Equipment DROP");
+  assertEquals(sanitizeCustomerSearchQuery("A-1 Equipment; DROP"), "A-1 Equipment DROP");
 });
 
 Deno.test("buildCustomerQueries does not request non-queryable BillAddr or ShipAddr fields", () => {

@@ -80,7 +80,6 @@
     "public/og-image.png",
     "public/pwa-192x192.png",
     "public/pwa-512x512.png",
-    "docs/assets/",
     "docs/public/",
     "supabase/seed-images/"
   ]

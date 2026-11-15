@@ -100,7 +100,7 @@ describe('WorkOrderDetailsDesktopHeader', () => {
       name: 'Excavator A',
       status: 'active' as const,
     },
-    organizationName: 'CW Rentals',
+    organizationName: 'Demo Rentals',
     organizationId: 'org-1',
   };
 

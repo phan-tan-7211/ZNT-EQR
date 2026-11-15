@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { StructuredLocationEditorControls } from '@/components/location/StructuredLocationEditorControls';
 import { StructuredLocationEditorDialogFooter } from '@/components/location/StructuredLocationEditorDialogFooter';
 import { useStructuredLocationEditorState } from '@/components/location/structuredLocationEditorState';
+import { useStructuredLocationEditorControlsProps } from '@/components/location/useStructuredLocationEditorControlsProps';
 import {
   Dialog,
   DialogContent,
@@ -16,9 +17,6 @@ import {
   placeDataToInventoryStructuredLocation,
 } from '@/features/inventory/utils/inventoryLocationUtils';
 import type { InventoryStructuredLocationFields } from '@/features/inventory/utils/inventoryLocationUtils';
-import { useGoogleMapsLoader } from '@/hooks/useGoogleMapsLoader';
-import { useGoogleMapsKey } from '@/hooks/useGoogleMapsKey';
-import { useIsDarkTheme, useThemeVersion } from '@/hooks/useThemeVersion';
 
 type InventoryItemLocationEditorDialogProps = {
   open: boolean;
@@ -34,10 +32,6 @@ export function InventoryItemLocationEditorDialog({
   onSave,
 }: InventoryItemLocationEditorDialogProps) {
   const { t } = useI18n();
-  const { isLoaded: isPlacesLoaded } = useGoogleMapsLoader();
-  const themeVersion = useThemeVersion();
-  const isDark = useIsDarkTheme(themeVersion);
-  const { googleMapsKey, mapId } = useGoogleMapsKey();
   const [isSaving, setIsSaving] = useState(false);
 
   const initialPlace = useMemo(
@@ -50,6 +44,8 @@ export function InventoryItemLocationEditorDialog({
     initialPlace,
     fallbackAddress: buildInventoryAddress(structuredLocation),
   });
+
+  const locationControlsProps = useStructuredLocationEditorControlsProps(editor);
 
   const handleSave = useCallback(async () => {
     setIsSaving(true);
@@ -76,20 +72,8 @@ export function InventoryItemLocationEditorDialog({
         </DialogHeader>
 
         <StructuredLocationEditorControls
+          {...locationControlsProps}
           locationLabel={t('inventoryListAux.storageAddress')}
-          locationAddress={editor.addressValue}
-          onPlaceSelect={editor.handlePlaceSelect}
-          onClear={editor.handleClear}
-          isPlacesLoaded={isPlacesLoaded}
-          previewCenter={editor.previewCenter}
-          recenterKey={editor.recenterKey}
-          onCenterChange={editor.handleMapCenterChange}
-          googleMapsKey={googleMapsKey}
-          mapId={mapId ?? undefined}
-          isDark={isDark}
-          isLiveCaptureOpen={editor.isLiveCaptureOpen}
-          onLiveCaptureOpenChange={editor.setIsLiveCaptureOpen}
-          onConfirmLiveLocation={editor.handleSaveLiveLocation}
           liveCaptureTitle={t('inventoryListAux.liveCapture')}
           liveCaptureConfirmLabel={t('inventoryListAux.useLocation')}
           isSaving={isSaving}

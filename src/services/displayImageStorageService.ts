@@ -442,7 +442,3 @@ export async function resolveDisplayImageRef(
 
   return legacyResolver(trimmed, variant);
 }
-
-export const getPublicDisplayImageUrl = getDisplayImagePublicUrl;
-export const getPublicDisplayImageUrls = getDisplayImagePublicUrls;
-export const resolveDisplayImageUrl = resolveDisplayImageRef;

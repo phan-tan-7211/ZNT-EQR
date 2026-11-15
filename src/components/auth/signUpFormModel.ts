@@ -3,8 +3,6 @@ import type { PasswordComplexityResult } from '@/lib/passwordPolicy';
 
 export const SIGNUP_EMAIL_REGEX = /[^\s@]+@[^\s@]+\.[^\s@]+/;
 
-export const STRENGTH_LABELS = ['', 'Weak', 'Fair', 'Good', 'Strong'] as const;
-
 type TranslationParams = Record<string, string | number>;
 export type SignupTranslator = (key: string, params?: TranslationParams) => string;
 

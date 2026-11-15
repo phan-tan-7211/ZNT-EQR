@@ -31,6 +31,7 @@ import { OperatorTemplateEquipmentAssignmentMenu } from '@/features/operator-che
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExternalLink } from '@/components/ui/external-link';
 import { OPERATOR_DAILY_CHECK_INS_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -281,7 +282,7 @@ export default function OperatorCheckInsPage() {
             icon={<ClipboardCheck className="h-5 w-5" />}
           />
           <p className="mt-2 text-sm">
-            <ExternalLink href={OPERATOR_DAILY_CHECK_INS_DOCS_URL}>
+            <ExternalLink href={localizeDocsUrl(OPERATOR_DAILY_CHECK_INS_DOCS_URL, language)}>
               {t('operatorCheckinAdmin.help')}
             </ExternalLink>
           </p>

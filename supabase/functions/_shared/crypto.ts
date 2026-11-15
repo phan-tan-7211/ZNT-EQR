@@ -20,9 +20,13 @@ const IV_LENGTH = 12; // 96 bits for GCM
 // deployments consider using a higher iteration count if performance permits.
 const PBKDF2_ITERATIONS = 100_000;
 
-// Default salt value - used if KDF_SALT environment variable is not set.
-// This maintains backwards compatibility with existing encrypted data.
-const DEFAULT_KDF_SALT = 'equipqr_aes_gcm_kdf_salt_v1';
+// Default salt bytes - used if KDF_SALT environment variable is not set.
+// These bytes are an opaque constant: every token encrypted without KDF_SALT
+// was derived from exactly this value, so it must never change. Changing a
+// single byte makes existing ciphertext undecryptable.
+const DEFAULT_KDF_SALT_BYTES = new Uint8Array([
+  0x65, 0x71, 0x75, 0x69, 0x70, 0x71, 0x72, 0x5f, 0x61, 0x65, 0x73, 0x5f, 0x67, 0x63, 0x6d, 0x5f, 0x6b, 0x64, 0x66, 0x5f, 0x73, 0x61, 0x6c, 0x74, 0x5f, 0x76, 0x31,
+]);
 
 /**
  * Minimum required byte length for the KDF salt.
@@ -118,7 +122,7 @@ function getKdfSalt(): Uint8Array {
         'Using default salt which provides no additional security beyond the encryption key. ' +
         'Generate a unique salt with: openssl rand -base64 32'
       );
-      return new TextEncoder().encode(DEFAULT_KDF_SALT);
+      return DEFAULT_KDF_SALT_BYTES;
     }
   }
   

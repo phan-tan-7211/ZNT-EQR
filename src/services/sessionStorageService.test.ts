@@ -42,7 +42,7 @@ describe('SessionStorageService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
 
   afterEach(() => {
@@ -86,15 +86,15 @@ describe('SessionStorageService', () => {
     it('clears storage and returns null when the cached user does not match', () => {
       const session = buildSession();
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...session, authUserId: 'user-tech' }));
-      localStorage.setItem('equipqr_current_org', JSON.stringify({ selectedOrgId: 'org-1' }));
-      localStorage.setItem('equipqr_current_organization', 'org-1');
-      localStorage.setItem('equipqr:selectedTeamId:org-1', 'team-1');
+      localStorage.setItem('znteqr_current_org', JSON.stringify({ selectedOrgId: 'org-1' }));
+      localStorage.setItem('znteqr_current_organization', 'org-1');
+      localStorage.setItem('znteqr:selectedTeamId:org-1', 'team-1');
 
       expect(SessionStorageService.loadSessionFromStorage('user-viewer')).toBeNull();
       expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-      expect(localStorage.getItem('equipqr_current_org')).toBeNull();
-      expect(localStorage.getItem('equipqr_current_organization')).toBeNull();
-      expect(localStorage.getItem('equipqr:selectedTeamId:org-1')).toBeNull();
+      expect(localStorage.getItem('znteqr_current_org')).toBeNull();
+      expect(localStorage.getItem('znteqr_current_organization')).toBeNull();
+      expect(localStorage.getItem('znteqr:selectedTeamId:org-1')).toBeNull();
       expect(logger.info).toHaveBeenCalledWith('🔄 Session user changed, clearing stored data');
     });
 
@@ -162,18 +162,18 @@ describe('SessionStorageService', () => {
   describe('clearSessionStorage', () => {
     it('removes session and organization/team scope keys', () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSession()));
-      localStorage.setItem('equipqr_current_org', JSON.stringify({ selectedOrgId: 'org-1' }));
-      localStorage.setItem('equipqr_current_organization', 'org-1');
-      localStorage.setItem('equipqr:selectedTeamId:org-1', 'team-1');
-      localStorage.setItem('equipqr:selectedTeamId:org-2', 'team-2');
+      localStorage.setItem('znteqr_current_org', JSON.stringify({ selectedOrgId: 'org-1' }));
+      localStorage.setItem('znteqr_current_organization', 'org-1');
+      localStorage.setItem('znteqr:selectedTeamId:org-1', 'team-1');
+      localStorage.setItem('znteqr:selectedTeamId:org-2', 'team-2');
 
       SessionStorageService.clearSessionStorage();
 
       expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-      expect(localStorage.getItem('equipqr_current_org')).toBeNull();
-      expect(localStorage.getItem('equipqr_current_organization')).toBeNull();
-      expect(localStorage.getItem('equipqr:selectedTeamId:org-1')).toBeNull();
-      expect(localStorage.getItem('equipqr:selectedTeamId:org-2')).toBeNull();
+      expect(localStorage.getItem('znteqr_current_org')).toBeNull();
+      expect(localStorage.getItem('znteqr_current_organization')).toBeNull();
+      expect(localStorage.getItem('znteqr:selectedTeamId:org-1')).toBeNull();
+      expect(localStorage.getItem('znteqr:selectedTeamId:org-2')).toBeNull();
     });
   });
 

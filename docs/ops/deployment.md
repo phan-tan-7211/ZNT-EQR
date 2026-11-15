@@ -229,7 +229,7 @@ For agent and maintainer use outside CI, keep these database passwords on the `s
 | 1Password field | Supabase project | Typical use |
 |-----------------|------------------|-------------|
 | `prod_db_password` | Production (`wgynakhoppqkrutnslmv`) | Same value as the GitHub `production` secret `SUPABASE_DB_PASSWORD` that **Production Release Readiness** uses for `supabase link` / `db push` after merge to `main`; update both on rotation. |
-| `preview_db_password` | Reserved for the persistent preview branch target | Populate only when the cutover in `docs/ops/preview-persistent-branch.md` is implemented. Do not reuse retired branch `olsdirkvvfegvclbpgrg`. |
+| `preview_db_password` | Reserved for the persistent preview branch target | Populate only when the cutover in `docs/ops/preview-persistent-branch.md` is implemented. Do not reuse retired branch `<retired-preview-ref>`. |
 
 Release PRs (`preview` → `main`) run **Schema Drift Check** as a **hard gate** that blocks merge when any of the following conditions exist:
 
@@ -320,7 +320,7 @@ Register this endpoint in **Google Cloud Console → Google Auth Platform → Pr
 
 Expected verification signal after registration: Google posts a RISC **verification** event and Project Checkup marks Cross-Account Protection as configured (may take a re-scan after deploy).
 
-> **Workspace OAuth audit logs**: Failures in the Workspace OAuth flow (consent, token exchange, Admin SDK directory reads) are captured by the Workspace tenant, not the `equipqr-prod` Cloud project. To make those logs queryable via Cloud Logging at the org tier, see [`docs/ops/observability.md`](observability.md) — it documents the Admin Console toggle, the org-level `gcloud logging read` queries, and the IAM grants required for agent-driven verification.
+> **Workspace OAuth audit logs**: Failures in the Workspace OAuth flow (consent, token exchange, Admin SDK directory reads) are captured by the Workspace tenant, not the `znteqr-prod` Cloud project. To make those logs queryable via Cloud Logging at the org tier, see [`docs/ops/observability.md`](observability.md) — it documents the Admin Console toggle, the org-level `gcloud logging read` queries, and the IAM grants required for agent-driven verification.
 > **Common mistake**: Setting a secret in Cloudflare Pages when it should be in Supabase (or vice versa). The `GOOGLE_MAPS_BROWSER_KEY` is a frequent offender — it is served by a Supabase Edge Function at runtime, not baked into the frontend build.
 
 ### Netlify Deployment
@@ -835,7 +835,7 @@ single production project for cloud runtime:
   `preview.eqr-zinitek.pages.dev` (not yet cut over; see
   `docs/ops/preview-persistent-branch.md`)
 - **Ephemeral PR branches:** Auto-created when `supabase/**` changes on a PR
-- **Retired persistent preview branch:** `olsdirkvvfegvclbpgrg` — decommission after #1033 cutover
+- **Retired persistent preview branch:** `<retired-preview-ref>` — decommission after #1033 cutover
 
 `preview.eqr-zinitek.pages.dev` (Cloudflare Pages Preview) currently uses
 **`VITE_SUPABASE_URL=https://wgynakhoppqkrutnslmv.supabase.co`** from

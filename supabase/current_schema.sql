@@ -43,7 +43,7 @@ CREATE SCHEMA IF NOT EXISTS "private";
 ALTER SCHEMA "private" OWNER TO "postgres";
 
 
-COMMENT ON SCHEMA "public" IS 'EquipQR application schema. SECURITY DEFINER EXECUTE grants follow docs/ops/security-definer-rpc-policy.md (issues #762, #1310).';
+COMMENT ON SCHEMA "public" IS 'ZNTEQR application schema. SECURITY DEFINER EXECUTE grants follow docs/ops/security-definer-rpc-policy.md (issues #762, #1310).';
 
 
 
@@ -4075,11 +4075,11 @@ CREATE TABLE IF NOT EXISTS "public"."external_customer_contacts" (
 ALTER TABLE "public"."external_customer_contacts" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."external_customer_contacts" IS 'External contacts for a customer account — people who do not have EquipQR logins (site managers, billing contacts, dispatchers, etc.).';
+COMMENT ON TABLE "public"."external_customer_contacts" IS 'External contacts for a customer account — people who do not have ZNTEQR logins (site managers, billing contacts, dispatchers, etc.).';
 
 
 
-COMMENT ON COLUMN "public"."external_customer_contacts"."source" IS 'Origin of this contact row: "manual" (entered in EquipQR) or "quickbooks" (synced from QBO Customer).';
+COMMENT ON COLUMN "public"."external_customer_contacts"."source" IS 'Origin of this contact row: "manual" (entered in ZNTEQR) or "quickbooks" (synced from QBO Customer).';
 
 
 
@@ -10013,7 +10013,7 @@ $$;
 ALTER FUNCTION "public"."list_active_stripe_subscriptions"() OWNER TO "postgres";
 
 
-COMMENT ON FUNCTION "public"."list_active_stripe_subscriptions"() IS 'Returns active/trialing/past-due Stripe subscriptions joined to their customers. Reads from the materialized view public.org_active_stripe_subscriptions (refreshed every 15 minutes by the refresh-stripe-mvs cron job). The stripe.* foreign tables are private; this SECURITY DEFINER function is GRANTed only to service_role until EquipQR reintroduces an org → Stripe customer mapping. Server-side Edge Functions invoke it with the service role key and apply any tenant filtering themselves. Returns empty when the FDW pilot has not yet been provisioned (Section B of the Change Record on issue #722).';
+COMMENT ON FUNCTION "public"."list_active_stripe_subscriptions"() IS 'Returns active/trialing/past-due Stripe subscriptions joined to their customers. Reads from the materialized view public.org_active_stripe_subscriptions (refreshed every 15 minutes by the refresh-stripe-mvs cron job). The stripe.* foreign tables are private; this SECURITY DEFINER function is GRANTed only to service_role until ZNTEQR reintroduces an org → Stripe customer mapping. Server-side Edge Functions invoke it with the service role key and apply any tenant filtering themselves. Returns empty when the FDW pilot has not yet been provisioned (Section B of the Change Record on issue #722).';
 
 
 
@@ -10612,7 +10612,7 @@ CREATE OR REPLACE FUNCTION "public"."log_work_order_status_change"() RETURNS "tr
 DECLARE
   changed_by_user uuid;
 BEGIN
-  IF current_setting('equipqr.skip_work_order_status_log', true) = 'true' THEN
+  IF current_setting('znteqr.skip_work_order_status_log', true) = 'true' THEN
     RETURN NEW;
   END IF;
 
@@ -13883,7 +13883,7 @@ BEGIN
     v_previous_status := v_new_status;
   END LOOP;
 
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'true', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'true', true);
 
   UPDATE public.work_orders
   SET
@@ -13896,7 +13896,7 @@ BEGIN
     updated_at = NOW()
   WHERE id = p_work_order_id;
 
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'false', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'false', true);
 
   IF NOT p_skip_audit THEN
     PERFORM public.log_audit_entry(
@@ -13927,7 +13927,7 @@ BEGIN
   );
 
 EXCEPTION WHEN OTHERS THEN
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'false', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'false', true);
   RETURN jsonb_build_object(
     'success', false,
     'error', 'Failed to replace historical timeline: ' || SQLERRM
@@ -17794,7 +17794,7 @@ COMMENT ON COLUMN "public"."customers"."is_tax_exempt" IS 'Derived from QuickBoo
 
 
 
-COMMENT ON COLUMN "public"."customers"."quickbooks_tax_status_synced_at" IS 'Timestamp when EquipQR last confirmed QuickBooks Customer.Taxable for is_tax_exempt cache freshness.';
+COMMENT ON COLUMN "public"."customers"."quickbooks_tax_status_synced_at" IS 'Timestamp when ZNTEQR last confirmed QuickBooks Customer.Taxable for is_tax_exempt cache freshness.';
 
 
 
@@ -19516,7 +19516,7 @@ COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."used_at" IS 'Timestamp w
 
 
 
-COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."origin_url" IS 'The origin URL (e.g., http://localhost:5173 or https://equipqr.app) to redirect back to after OAuth completes.';
+COMMENT ON COLUMN "public"."quickbooks_oauth_sessions"."origin_url" IS 'The origin URL (e.g., http://localhost:5173 or https://eqr.zinitek.com) to redirect back to after OAuth completes.';
 
 
 
@@ -19534,7 +19534,7 @@ CREATE TABLE IF NOT EXISTS "public"."quickbooks_team_customers" (
 ALTER TABLE "public"."quickbooks_team_customers" OWNER TO "postgres";
 
 
-COMMENT ON TABLE "public"."quickbooks_team_customers" IS 'Maps EquipQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
+COMMENT ON TABLE "public"."quickbooks_team_customers" IS 'Maps ZNTEQR teams to QuickBooks Online customers. Used for invoice export to associate work orders with the correct QuickBooks customer.';
 
 
 

@@ -1,6 +1,6 @@
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
-const STORAGE_PREFIX = 'equipqr-operator-checkin-starter-catalog-expanded:';
+const STORAGE_PREFIX = 'znteqr-operator-checkin-starter-catalog-expanded:';
 
 export function getStarterCatalogExpandedPreference(organizationId: string): boolean | null {
   try {

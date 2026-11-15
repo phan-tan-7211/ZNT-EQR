@@ -33,7 +33,7 @@ import {
 import { cn } from '@/lib/utils';
 
 const VERIFIED_COLUMN_KEY: AlternateGroupTableColumnKey = 'verified';
-const COLUMN_SIZING_STORAGE_KEY = 'equipqr:alternate-groups-table-column-sizing';
+const COLUMN_SIZING_STORAGE_KEY = 'znteqr:alternate-groups-table-column-sizing';
 
 type AlternateGroupsDesktopTableProps = {
   rows: AlternateGroupTableRow[];

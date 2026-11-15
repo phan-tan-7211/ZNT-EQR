@@ -68,12 +68,6 @@ async function renderReleasesPage(userRole: 'admin' | null) {
 
     return {
       INITIAL_VISIBLE_PUBLIC_RELEASES: 10,
-      PUBLIC_RELEASE_FILTER_LABELS: {
-        all: 'All',
-        features: 'Features',
-        fixes: 'Fixes',
-        security: 'Security',
-      },
       PUBLIC_RELEASES: buildPublicReleases(),
       releaseMatchesPublicReleaseFilter: actual.releaseMatchesPublicReleaseFilter,
       sectionMatchesPublicReleaseFilter: actual.sectionMatchesPublicReleaseFilter,

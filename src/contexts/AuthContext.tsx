@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Note: The cache key only includes user_id (not organization_id) because
           // apply_pending_admin_grants_for_user applies grants for the user across ALL
           // organizations they belong to, so organization context isn't needed.
-          const adminGrantsCacheKey = `equipqr_admin_grants_${session.user.id}`;
+          const adminGrantsCacheKey = `znteqr_admin_grants_${session.user.id}`;
           // Throttle key is strictly necessary (RPC rate limiting), not a UI preference.
           const lastAppliedStr = localStorage.getItem(adminGrantsCacheKey);
           const lastAppliedAt = lastAppliedStr ? parseInt(lastAppliedStr, 10) : 0;
@@ -253,9 +253,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         clearPendingRedirect();
         clearPendingGoogleInvitationClaim();
-        // Clear admin grants cache keys from localStorage (they start with equipqr_admin_grants_)
+        // Clear admin grants cache keys from localStorage (they start with znteqr_admin_grants_)
         Object.keys(localStorage)
-          .filter(key => key.startsWith('equipqr_admin_grants_'))
+          .filter(key => key.startsWith('znteqr_admin_grants_'))
           .forEach(key => localStorage.removeItem(key));
       } catch (storageError) {
         logger.warn('Error clearing storage', storageError);

@@ -19,7 +19,7 @@ In ZNTEQR, an external customer you service is represented as a **team of type C
 
 Go to **Teams** and open the team for your customer. Teams that are already linked show a green **QuickBooks synced** badge on the Teams list.
 
-![Teams list with a QuickBooks synced badge on 3-A Equipment](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
+![Teams list with a QuickBooks synced badge on a team](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/admin-integrations/desktop/qb-02-teams-list-sync-badge.png)
 
 ## 2. Find the Customer account card
 

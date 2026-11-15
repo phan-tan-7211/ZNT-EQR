@@ -115,7 +115,7 @@ describe('Equipment page', () => {
     vi.clearAllMocks();
     // Reset persisted view mode between tests so the localStorage hydration
     // assertions below start from a known state.
-    window.localStorage.removeItem('equipqr:equipment-view-mode');
+    window.localStorage.removeItem('znteqr:equipment-view-mode');
   });
 
   it('shows message when no organization is selected', () => {
@@ -268,21 +268,21 @@ describe('Equipment page', () => {
     });
 
     it('migrates legacy "list" persistence to card view', () => {
-      window.localStorage.setItem('equipqr:equipment-view-mode', 'list');
+      window.localStorage.setItem('znteqr:equipment-view-mode', 'list');
       setupHookForView();
       render(<Equipment />);
       expect(screen.getByTestId('grid-view-mode')).toHaveTextContent('grid');
     });
 
     it('hydrates "table" from localStorage', () => {
-      window.localStorage.setItem('equipqr:equipment-view-mode', 'table');
+      window.localStorage.setItem('znteqr:equipment-view-mode', 'table');
       setupHookForView();
       render(<Equipment />);
       expect(screen.getByTestId('grid-view-mode')).toHaveTextContent('table');
     });
 
     it('falls back to "grid" for an unknown persisted value', () => {
-      window.localStorage.setItem('equipqr:equipment-view-mode', 'garbage');
+      window.localStorage.setItem('znteqr:equipment-view-mode', 'garbage');
       setupHookForView();
       render(<Equipment />);
       expect(screen.getByTestId('grid-view-mode')).toHaveTextContent('grid');

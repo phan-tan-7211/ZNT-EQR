@@ -2,7 +2,7 @@
 -- Image Upload Feature Migration
 -- Adds support for image uploads to organizations (logo), users (avatar),
 -- teams (image), and inventory items (multi-image).
--- Fixes: https://github.com/Columbia-Cloudworks-LLC/EquipQR/issues/559
+-- Fixes: legacy tracker issue #559
 -- =============================================================================
 
 -- ============================================================================

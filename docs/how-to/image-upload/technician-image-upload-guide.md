@@ -19,9 +19,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
 2. **Or navigate directly** to the equipment page if you have the equipment ID
 3. The equipment page will display basic information about the machine
 
-> **Figure 1:** Initial equipment page showing basic information.
-> *(Screenshots for this guide live under `docs/how-to/image-upload/screenshots/`; add PNGs per the folder README if you need inline figures in the published site.)*
-
 ### Step 2: Create a Work Order
 
 1. Click on the **"Work Orders"** tab in the equipment page
@@ -30,9 +27,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - **Title**: Enter a descriptive title (e.g., "Hydraulic System Repair - Track Replacement")
    - **Priority**: Select appropriate priority level
    - **Description**: Provide detailed description of the work needed
-
-> **Figure 2:** Creating a new work order.
-> *(Screenshot path: `screenshots/03-work-order-creation-form.png` — optional asset.)*
 
 ### Step 3: Upload Images with Notes
 
@@ -47,18 +41,12 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - Select one or more images from your device
    - Images will be automatically uploaded when you save the note
 
-> **Figure 3:** Uploading images with detailed notes.
-> *(Screenshot path: `screenshots/09-notes-section-with-image-upload.png` — optional asset.)*
-
 ### Step 4: Set Display Image for Equipment
 
 1. After uploading images, go to the **"Images"** tab in the equipment page
 2. Find the image you want to use as the main display image
 3. Click the **"Set as Display Image"** button on the desired image
 4. The image will now appear as the main equipment photo
-
-> **Figure 4:** Setting an image as the equipment display photo.
-> *(Screenshot path: `screenshots/final-images-tab-state.png` — optional asset.)*
 
 ## Working with PM Checklists
 
@@ -67,9 +55,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
 1. When creating a work order, check the **"Include PM Checklist"** option
 2. Select a PM template (e.g., "Forklift PM Checklist")
 3. The work order will include a maintenance checklist
-
-> **Figure 5:** Creating a work order with PM checklist.
-> *(Screenshot path: `screenshots/04-work-order-form-with-pm-checklist.png` — optional asset.)*
 
 ### Step 6: Complete PM Checklist Items
 
@@ -80,17 +65,11 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - Add detailed notes explaining the issue
    - Upload photos showing the problem
 
-> **Figure 6:** Completing PM checklist items with notes and photos.
-> *(Screenshot path: `screenshots/06-pm-checklist-section.png` — optional asset.)*
-
 ### Step 7: Save Progress
 
 1. Click **"Save Changes"** after updating checklist items
 2. The system will auto-save your progress
 3. You can return to the checklist later to continue work
-
-> **Figure 7:** Saving PM checklist progress.
-> *(Screenshot path: `screenshots/08-pm-checklist-after-set-all-ok.png` — optional asset.)*
 
 ## Managing Work Order Status
 
@@ -102,9 +81,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - **In Progress**: Work is currently being performed
    - **Completed**: All work finished
    - **Cancelled**: Work order cancelled
-
-> **Figure 8:** Updating work order status.
-> *(Screenshot path: `screenshots/work-order-complete-view.png` — optional asset.)*
 
 ## Adding Items and Costs
 
@@ -118,9 +94,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - **Unit Cost**: Cost per item
    - **Description**: Additional details
 
-> **Figure 9:** Adding parts and costs to work order.
-> *(Screenshot path: `screenshots/work-order-add-note-form.png` — optional asset.)*
-
 ## Private Notes
 
 ### Step 10: Add Private Notes
@@ -132,9 +105,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
    - Personal reminders
    - Sensitive information
 
-> **Figure 10:** Adding private notes that customers won't see.
-> *(Screenshot path: `screenshots/note-with-uploaded-image.png` — optional asset.)*
-
 ## Viewing All Equipment Images
 
 ### Step 11: Access Equipment Image Gallery
@@ -143,9 +113,6 @@ Photos live on work-order notes. They also show on the equipment Images tab.
 2. View all images uploaded through work orders and equipment notes
 3. Images are organized by date and source
 4. Click on any image to view it in full size
-
-> **Figure 11:** Viewing all equipment images in the gallery.
-> *(Screenshot path: `screenshots/images-tab-with-both-images.png` — optional asset.)*
 
 ## Troubleshooting
 

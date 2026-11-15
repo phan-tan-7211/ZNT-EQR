@@ -16,10 +16,10 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import EquipmentImagesTab from '@/features/equipment/components/EquipmentImagesTab';
+import { FieldError, LoadStateView } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import { useToolingDesigns } from '@/features/tooling/hooks/useTooling';
 import {
@@ -34,6 +34,8 @@ import { cn } from '@/lib/utils';
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+const REVISION_SKELETONS = ['h-20 w-full', 'h-10 w-full', 'h-10 w-full'] as const;
+
 const REVISION_STATUS_CLASS: Record<ToolingDrawingRevision['status'], string> = {
   released: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   superseded: 'border-muted-foreground/30 bg-muted text-muted-foreground',
@@ -45,15 +47,6 @@ function Field({ label, children, className }: { label: string; children: ReactN
       <dt className="text-xs text-muted-foreground">{label}</dt>
       <dd className="break-words text-sm font-medium">{children}</dd>
     </div>
-  );
-}
-
-function FieldError({ show, message }: { show: boolean; message: string }) {
-  if (!show) return null;
-  return (
-    <p className="text-sm text-destructive" role="alert">
-      {message}
-    </p>
   );
 }
 
@@ -333,131 +326,125 @@ function DrawingRevisionsCard({ tool, canManage }: { tool: ToolingOverview; canM
           </Alert>
         )}
 
-        {isLoading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('toolingInsights.revisions.loading')}>
-            <Skeleton className="h-20 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingInsights.revisions.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : (
-          <>
-            <section className="rounded-md border p-3" aria-labelledby="tooling-current-revision-title" data-testid="tooling-current-revision">
-              <h3 id="tooling-current-revision-title" className="text-xs font-medium text-muted-foreground">
-                {t('toolingInsights.revisions.currentTitle')}
-              </h3>
-              {current ? (
-                <div className="mt-2 space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-lg font-semibold">
-                      {t('toolingInsights.revisions.revisionLabel', { revision: current.revision })}
-                    </span>
-                    <RevisionStatusBadge status={current.status} />
-                  </div>
-                  <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    <Field label={t('toolingInsights.revisions.columns.drawingNumber')}>{current.drawing_number ?? none}</Field>
-                    <Field label={t('toolingInsights.revisions.columns.effectiveDate')}>{effective(current.effective_date)}</Field>
-                    <Field label={t('toolingInsights.revisions.columns.releasedBy')}>{releasedLine(current)}</Field>
-                    <Field label={t('toolingInsights.revisions.columns.changeDescription')} className="sm:col-span-2 lg:col-span-3">
-                      <span className="whitespace-pre-wrap font-normal">{current.change_description}</span>
-                    </Field>
-                  </dl>
+        <LoadStateView
+          loading={isLoading}
+          failed={Boolean(error)}
+          skeletons={REVISION_SKELETONS}
+          loadingLabel={t('toolingInsights.revisions.loading')}
+          failedMessage={t('toolingInsights.revisions.loadFailed')}
+        >
+          <section className="rounded-md border p-3" aria-labelledby="tooling-current-revision-title" data-testid="tooling-current-revision">
+            <h3 id="tooling-current-revision-title" className="text-xs font-medium text-muted-foreground">
+              {t('toolingInsights.revisions.currentTitle')}
+            </h3>
+            {current ? (
+              <div className="mt-2 space-y-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-lg font-semibold">
+                    {t('toolingInsights.revisions.revisionLabel', { revision: current.revision })}
+                  </span>
+                  <RevisionStatusBadge status={current.status} />
                 </div>
-              ) : (
-                <div className="mt-1 space-y-1 text-sm">
-                  <p className="text-muted-foreground">{t('toolingInsights.revisions.noneReleased')}</p>
-                  {tool.drawing_revision && (
-                    <p>{t('toolingInsights.revisions.legacyOnRecord', { revision: tool.drawing_revision })}</p>
-                  )}
-                </div>
-              )}
-            </section>
-
-            {outOfSync && current && (
-              <Alert className="border-amber-500/40 bg-amber-500/5" data-testid="tooling-revision-out-of-sync">
-                <AlertTriangle className="h-4 w-4 !text-amber-600 dark:!text-amber-400" aria-hidden="true" />
-                <AlertDescription>
-                  {t('toolingInsights.revisions.outOfSync', {
-                    tool: tool.drawing_revision ?? none,
-                    released: current.revision,
-                  })}
-                </AlertDescription>
-              </Alert>
+                <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  <Field label={t('toolingInsights.revisions.columns.drawingNumber')}>{current.drawing_number ?? none}</Field>
+                  <Field label={t('toolingInsights.revisions.columns.effectiveDate')}>{effective(current.effective_date)}</Field>
+                  <Field label={t('toolingInsights.revisions.columns.releasedBy')}>{releasedLine(current)}</Field>
+                  <Field label={t('toolingInsights.revisions.columns.changeDescription')} className="sm:col-span-2 lg:col-span-3">
+                    <span className="whitespace-pre-wrap font-normal">{current.change_description}</span>
+                  </Field>
+                </dl>
+              </div>
+            ) : (
+              <div className="mt-1 space-y-1 text-sm">
+                <p className="text-muted-foreground">{t('toolingInsights.revisions.noneReleased')}</p>
+                {tool.drawing_revision && (
+                  <p>{t('toolingInsights.revisions.legacyOnRecord', { revision: tool.drawing_revision })}</p>
+                )}
+              </div>
             )}
+          </section>
 
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold">{t('toolingInsights.revisions.historyTitle')}</h3>
-              {revisions.length === 0 ? (
-                <p className="py-4 text-center text-sm text-muted-foreground">{t('toolingInsights.revisions.empty')}</p>
-              ) : (
-                <>
-                  <div className="hidden md:block">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('toolingInsights.revisions.columns.revision')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.status')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.drawingNumber')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.effectiveDate')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.changeDescription')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.releasedBy')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.releasedAt')}</TableHead>
-                          <TableHead>{t('toolingInsights.revisions.columns.supersededAt')}</TableHead>
+          {outOfSync && current && (
+            <Alert className="border-amber-500/40 bg-amber-500/5" data-testid="tooling-revision-out-of-sync">
+              <AlertTriangle className="h-4 w-4 !text-amber-600 dark:!text-amber-400" aria-hidden="true" />
+              <AlertDescription>
+                {t('toolingInsights.revisions.outOfSync', {
+                  tool: tool.drawing_revision ?? none,
+                  released: current.revision,
+                })}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold">{t('toolingInsights.revisions.historyTitle')}</h3>
+            {revisions.length === 0 ? (
+              <p className="py-4 text-center text-sm text-muted-foreground">{t('toolingInsights.revisions.empty')}</p>
+            ) : (
+              <>
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('toolingInsights.revisions.columns.revision')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.status')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.drawingNumber')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.effectiveDate')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.changeDescription')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.releasedBy')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.releasedAt')}</TableHead>
+                        <TableHead>{t('toolingInsights.revisions.columns.supersededAt')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {revisions.map((item) => (
+                        <TableRow key={item.id} data-testid="tooling-revision-row">
+                          <TableCell className="whitespace-nowrap font-mono font-medium">{item.revision}</TableCell>
+                          <TableCell>
+                            <RevisionStatusBadge status={item.status} />
+                          </TableCell>
+                          <TableCell className="break-words">{item.drawing_number ?? none}</TableCell>
+                          <TableCell className="whitespace-nowrap">{effective(item.effective_date)}</TableCell>
+                          <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words">{item.change_description}</TableCell>
+                          <TableCell>{item.released_by_name ?? none}</TableCell>
+                          <TableCell className="whitespace-nowrap">{formatDateTime(item.released_at)}</TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            {item.superseded_at ? formatDateTime(item.superseded_at) : none}
+                          </TableCell>
                         </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {revisions.map((item) => (
-                          <TableRow key={item.id} data-testid="tooling-revision-row">
-                            <TableCell className="whitespace-nowrap font-mono font-medium">{item.revision}</TableCell>
-                            <TableCell>
-                              <RevisionStatusBadge status={item.status} />
-                            </TableCell>
-                            <TableCell className="break-words">{item.drawing_number ?? none}</TableCell>
-                            <TableCell className="whitespace-nowrap">{effective(item.effective_date)}</TableCell>
-                            <TableCell className="max-w-[18rem] whitespace-pre-wrap break-words">{item.change_description}</TableCell>
-                            <TableCell>{item.released_by_name ?? none}</TableCell>
-                            <TableCell className="whitespace-nowrap">{formatDateTime(item.released_at)}</TableCell>
-                            <TableCell className="whitespace-nowrap">
-                              {item.superseded_at ? formatDateTime(item.superseded_at) : none}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                  <ul className="space-y-3 md:hidden">
-                    {revisions.map((item) => (
-                      <li key={item.id} className="rounded-md border p-3 text-sm" data-testid="tooling-revision-card">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="break-words font-medium">
-                              {t('toolingInsights.revisions.revisionLabel', { revision: item.revision })}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{releasedLine(item)}</p>
-                          </div>
-                          <RevisionStatusBadge status={item.status} />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <ul className="space-y-3 md:hidden">
+                  {revisions.map((item) => (
+                    <li key={item.id} className="rounded-md border p-3 text-sm" data-testid="tooling-revision-card">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="break-words font-medium">
+                            {t('toolingInsights.revisions.revisionLabel', { revision: item.revision })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{releasedLine(item)}</p>
                         </div>
-                        <p className="mt-2 whitespace-pre-wrap break-words">{item.change_description}</p>
-                        <dl className="mt-2 grid grid-cols-2 gap-2">
-                          <Field label={t('toolingInsights.revisions.columns.drawingNumber')}>{item.drawing_number ?? none}</Field>
-                          <Field label={t('toolingInsights.revisions.columns.effectiveDate')}>{effective(item.effective_date)}</Field>
-                          {item.superseded_at && (
-                            <Field label={t('toolingInsights.revisions.columns.supersededAt')} className="col-span-2">
-                              {formatDateTime(item.superseded_at)}
-                            </Field>
-                          )}
-                        </dl>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-          </>
-        )}
+                        <RevisionStatusBadge status={item.status} />
+                      </div>
+                      <p className="mt-2 whitespace-pre-wrap break-words">{item.change_description}</p>
+                      <dl className="mt-2 grid grid-cols-2 gap-2">
+                        <Field label={t('toolingInsights.revisions.columns.drawingNumber')}>{item.drawing_number ?? none}</Field>
+                        <Field label={t('toolingInsights.revisions.columns.effectiveDate')}>{effective(item.effective_date)}</Field>
+                        {item.superseded_at && (
+                          <Field label={t('toolingInsights.revisions.columns.supersededAt')} className="col-span-2">
+                            {formatDateTime(item.superseded_at)}
+                          </Field>
+                        )}
+                      </dl>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        </LoadStateView>
       </CardContent>
       {dialogOpen && canManage && (
         <ReleaseRevisionDialog tool={tool} current={current} revisions={revisions} onOpenChange={setDialogOpen} />

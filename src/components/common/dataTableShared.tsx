@@ -59,7 +59,8 @@ export function DataTableStaticHeaderLabel({ title }: { title: string }) {
   return <span className="block w-full text-xs font-medium text-muted-foreground">{title}</span>;
 }
 
-type ResizableTableSurfaceProps<TData> = {
+/** Props that `ResizableFixedDataTable` forwards unchanged to `ResizableTableSurface`. */
+type ResizableTableSharedProps<TData> = {
   table: TanStackTable<TData>;
   tableWidth: number;
   scrollClassName?: string;
@@ -81,6 +82,9 @@ type ResizableTableSurfaceProps<TData> = {
   getCellStyle?: (cell: Cell<TData, unknown>) => CSSProperties | undefined;
   renderHeaderActions?: (header: Header<TData, unknown>) => ReactNode;
   columnDndItems?: string[];
+};
+
+type ResizableTableSurfaceProps<TData> = ResizableTableSharedProps<TData> & {
   getRowClassName?: (rowIndex: number) => string | undefined;
   emptyMessage?: string;
   emptyColSpan?: number;
@@ -346,31 +350,10 @@ function DataTableDndHeaderSurface({ id, children }: { id: string; children: Rea
   );
 }
 
-type ResizableFixedDataTableProps<TData> = {
-  table: TanStackTable<TData>;
-  tableWidth: number;
+type ResizableFixedDataTableProps<TData> = ResizableTableSharedProps<TData> & {
   withTooltipProvider?: boolean;
-  scrollClassName?: string;
   cardClassName?: string;
   contentClassName?: string;
-  stickyHeader?: boolean;
-  getHeaderProps: (header: Header<TData, unknown>) => {
-    className: string;
-    ariaSort?: 'ascending' | 'descending' | 'none';
-    onAutoFit?: () => void;
-    style?: CSSProperties;
-    draggable?: boolean;
-    onDragStart?: DragEventHandler<HTMLTableCellElement>;
-    onDragOver?: DragEventHandler<HTMLTableCellElement>;
-    onDrop?: DragEventHandler<HTMLTableCellElement>;
-    onDragEnd?: DragEventHandler<HTMLTableCellElement>;
-    onPointerDown?: PointerEventHandler<HTMLTableCellElement>;
-    dataColumnKey?: string;
-  };
-  getCellClassName: (cell: Cell<TData, unknown>) => string;
-  getCellStyle?: (cell: Cell<TData, unknown>) => CSSProperties | undefined;
-  renderHeaderActions?: (header: Header<TData, unknown>) => ReactNode;
-  columnDndItems?: string[];
 };
 
 export function ResizableFixedDataTable<TData>({

@@ -1,9 +1,10 @@
-import { distance, segmentIntersection } from '../core/geometry';
+import { segmentIntersection } from '../core/geometry';
 import type {
   LineEntity,
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestIntersectionSnap } from './closestSnap';
 
 export type LineIntersectionSnapResult = {
   point: SketchPoint;
@@ -53,22 +54,9 @@ export const findLineLineIntersectionSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): LineIntersectionSnapResult | null => {
-  let best: LineIntersectionSnapResult | null = null;
-
-  getLineLineIntersectionPoints(entities).forEach((candidate) => {
-    const candidateDistance = distance(point, candidate.point);
-    if (
-      candidateDistance < threshold &&
-      (!best || candidateDistance < best.distance)
-    ) {
-      best = {
-        point: { ...candidate.point },
-        entityIds: candidate.entityIds,
-        distance: candidateDistance,
-      };
-    }
-  });
-
-  return best;
-};
+): LineIntersectionSnapResult | null =>
+  findClosestIntersectionSnap(
+    point,
+    getLineLineIntersectionPoints(entities),
+    threshold,
+  );

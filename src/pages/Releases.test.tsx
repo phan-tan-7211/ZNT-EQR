@@ -66,12 +66,6 @@ async function loadReleasesPage(releases: readonly PublicRelease[]) {
 
     return {
       INITIAL_VISIBLE_PUBLIC_RELEASES: 10,
-      PUBLIC_RELEASE_FILTER_LABELS: {
-        all: 'All',
-        features: 'Features',
-        fixes: 'Fixes',
-        security: 'Security',
-      },
       PUBLIC_RELEASES: releases,
       releaseMatchesPublicReleaseFilter: actual.releaseMatchesPublicReleaseFilter,
       sectionMatchesPublicReleaseFilter: actual.sectionMatchesPublicReleaseFilter,

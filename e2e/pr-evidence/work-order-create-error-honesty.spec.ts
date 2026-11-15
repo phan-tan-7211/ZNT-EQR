@@ -23,7 +23,7 @@ const cloudCat320Matcher = /CAT320GC-CLOUD-AGENT-001|CAT 320 Excavator/i;
 test.describe('Work order create empty description @pr-evidence', () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      localStorage.setItem('equipqr:cookie-consent', 'accepted');
+      localStorage.setItem('znteqr:cookie-consent', 'accepted');
     });
     await signInWithEmailPassword(page, ownerEmail, ownerPassword);
     await ensureCookieConsentAccepted(page);

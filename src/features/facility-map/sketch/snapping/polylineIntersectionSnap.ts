@@ -5,6 +5,7 @@ import type {
   SketchEntity,
   SketchPoint,
 } from '../core/types';
+import { findClosestIntersectionSnap } from './closestSnap';
 
 type SegmentSource = {
   entityId: string;
@@ -115,22 +116,9 @@ export const findPolylineIntersectionSnap = (
   point: SketchPoint,
   entities: SketchEntity[],
   threshold: number,
-): PolylineIntersectionSnapResult | null => {
-  let best: PolylineIntersectionSnapResult | null = null;
-
-  getPolylineIntersectionPoints(entities).forEach((candidate) => {
-    const candidateDistance = distance(point, candidate.point);
-    if (
-      candidateDistance < threshold &&
-      (!best || candidateDistance < best.distance)
-    ) {
-      best = {
-        point: { ...candidate.point },
-        entityIds: candidate.entityIds,
-        distance: candidateDistance,
-      };
-    }
-  });
-
-  return best;
-};
+): PolylineIntersectionSnapResult | null =>
+  findClosestIntersectionSnap(
+    point,
+    getPolylineIntersectionPoints(entities),
+    threshold,
+  );

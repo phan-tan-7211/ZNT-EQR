@@ -99,7 +99,7 @@ vi.mock('@/utils/logger', () => ({
 
 const USER_ID = 'user-123';
 const ORG_ID = 'org-456';
-const STORAGE_KEY = `equipqr_offline_queue_${USER_ID}_${ORG_ID}`;
+const STORAGE_KEY = `znteqr_offline_queue_${USER_ID}_${ORG_ID}`;
 
 function createPendingItem(overrides?: Partial<OfflineQueueItem>): OfflineQueueItem {
   return {

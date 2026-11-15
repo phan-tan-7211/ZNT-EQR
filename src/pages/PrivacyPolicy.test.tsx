@@ -96,8 +96,8 @@ describe('PrivacyPolicy', () => {
     expect(screen.getByText(/4\.7 QuickBooks Online.*Optional Integration/)).toBeInTheDocument();
     expect(screen.getByText(/4\.8 Google Workspace.*Optional Integration/)).toBeInTheDocument();
 
-    const cloudWorksLinks = screen.getAllByText('ZNT LLC');
-    cloudWorksLinks.forEach((link) => {
+    const companyNameLinks = screen.getAllByText('ZNT LLC');
+    companyNameLinks.forEach((link) => {
       expect(link.closest('a')).toHaveAttribute('href', 'https://eqrweb.zinitek.com');
       expect(link.closest('a')).toHaveAttribute('target', '_blank');
       expect(link.closest('a')).toHaveAttribute('rel', 'noopener noreferrer');

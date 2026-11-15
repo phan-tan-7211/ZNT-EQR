@@ -9,7 +9,7 @@ import { DASHBOARD_CURRENT_ORG_STORAGE_KEY } from '@/utils/organizationSelection
 
 const SESSION_STORAGE_KEY = getSessionStorageKey();
 const SESSION_VERSION = getSessionVersion();
-const SELECTED_TEAM_STORAGE_KEY_PREFIX = 'equipqr:selectedTeamId:';
+const SELECTED_TEAM_STORAGE_KEY_PREFIX = 'znteqr:selectedTeamId:';
 
 type PersistedSessionData = SessionData & {
   authUserId?: string;

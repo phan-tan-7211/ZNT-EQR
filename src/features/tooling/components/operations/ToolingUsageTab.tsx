@@ -1,26 +1,23 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent } from 'react';
 import { AlertTriangle, Gauge, OctagonAlert, Pencil, Plus, Settings2, Scale } from 'lucide-react';
 import { toast } from 'sonner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  OperationFormDialog,
+  RecordListBoundary,
+  RequiredReasonField,
+} from '@/features/tooling/components/operations/ToolingOperationShared';
+import { FieldError } from '@/features/tooling/components/toolingShared';
 import type { ToolingTabProps } from '@/features/tooling/components/toolingTabProps';
 import {
   useCorrectToolingUsage,
@@ -39,6 +36,7 @@ import {
 import { toolingErrorMessage } from '@/features/tooling/utils/toolingErrors';
 import {
   formatToolingNumber,
+  parseOptionalNumber,
   toolingLifePercent,
   toolingLifeTone,
   toolingRemainingLife,
@@ -47,14 +45,6 @@ import {
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
 import { useI18n } from '@/i18n';
 import { cn } from '@/lib/utils';
-
-/** Empty → null, invalid → undefined. */
-function parseOptionalNumber(value: string): number | null | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return null;
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
 
 function numberInputValue(value: number | null): string {
   return value == null ? '' : String(value);
@@ -70,60 +60,6 @@ const TONE_BAR: Record<ToolingLifeTone, string> = {
   limit: '[&>div]:bg-destructive',
   none: '[&>div]:bg-muted-foreground',
 };
-
-function FieldError({ show, message }: { show: boolean; message: string }) {
-  if (!show) return null;
-  return (
-    <p className="text-sm text-destructive" role="alert">
-      {message}
-    </p>
-  );
-}
-
-function FormDialog({
-  open,
-  onOpenChange,
-  title,
-  description,
-  onSubmit,
-  pending,
-  submitLabel,
-  submitVariant = 'default',
-  children,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description: string;
-  onSubmit: (event: FormEvent) => void;
-  pending: boolean;
-  submitLabel: string;
-  submitVariant?: 'default' | 'destructive';
-  children: ReactNode;
-}) {
-  const { t } = useI18n();
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
-        <form onSubmit={onSubmit} className="space-y-4" noValidate>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{description}</DialogDescription>
-          </DialogHeader>
-          {children}
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-              {t('tooling.cancel')}
-            </Button>
-            <Button type="submit" variant={submitVariant} disabled={pending}>
-              {pending ? t('tooling.saving') : submitLabel}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 type DialogProps = { tool: ToolingOverview; open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -164,7 +100,7 @@ function RecordUsageDialog({ tool, open, onOpenChange }: DialogProps) {
   };
 
   return (
-    <FormDialog
+    <OperationFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={t('toolingOps.usage.recordTitle')}
@@ -215,7 +151,7 @@ function RecordUsageDialog({ tool, open, onOpenChange }: DialogProps) {
         </Label>
         <Textarea id="tooling-usage-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} maxLength={1000} />
       </div>
-    </FormDialog>
+    </OperationFormDialog>
   );
 }
 
@@ -254,7 +190,7 @@ function CorrectUsageDialog({ tool, open, onOpenChange }: DialogProps) {
   };
 
   return (
-    <FormDialog
+    <OperationFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={t('toolingOps.correct.title')}
@@ -288,19 +224,8 @@ function CorrectUsageDialog({ tool, open, onOpenChange }: DialogProps) {
           </p>
         )}
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="tooling-correct-reason">{t('tooling.reason')}</Label>
-        <Textarea
-          id="tooling-correct-reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          rows={3}
-          maxLength={1000}
-          aria-invalid={submitted && reasonMissing}
-        />
-        <FieldError show={submitted && reasonMissing} message={t('tooling.reasonRequired')} />
-      </div>
-    </FormDialog>
+      <RequiredReasonField id="tooling-correct-reason" value={reason} onChange={setReason} showError={submitted && reasonMissing} />
+    </OperationFormDialog>
   );
 }
 
@@ -389,7 +314,7 @@ function LifeLimitsDialog({ tool, open, onOpenChange }: DialogProps) {
   );
 
   return (
-    <FormDialog
+    <OperationFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={t('toolingOps.limits.title')}
@@ -451,7 +376,7 @@ function LifeLimitsDialog({ tool, open, onOpenChange }: DialogProps) {
         </Label>
         <Textarea id="tooling-limits-reason" value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={1000} />
       </div>
-    </FormDialog>
+    </OperationFormDialog>
   );
 }
 
@@ -493,7 +418,7 @@ function DispositionDialog({ tool, open, onOpenChange }: DialogProps) {
   };
 
   return (
-    <FormDialog
+    <OperationFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title={t('toolingOps.disposition.title')}
@@ -555,19 +480,8 @@ function DispositionDialog({ tool, open, onOpenChange }: DialogProps) {
       {disposition === 'retire' && tool.is_issued && (
         <p className="text-sm text-destructive">{t('tooling.errors.TOOLING_ISSUED_RETURN_FIRST')}</p>
       )}
-      <div className="space-y-1.5">
-        <Label htmlFor="tooling-disposition-reason">{t('tooling.reason')}</Label>
-        <Textarea
-          id="tooling-disposition-reason"
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-          rows={3}
-          maxLength={1000}
-          aria-invalid={submitted && reasonMissing}
-        />
-        <FieldError show={submitted && reasonMissing} message={t('tooling.reasonRequired')} />
-      </div>
-    </FormDialog>
+      <RequiredReasonField id="tooling-disposition-reason" value={reason} onChange={setReason} showError={submitted && reasonMissing} />
+    </OperationFormDialog>
   );
 }
 
@@ -701,84 +615,76 @@ function UsageLedger({ logs, loading, failed }: { logs: ToolingUsageLog[]; loadi
         <CardDescription>{t('toolingOps.ledger.description')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {loading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('toolingOps.common.loading')}>
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : failed ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingOps.common.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : logs.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">{t('toolingOps.ledger.empty')}</p>
-        ) : (
-          <>
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('toolingOps.ledger.time')}</TableHead>
-                    <TableHead>{t('toolingOps.ledger.type')}</TableHead>
-                    <TableHead className="text-right">{t('toolingOps.ledger.quantity')}</TableHead>
-                    <TableHead className="text-right">{t('toolingOps.ledger.production')}</TableHead>
-                    <TableHead className="text-right">{t('toolingOps.ledger.cumulativeAfter')}</TableHead>
-                    <TableHead>{t('toolingOps.ledger.reason')}</TableHead>
-                    <TableHead>{t('toolingOps.ledger.recordedBy')}</TableHead>
+        <RecordListBoundary
+          loading={loading}
+          failed={failed}
+          empty={logs.length === 0}
+          emptyMessage={t('toolingOps.ledger.empty')}
+        >
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('toolingOps.ledger.time')}</TableHead>
+                  <TableHead>{t('toolingOps.ledger.type')}</TableHead>
+                  <TableHead className="text-right">{t('toolingOps.ledger.quantity')}</TableHead>
+                  <TableHead className="text-right">{t('toolingOps.ledger.production')}</TableHead>
+                  <TableHead className="text-right">{t('toolingOps.ledger.cumulativeAfter')}</TableHead>
+                  <TableHead>{t('toolingOps.ledger.reason')}</TableHead>
+                  <TableHead>{t('toolingOps.ledger.recordedBy')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {logs.map((log) => (
+                  <TableRow key={log.id}>
+                    <TableCell className="whitespace-nowrap">{formatDateTime(log.recorded_at)}</TableCell>
+                    <TableCell>{typeBadge(log)}</TableCell>
+                    <TableCell className="whitespace-nowrap text-right tabular-nums">{signed(log)}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {log.production_quantity == null ? none : formatToolingNumber(log.production_quantity, language)}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{formatToolingNumber(log.cumulative_after, language)}</TableCell>
+                    <TableCell className="max-w-[18rem] break-words">{log.reason ?? none}</TableCell>
+                    <TableCell>{log.recorded_by_name ?? none}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap">{formatDateTime(log.recorded_at)}</TableCell>
-                      <TableCell>{typeBadge(log)}</TableCell>
-                      <TableCell className="whitespace-nowrap text-right tabular-nums">{signed(log)}</TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {log.production_quantity == null ? none : formatToolingNumber(log.production_quantity, language)}
-                      </TableCell>
-                      <TableCell className="text-right tabular-nums">{formatToolingNumber(log.cumulative_after, language)}</TableCell>
-                      <TableCell className="max-w-[18rem] break-words">{log.reason ?? none}</TableCell>
-                      <TableCell>{log.recorded_by_name ?? none}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <ul className="space-y-3 md:hidden">
-              {logs.map((log) => (
-                <li key={log.id} className="rounded-md border p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold tabular-nums">{signed(log)}</p>
-                      <p className="text-xs text-muted-foreground">{formatDateTime(log.recorded_at)}</p>
-                    </div>
-                    {typeBadge(log)}
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ul className="space-y-3 md:hidden">
+            {logs.map((log) => (
+              <li key={log.id} className="rounded-md border p-3 text-sm">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold tabular-nums">{signed(log)}</p>
+                    <p className="text-xs text-muted-foreground">{formatDateTime(log.recorded_at)}</p>
                   </div>
-                  <dl className="mt-2 grid grid-cols-2 gap-2">
-                    <div>
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.cumulativeAfter')}</dt>
-                      <dd className="tabular-nums">{formatToolingNumber(log.cumulative_after, language)}</dd>
-                    </div>
-                    <div>
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.production')}</dt>
-                      <dd className="tabular-nums">
-                        {log.production_quantity == null ? none : formatToolingNumber(log.production_quantity, language)}
-                      </dd>
-                    </div>
-                    <div className="col-span-2">
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.reason')}</dt>
-                      <dd className="break-words">{log.reason ?? none}</dd>
-                    </div>
-                    <div className="col-span-2">
-                      <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.recordedBy')}</dt>
-                      <dd className="break-words">{log.recorded_by_name ?? none}</dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+                  {typeBadge(log)}
+                </div>
+                <dl className="mt-2 grid grid-cols-2 gap-2">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.cumulativeAfter')}</dt>
+                    <dd className="tabular-nums">{formatToolingNumber(log.cumulative_after, language)}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.production')}</dt>
+                    <dd className="tabular-nums">
+                      {log.production_quantity == null ? none : formatToolingNumber(log.production_quantity, language)}
+                    </dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.reason')}</dt>
+                    <dd className="break-words">{log.reason ?? none}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="text-xs text-muted-foreground">{t('toolingOps.ledger.recordedBy')}</dt>
+                    <dd className="break-words">{log.recorded_by_name ?? none}</dd>
+                  </div>
+                </dl>
+              </li>
+            ))}
+          </ul>
+        </RecordListBoundary>
       </CardContent>
     </Card>
   );

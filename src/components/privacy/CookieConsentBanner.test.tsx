@@ -29,7 +29,7 @@ function renderBanner() {
 
 function PreferenceProbe({ onRehydrate }: { onRehydrate: (value: string | null) => void }) {
   useWhenPreferenceStorageAllowed(() => {
-    onRehydrate(getPreferenceLocalStorage('equipqr:equipment-view-mode'));
+    onRehydrate(getPreferenceLocalStorage('znteqr:equipment-view-mode'));
   });
   return null;
 }
@@ -97,7 +97,7 @@ describe('CookieConsentBanner', () => {
     const user = userEvent.setup();
     const onRehydrate = vi.fn();
     // Legacy preference present before consent — gated until Accept.
-    localStorage.setItem('equipqr:equipment-view-mode', 'table');
+    localStorage.setItem('znteqr:equipment-view-mode', 'table');
 
     render(
       <MemoryRouter>
@@ -108,7 +108,7 @@ describe('CookieConsentBanner', () => {
       </MemoryRouter>,
     );
 
-    expect(getPreferenceLocalStorage('equipqr:equipment-view-mode')).toBeNull();
+    expect(getPreferenceLocalStorage('znteqr:equipment-view-mode')).toBeNull();
     await user.click(screen.getByRole('button', { name: /^accept$/i }));
     expect(onRehydrate).toHaveBeenCalledWith('table');
   });

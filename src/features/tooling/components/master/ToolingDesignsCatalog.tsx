@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { DraftingCompass, Pencil, Plus } from 'lucide-react';
 import { toast } from 'sonner';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,10 +16,10 @@ import EmptyState from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { LoadStateView } from '@/features/tooling/components/toolingShared';
 import { useSaveToolingDesign, useToolingDesigns } from '@/features/tooling/hooks/useTooling';
 import { TOOLING_TYPES, type ToolingDesign, type ToolingType } from '@/features/tooling/types';
 import { toolingErrorMessage } from '@/features/tooling/utils/toolingErrors';
@@ -47,6 +46,8 @@ const EMPTY_FORM: DesignForm = {
   description: '',
   is_active: true,
 };
+
+const DESIGN_SKELETONS = ['h-12 w-full', 'h-12 w-full', 'h-12 w-full'] as const;
 
 const orNull = (value: string): string | null => (value.trim() ? value.trim() : null);
 
@@ -148,85 +149,81 @@ export function ToolingDesignsCatalog({ organizationId, canManage }: { organizat
         )}
       </CardHeader>
       <CardContent>
-        {isLoading ? (
-          <div className="space-y-2" aria-busy="true" aria-label={t('tooling.loading')}>
-            {[0, 1, 2].map((row) => (
-              <Skeleton key={row} className="h-12 w-full" />
-            ))}
-          </div>
-        ) : error ? (
-          <Alert variant="destructive">
-            <AlertDescription>{t('toolingMaster.designs.loadFailed')}</AlertDescription>
-          </Alert>
-        ) : designs.length === 0 ? (
-          <EmptyState
-            icon={DraftingCompass}
-            title={t('toolingMaster.designs.emptyTitle')}
-            description={canManage ? t('toolingMaster.designs.emptyDescription') : t('toolingMaster.designs.emptyReadOnly')}
-          />
-        ) : (
-          <>
-            <div className="hidden md:block">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('toolingMaster.designs.designCode')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.name')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.toolingType')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.drawingNumber')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.currentRevision')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.revisionEffectiveDate')}</TableHead>
-                    <TableHead>{t('toolingMaster.designs.status')}</TableHead>
-                    {canManage && <TableHead className="text-right">{t('toolingMaster.designs.actions')}</TableHead>}
+        <LoadStateView
+          loading={isLoading}
+          failed={Boolean(error)}
+          skeletons={DESIGN_SKELETONS}
+          loadingLabel={t('tooling.loading')}
+          failedMessage={t('toolingMaster.designs.loadFailed')}
+          empty={designs.length === 0}
+          emptyState={
+            <EmptyState
+              icon={DraftingCompass}
+              title={t('toolingMaster.designs.emptyTitle')}
+              description={canManage ? t('toolingMaster.designs.emptyDescription') : t('toolingMaster.designs.emptyReadOnly')}
+            />
+          }
+        >
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('toolingMaster.designs.designCode')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.name')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.toolingType')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.drawingNumber')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.currentRevision')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.revisionEffectiveDate')}</TableHead>
+                  <TableHead>{t('toolingMaster.designs.status')}</TableHead>
+                  {canManage && <TableHead className="text-right">{t('toolingMaster.designs.actions')}</TableHead>}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {designs.map((design) => (
+                  <TableRow key={design.id}>
+                    <TableCell className="whitespace-nowrap font-mono text-xs font-semibold">{design.design_code}</TableCell>
+                    <TableCell>
+                      <p className="font-medium">{design.name}</p>
+                      {design.description && (
+                        <p className="mt-0.5 max-w-xs text-xs text-muted-foreground">{design.description}</p>
+                      )}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">{t(`tooling.types.${design.tooling_type}`)}</TableCell>
+                    <TableCell>{design.drawing_number ?? t('tooling.none')}</TableCell>
+                    <TableCell>{design.current_revision ?? t('tooling.none')}</TableCell>
+                    <TableCell className="whitespace-nowrap">{design.revision_effective_date ?? t('tooling.none')}</TableCell>
+                    <TableCell>{statusBadge(design)}</TableCell>
+                    {canManage && <TableCell className="text-right">{editButton(design)}</TableCell>}
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {designs.map((design) => (
-                    <TableRow key={design.id}>
-                      <TableCell className="whitespace-nowrap font-mono text-xs font-semibold">{design.design_code}</TableCell>
-                      <TableCell>
-                        <p className="font-medium">{design.name}</p>
-                        {design.description && (
-                          <p className="mt-0.5 max-w-xs text-xs text-muted-foreground">{design.description}</p>
-                        )}
-                      </TableCell>
-                      <TableCell className="whitespace-nowrap">{t(`tooling.types.${design.tooling_type}`)}</TableCell>
-                      <TableCell>{design.drawing_number ?? t('tooling.none')}</TableCell>
-                      <TableCell>{design.current_revision ?? t('tooling.none')}</TableCell>
-                      <TableCell className="whitespace-nowrap">{design.revision_effective_date ?? t('tooling.none')}</TableCell>
-                      <TableCell>{statusBadge(design)}</TableCell>
-                      {canManage && <TableCell className="text-right">{editButton(design)}</TableCell>}
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-            <ul className="space-y-3 md:hidden">
-              {designs.map((design) => (
-                <li key={design.id} className="rounded-lg border p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-medium">{design.name}</p>
-                      <p className="truncate font-mono text-xs text-muted-foreground">
-                        {design.design_code} · {t(`tooling.types.${design.tooling_type}`)}
-                      </p>
-                    </div>
-                    {editButton(design)}
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ul className="space-y-3 md:hidden">
+            {designs.map((design) => (
+              <li key={design.id} className="rounded-lg border p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium">{design.name}</p>
+                    <p className="truncate font-mono text-xs text-muted-foreground">
+                      {design.design_code} · {t(`tooling.types.${design.tooling_type}`)}
+                    </p>
                   </div>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                    {statusBadge(design)}
-                    {design.drawing_number && <span className="break-all">{design.drawing_number}</span>}
-                    {design.current_revision && (
-                      <span>{t('toolingMaster.designs.revision', { revision: design.current_revision })}</span>
-                    )}
-                    {design.revision_effective_date && <span>{design.revision_effective_date}</span>}
-                  </div>
-                  {design.description && <p className="mt-2 break-words text-xs text-muted-foreground">{design.description}</p>}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
+                  {editButton(design)}
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  {statusBadge(design)}
+                  {design.drawing_number && <span className="break-all">{design.drawing_number}</span>}
+                  {design.current_revision && (
+                    <span>{t('toolingMaster.designs.revision', { revision: design.current_revision })}</span>
+                  )}
+                  {design.revision_effective_date && <span>{design.revision_effective_date}</span>}
+                </div>
+                {design.description && <p className="mt-2 break-words text-xs text-muted-foreground">{design.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </LoadStateView>
       </CardContent>
 
       {canManage && (

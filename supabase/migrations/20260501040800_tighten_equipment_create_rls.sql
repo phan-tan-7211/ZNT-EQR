@@ -10,7 +10,7 @@
 --   member SELECT/UPDATE/DELETE behavior (UI gates and `equipment.edit` rules
 --   continue to constrain modify operations at the application layer).
 -- Affected tables: public.equipment
--- Notes: This migration follows EquipQR's "never edit applied migrations"
+-- Notes: This migration follows ZNTEQR's "never edit applied migrations"
 --   rule. The earlier `20250901235558_remote_schema.sql` and
 --   `20250902123800_performance_optimization.sql` migrations already shipped
 --   their own variants of `team_members_create_equipment`; that policy was

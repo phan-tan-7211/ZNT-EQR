@@ -17,6 +17,7 @@ import PageHeader from "@/components/layout/PageHeader";
 import MyTickets from "@/features/tickets/components/MyTickets";
 import { useBugReport } from "@/features/tickets/context/BugReportContext";
 import { SUPPORT_DOCS_URL } from "@/lib/documentationUrl";
+import { localizeDocsUrl } from "@/lib/localizeDocsUrl";
 import { useI18n } from '@/i18n';
 
 interface ContactSectionProps {
@@ -86,7 +87,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({
 };
 
 const HelpCenterCard: React.FC = () => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   return (
   <Card className="border-primary/20 bg-linear-to-r from-primary/5 to-accent/5">
     <CardHeader>
@@ -101,7 +102,7 @@ const HelpCenterCard: React.FC = () => {
     <CardContent>
       <Button asChild>
         <ExternalLink
-          href={SUPPORT_DOCS_URL}
+          href={localizeDocsUrl(SUPPORT_DOCS_URL, language)}
           className="inline-flex items-center gap-2"
           showIcon={false}
         >

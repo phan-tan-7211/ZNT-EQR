@@ -28,7 +28,7 @@ $ErrorActionPreference = 'Stop'
 $env:E2E_REAL_AUTH_BASE_URL = $BaseUrl
 $env:E2E_REAL_AUTH_STORAGE_STATE = $StorageState
 
-# Completed work order in nicholas.king local org ("My Organization"); override when needed.
+# Completed work order in the local owner's org ("My Organization"); override when needed.
 if (-not $env:E2E_GOOGLE_DOCS_WORK_ORDER_ID) {
     $env:E2E_GOOGLE_DOCS_WORK_ORDER_ID = 'd00e8400-e29b-41d4-a716-446655440002'
 }

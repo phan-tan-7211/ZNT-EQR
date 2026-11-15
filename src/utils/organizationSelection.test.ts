@@ -7,13 +7,13 @@ import {
 describe('persistDashboardOrganizationSelection', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
   });
 
   it('writes invited org to dashboard and session preference storage', () => {
     persistDashboardOrganizationSelection('org-invited');
 
     expect(localStorage.getItem(DASHBOARD_CURRENT_ORG_STORAGE_KEY)).toBe('org-invited');
-    expect(localStorage.getItem('equipqr_current_org')).toContain('org-invited');
+    expect(localStorage.getItem('znteqr_current_org')).toContain('org-invited');
   });
 });

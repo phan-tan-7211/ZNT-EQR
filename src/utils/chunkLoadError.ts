@@ -11,7 +11,7 @@
  * manifest, guarded so a genuinely broken chunk can't cause a reload loop.
  */
 
-const RELOAD_FLAG_PREFIX = 'equipqr:chunk-reload:';
+const RELOAD_FLAG_PREFIX = 'znteqr:chunk-reload:';
 
 /** True when the error looks like a dynamic-import / chunk fetch failure. */
 export function isChunkLoadError(error: unknown): boolean {

@@ -14,7 +14,7 @@ import {
 
 /** localStorage key scoped to user + organization */
 function storageKey(userId: string, orgId: string): string {
-  return `equipqr_dashboard_layout_${userId}_${orgId}`;
+  return `znteqr_dashboard_layout_${userId}_${orgId}`;
 }
 
 interface StoredPreferences {

@@ -22,7 +22,7 @@ ALTER TABLE public.customers
 ADD COLUMN IF NOT EXISTS quickbooks_tax_status_synced_at timestamptz;
 
 COMMENT ON COLUMN public.customers.quickbooks_tax_status_synced_at IS
-  'Timestamp when EquipQR last confirmed QuickBooks Customer.Taxable for is_tax_exempt cache freshness.';
+  'Timestamp when ZNTEQR last confirmed QuickBooks Customer.Taxable for is_tax_exempt cache freshness.';
 
 ALTER TABLE public.work_orders
 ADD COLUMN IF NOT EXISTS quickbooks_invoice_id text,
