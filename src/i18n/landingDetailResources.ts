@@ -59,7 +59,7 @@ export const landingDetailResources = {
         "case5Win": "Catch the ding at the gate, not on the next customer's job."
       },
       "social": {
-        "heading": "Trusted by Equipment Teams",
+        "heading": "Built for Equipment Teams",
         "intro": "Private by default, usable offline, and connected to the tools your shop already runs on.",
         "private": "Your Data Stays Private",
         "offline": "Offline-Ready Mobile",
@@ -128,7 +128,7 @@ export const landingDetailResources = {
         "case5Win": "Phát hiện vết hư hỏng ngay khi nhận lại, trước khi giao cho khách tiếp theo."
       },
       "social": {
-        "heading": "Được các đội ngũ thiết bị tin dùng",
+        "heading": "Xây dựng cho đội ngũ thiết bị",
         "intro": "Riêng tư theo mặc định, dùng được khi mất mạng và kết nối với những công cụ xưởng của bạn đang dùng.",
         "private": "Dữ liệu của bạn luôn riêng tư",
         "offline": "Ứng dụng di động hỗ trợ ngoại tuyến",
@@ -197,7 +197,7 @@ export const landingDetailResources = {
         "case5Win": "다음 고객에게 넘기기 전에 반납 단계에서 손상을 발견할 수 있습니다."
       },
       "social": {
-        "heading": "장비 운영 팀의 신뢰",
+        "heading": "장비 운영 팀을 위해 만들었습니다",
         "intro": "기본적으로 비공개이고, 오프라인에서도 쓸 수 있으며, 정비소에서 이미 쓰는 도구와 연결됩니다.",
         "private": "데이터 비공개 유지",
         "offline": "오프라인 모바일 지원",

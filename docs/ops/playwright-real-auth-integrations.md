@@ -9,7 +9,7 @@ Opt-in Playwright project for validating connected vendor integrations on **prev
 | ZNTEQR sign-in | `phantan7211@gmail.com` (Google OAuth) |
 | Target app | `https://preview.eqr-zinitek.pages.dev` |
 | QuickBooks | Sandbox QBO company (`app.sandbox.qbo.intuit.com`) — preview edge sets `QBO_USE_SANDBOX=true` |
-| Storage file | `tmp/playwright/auth/nicholas-google-qbo.json` (gitignored) |
+| Storage file | `tmp/playwright/auth/owner-google-qbo.json` (gitignored) |
 
 ## Capture storage state (one-time / refresh)
 
@@ -22,7 +22,7 @@ Opt-in Playwright project for validating connected vendor integrations on **prev
 New-Item -ItemType Directory -Force -Path "tmp\playwright\auth" | Out-Null
 
 npx playwright codegen "https://preview.eqr-zinitek.pages.dev/auth?tab=signin" `
-  --save-storage="tmp/playwright/auth/nicholas-google-qbo.json"
+  --save-storage="tmp/playwright/auth/owner-google-qbo.json"
 ```
 
 3. In the codegen browser:
@@ -31,7 +31,7 @@ npx playwright codegen "https://preview.eqr-zinitek.pages.dev/auth?tab=signin" `
    - Open `https://app.sandbox.qbo.intuit.com/app/homepage` in the **same** browser tab/window and sign into a **sandbox** QuickBooks company
    - Close codegen (file is saved automatically)
 
-Never commit `tmp/playwright/auth/nicholas-google-qbo.json`. It contains live session cookies.
+Never commit `tmp/playwright/auth/owner-google-qbo.json`. It contains live session cookies.
 
 ### Local dev (Google sign-in + Google Workspace)
 
@@ -128,7 +128,7 @@ To reuse a Google-only storage state as a starting point for the combined ZNTEQR
 ```powershell
 npx playwright codegen "https://preview.eqr-zinitek.pages.dev/auth?tab=signin" `
   --load-storage="tmp/playwright/auth/google-business.json" `
-  --save-storage="tmp/playwright/auth/nicholas-google-qbo.json"
+  --save-storage="tmp/playwright/auth/owner-google-qbo.json"
 ```
 
 ### Work order preconditions
@@ -145,7 +145,7 @@ The export test work order must:
 ### Preflight only (integrations connected)
 
 ```powershell
-$env:E2E_REAL_AUTH_STORAGE_STATE = "tmp\playwright\auth\nicholas-google-qbo.json"
+$env:E2E_REAL_AUTH_STORAGE_STATE = "tmp\playwright\auth\owner-google-qbo.json"
 $env:E2E_REAL_AUTH_BASE_URL = "https://preview.eqr-zinitek.pages.dev"
 npx playwright test --config=playwright.user.config.ts --project=real-auth-integrations --headed -g "preflight"
 ```
@@ -153,7 +153,7 @@ npx playwright test --config=playwright.user.config.ts --project=real-auth-integ
 ### Full real-auth suite (includes sandbox QBO export)
 
 ```powershell
-$env:E2E_REAL_AUTH_STORAGE_STATE = "tmp\playwright\auth\nicholas-google-qbo.json"
+$env:E2E_REAL_AUTH_STORAGE_STATE = "tmp\playwright\auth\owner-google-qbo.json"
 $env:E2E_REAL_AUTH_BASE_URL = "https://preview.eqr-zinitek.pages.dev"
 $env:E2E_QBO_WORK_ORDER_ID = "1660137f-a803-4510-9a0a-96c7048d0eb4"
 $env:E2E_ALLOW_QBO_DRAFTS = "true"
