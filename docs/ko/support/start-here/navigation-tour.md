@@ -31,7 +31,7 @@ personas: ["all"]
 
 ![모바일 작업 지시 탭](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/start-here/mobile/03-mobile-nav-work-orders.png)
 
-상단 바에는 현재 조직, 알림, 사용자 메뉴가 표시됩니다. **도움말 센터**(eqrdocs.zinitek.com의 가이드)와 **지원 및 문의**(문제 신고)는 **사용자 메뉴(오른쪽 상단 아바타)**에 있습니다.
+상단 바에는 현재 조직, 알림, 사용자 메뉴가 표시됩니다. **도움말 센터**(eqrdocs.zinitek.com의 가이드)와 **지원 및 문의**(문제 신고)는 **사용자 메뉴**(오른쪽 상단 아바타)에 있습니다.
 
 ## 4. 관리자 전용 화면은 기본적으로 숨겨져 있습니다
 
