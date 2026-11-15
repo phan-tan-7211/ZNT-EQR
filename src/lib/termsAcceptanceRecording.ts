@@ -1,8 +1,13 @@
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import {
-  PRIVACY_VERSION_HASH,
-  TERMS_VERSION_HASH,
+  CURRENT_LEGAL_POLICY_VERSION_IDS,
+  CURRENT_PRIVACY_VERSION_HASHES,
+  CURRENT_TERMS_VERSION_HASHES,
+  LEGAL_POLICY_VERSION_ID_ALIASES,
+  isCanonicalLegalPolicyVersionPair,
+  isCurrentLegalPolicyVersionPair,
+  type LegalPolicyVersionIds,
 } from '@/lib/legalPolicyVersions';
 import { logger } from '@/utils/logger';
 
@@ -32,40 +37,46 @@ function hasPendingTermsAcceptanceForUser(userId: string): boolean {
   }
 }
 
-/** Sign-up stores acceptance intent in user_metadata so it survives cross-device email verification. */
-function userMetadataIndicatesSignupTermsAccepted(user: User): boolean {
+/**
+ * Sign-up stores acceptance intent in user_metadata so it survives cross-device email verification.
+ * Returns the ids the user accepted when they name the current Terms and Privacy texts (a sign-up
+ * made before the id rename carries an alias), otherwise null.
+ */
+function signupAcceptedLegalPolicyVersionIds(user: User): LegalPolicyVersionIds | null {
   const meta = user.user_metadata as Record<string, unknown> | undefined;
-  if (!meta) return false;
+  if (!meta) return null;
 
   const accepted = meta.terms_accepted;
   const acceptedOk =
     accepted === true ||
     accepted === 'true' ||
     String(accepted).toLowerCase() === 'true';
-  if (!acceptedOk) return false;
+  if (!acceptedOk) return null;
 
   const th = meta.terms_version_hash;
   const ph = meta.privacy_version_hash;
-  return (
-    typeof th === 'string' &&
-    typeof ph === 'string' &&
-    th === TERMS_VERSION_HASH &&
-    ph === PRIVACY_VERSION_HASH
-  );
+  if (typeof th !== 'string' || typeof ph !== 'string' || !isCurrentLegalPolicyVersionPair(th, ph)) {
+    return null;
+  }
+  return { termsVersionHash: th, privacyVersionHash: ph };
 }
 
 function shouldAttemptTermsAcceptanceFlush(user: User): boolean {
   if (hasPendingTermsAcceptanceForUser(user.id)) return true;
-  return userMetadataIndicatesSignupTermsAccepted(user);
+  return signupAcceptedLegalPolicyVersionIds(user) !== null;
 }
 
+/**
+ * A row recorded under an alias id is evidence for the same texts, so it counts: recording
+ * another one would invent a second acceptance event.
+ */
 async function userHasCurrentTermsAcceptanceRow(userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('terms_acceptances')
     .select('id')
     .eq('user_id', userId)
-    .eq('terms_version_hash', TERMS_VERSION_HASH)
-    .eq('privacy_version_hash', PRIVACY_VERSION_HASH)
+    .in('terms_version_hash', CURRENT_TERMS_VERSION_HASHES)
+    .in('privacy_version_hash', CURRENT_PRIVACY_VERSION_HASHES)
     .limit(1)
     .maybeSingle();
 
@@ -76,7 +87,12 @@ async function userHasCurrentTermsAcceptanceRow(userId: string): Promise<boolean
   return data != null;
 }
 
-export async function recordTermsAcceptance(accessToken: string): Promise<boolean> {
+type TermsAcceptancePostOutcome = 'recorded' | 'version-mismatch' | 'failed';
+
+async function postTermsAcceptance(
+  accessToken: string,
+  ids: LegalPolicyVersionIds,
+): Promise<TermsAcceptancePostOutcome> {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
   try {
     const res = await fetch(`${supabaseUrl}/functions/v1/record-terms-acceptance`, {
@@ -86,16 +102,35 @@ export async function recordTermsAcceptance(accessToken: string): Promise<boolea
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({
-        terms_version_hash: TERMS_VERSION_HASH,
-        privacy_version_hash: PRIVACY_VERSION_HASH,
+        terms_version_hash: ids.termsVersionHash,
+        privacy_version_hash: ids.privacyVersionHash,
       }),
     });
 
+    if (res.status === 409) return 'version-mismatch';
     const payload = await res.json().catch(() => ({}));
-    return res.ok && payload?.success === true;
+    return res.ok && payload?.success === true ? 'recorded' : 'failed';
   } catch {
-    return false;
+    return 'failed';
   }
+}
+
+/**
+ * Records acceptance of the given Terms + Privacy ids: the current ones, or the alias a sign-up
+ * made before the id rename accepted. An Edge Function deployed before the rename answers 409 to
+ * the current ids; the same texts are then sent once more under their alias ids, so a deploy
+ * window where the app is newer than the function does not fail the sign-up.
+ */
+export async function recordTermsAcceptance(
+  accessToken: string,
+  ids: LegalPolicyVersionIds = CURRENT_LEGAL_POLICY_VERSION_IDS,
+): Promise<boolean> {
+  const attempts = isCanonicalLegalPolicyVersionPair(ids) ? [ids, ...LEGAL_POLICY_VERSION_ID_ALIASES] : [ids];
+  for (const attempt of attempts) {
+    const outcome = await postTermsAcceptance(accessToken, attempt);
+    if (outcome !== 'version-mismatch') return outcome === 'recorded';
+  }
+  return false;
 }
 
 /**
@@ -123,7 +158,11 @@ export function schedulePendingTermsAcceptanceFlush(user: User): void {
           return;
         }
 
-        const ok = await recordTermsAcceptance(liveSession.access_token);
+        // Record the ids the user accepted at sign-up so the row matches what they saw.
+        const ok = await recordTermsAcceptance(
+          liveSession.access_token,
+          signupAcceptedLegalPolicyVersionIds(sessionUser) ?? CURRENT_LEGAL_POLICY_VERSION_IDS,
+        );
         if (ok) clearPendingTermsAcceptanceForUser(uid);
       })
       .catch(err => {

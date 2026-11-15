@@ -5,7 +5,11 @@ import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import SignUpForm from './SignUpForm';
-import { PRIVACY_VERSION_HASH, TERMS_VERSION_HASH } from '@/lib/legalPolicyVersions';
+import {
+  LEGAL_POLICY_VERSION_ID_ALIASES,
+  PRIVACY_VERSION_HASH,
+  TERMS_VERSION_HASH,
+} from '@/lib/legalPolicyVersions';
 import type { AuthError } from '@supabase/supabase-js';
 import {
   defaultSignUpFormProps,
@@ -310,6 +314,37 @@ describe('SignUpForm', () => {
         'Account created successfully! Please check your email to verify your account and complete organization setup.',
         'john@example.com',
       );
+    });
+
+    it('keeps the sign-up successful while the deployed record function still expects the pre-rename ids', async () => {
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
+      const sentTermsIds: string[] = [];
+      // A record-terms-acceptance deployed before the id rename: 409 for the current ids.
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+          const { terms_version_hash: terms } = JSON.parse(String(init?.body)) as { terms_version_hash: string };
+          sentTermsIds.push(terms);
+          return terms === LEGAL_POLICY_VERSION_ID_ALIASES[0].termsVersionHash
+            ? new Response(JSON.stringify({ success: true }), { status: 200 })
+            : new Response(JSON.stringify({ error: 'Legal policy version mismatch' }), { status: 409 });
+        }),
+      );
+
+      withRouter(<SignUpForm {...defaultSignUpFormProps} onSuccess={onSuccess} onError={onError} />);
+      fillSignUpFormFast();
+      fireEvent.click(screen.getByRole('button', { name: /create account & organization/i }));
+
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledWith(
+          'Account created successfully! Please check your email to verify your account and complete organization setup.',
+          'john@example.com',
+        );
+      });
+      expect(onError).not.toHaveBeenCalled();
+      expect(sentTermsIds).toEqual([TERMS_VERSION_HASH, LEGAL_POLICY_VERSION_ID_ALIASES[0].termsVersionHash]);
+      expect(screen.queryByRole('button', { name: /retry saving legal acceptance/i })).not.toBeInTheDocument();
     });
 
     it('should handle submission with incomplete form', async () => {
