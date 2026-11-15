@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExternalLink } from '@/components/ui/external-link';
 import { OPERATOR_DAILY_CHECK_INS_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import HCaptchaComponent from '@/components/ui/HCaptcha';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { PublicFormFieldInput } from '@/features/public-forms/PublicFormFieldInput';
@@ -39,7 +40,7 @@ import { OperatorCheckinChecklistItemRow } from '@/features/operator-check-ins/c
 
 export default function OperatorCheckInPublicPage() {
   const { token = '' } = useParams<{ token: string }>();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [templateName, setTemplateName] = useState('');
@@ -230,7 +231,7 @@ export default function OperatorCheckInPublicPage() {
           <h1 className="text-2xl font-semibold">{templateName}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('operatorCheckinPublic.subtitle')}</p>
           <p className="text-sm mt-2">
-            <ExternalLink href={OPERATOR_DAILY_CHECK_INS_DOCS_URL}>
+            <ExternalLink href={localizeDocsUrl(OPERATOR_DAILY_CHECK_INS_DOCS_URL, language)}>
               {t('operatorCheckinPublic.documentation')}
             </ExternalLink>
           </p>

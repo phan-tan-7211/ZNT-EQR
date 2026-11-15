@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ExternalLink } from '@/components/ui/external-link';
 import { OPERATOR_DAILY_CHECK_INS_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import { usePermissions } from '@/hooks/usePermissions';
 import {
   useEquipmentOperatorCheckinAssignments,
@@ -51,7 +52,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
   organizationId,
   initialVariant = EQUIPMENT_VARIANT,
 }) => {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { data: assignments = [], isLoading: assignmentsLoading } = useEquipmentOperatorCheckinAssignments(
     equipmentId,
     organizationId,
@@ -199,7 +200,7 @@ const QRCodeDisplay: React.FC<QRCodeDisplayProps> = ({
             )}
             {isDailyCheckinVariant && !showMissingTokenNotice && (
               <p className="text-sm text-muted-foreground">
-                <ExternalLink href={OPERATOR_DAILY_CHECK_INS_DOCS_URL} className="text-sm">
+                <ExternalLink href={localizeDocsUrl(OPERATOR_DAILY_CHECK_INS_DOCS_URL, language)} className="text-sm">
                   {t('equipmentAux.qr.placementGuide')}
                 </ExternalLink>
               </p>

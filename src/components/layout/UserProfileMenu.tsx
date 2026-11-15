@@ -22,6 +22,7 @@ import { useResolvedAvatarUrl } from '@/hooks/useResolvedAvatarUrl';
 import NotificationMenuSection from '@/components/notifications/NotificationMenuSection';
 import { cn } from '@/lib/utils';
 import { SUPPORT_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 import { userDisplayInitials } from '@/utils/userDisplayInitials';
 import { useI18n } from '@/i18n';
 
@@ -38,7 +39,7 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ className }) => {
   const { openBugReport } = useBugReport();
   const { notifications, unreadCount } = useOrganizationNotifications(organizationId);
   const { data: resolvedAvatarUrl } = useResolvedAvatarUrl(currentUser?.avatar_url);
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const handleSignOut = async () => {
     await signOut();
@@ -107,7 +108,7 @@ const UserProfileMenu: React.FC<UserProfileMenuProps> = ({ className }) => {
           <DropdownMenuSeparator />
         )}
         <DropdownMenuItem asChild>
-          <a href={SUPPORT_DOCS_URL} target="_blank" rel="noopener noreferrer" className="text-sm cursor-pointer flex items-center">
+          <a href={localizeDocsUrl(SUPPORT_DOCS_URL, language)} target="_blank" rel="noopener noreferrer" className="text-sm cursor-pointer flex items-center">
             <BookOpen className="mr-2 h-4 w-4" />
             {t('profileMenu.helpCenter')}
           </a>

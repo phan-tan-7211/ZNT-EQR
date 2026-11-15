@@ -16,6 +16,7 @@ import type { WorkOrderPMChecklistSetValue } from '@/features/work-orders/hooks/
 import type { WorkOrder } from '@/features/work-orders/types/workOrder';
 import type { PreventativeMaintenance } from '@/features/pm-templates/services/preventativeMaintenanceService';
 import { WORK_ORDER_PM_MANAGEMENT_DOCS_URL } from '@/lib/documentationUrl';
+import { localizeDocsUrl } from '@/lib/localizeDocsUrl';
 
 interface WorkOrderPMManagementDialogProps {
   open: boolean;
@@ -44,7 +45,7 @@ export function WorkOrderPMManagementDialog({
   isUpdating = false,
   onSave,
 }: WorkOrderPMManagementDialogProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [pmTemplateId, setPmTemplateId] = useState<string | null>(
     pmData?.template_id ?? null,
   );
@@ -134,7 +135,7 @@ export function WorkOrderPMManagementDialog({
 
         <p className="text-xs text-muted-foreground">
           <a
-            href={WORK_ORDER_PM_MANAGEMENT_DOCS_URL}
+            href={localizeDocsUrl(WORK_ORDER_PM_MANAGEMENT_DOCS_URL, language)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 underline underline-offset-2 hover:text-foreground"
