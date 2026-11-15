@@ -3,6 +3,7 @@ import { useI18n } from '@/i18n';
 import { Plus, X } from 'lucide-react';
 import { CompatibilityRulesCardShell } from '@/components/common/CompatibilityRulesCardShell';
 import { CompatibilityManufacturerSelect } from '@/components/common/CompatibilityManufacturerSelect';
+import { useCompatibilityRuleManufacturers } from '@/components/common/useCompatibilityRuleManufacturers';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,11 +12,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { useEquipmentManufacturersAndModels } from '@/features/equipment/hooks/useEquipment';
 import { useEquipmentMatchCountForPMRules } from '@/features/pm-templates/hooks/usePMTemplateCompatibility';
 import type { PMTemplateCompatibilityRuleFormData } from '@/features/pm-templates/types/pmTemplateCompatibility';
-import { useManufacturerModelLookup } from '@/features/equipment/utils/manufacturerModelLookup';
 
 interface PMTemplateCompatibilityRulesEditorProps {
   rules: PMTemplateCompatibilityRuleFormData[];
@@ -31,18 +29,14 @@ export const PMTemplateCompatibilityRulesEditor: React.FC<PMTemplateCompatibilit
   disabled = false
 }) => {
   const { t } = useI18n();
-  const { currentOrganization } = useOrganization();
-  const { data: manufacturersData = [], isLoading: isLoadingMfrs } = useEquipmentManufacturersAndModels(
-    currentOrganization?.id
-  );
+  const { organizationId, isLoadingManufacturers, manufacturers, getModelsForManufacturer } =
+    useCompatibilityRuleManufacturers();
 
   // Get match count for current rules
   const { data: matchCount = 0 } = useEquipmentMatchCountForPMRules(
-    currentOrganization?.id,
+    organizationId,
     rules.filter((r) => (r.manufacturer ?? '').trim().length > 0)
   );
-
-  const { manufacturers, getModelsForManufacturer } = useManufacturerModelLookup(manufacturersData);
 
   // Check if a rule already exists (for duplicate detection)
   const isDuplicateRule = (manufacturer: string, model: string | null, excludeIndex: number): boolean => {
@@ -97,7 +91,7 @@ export const PMTemplateCompatibilityRulesEditor: React.FC<PMTemplateCompatibilit
       description={t('pmTemplates.rules.equipmentDescription')}
       validRulesCount={validRulesCount}
       matchCount={matchCount}
-      isLoadingMfrs={isLoadingMfrs}
+      isLoadingMfrs={isLoadingManufacturers}
       hasManufacturers={manufacturers.length > 0}
       labels={{
         matches: t('pmTemplates.rules.matchesEquipment', { count: matchCount }),
