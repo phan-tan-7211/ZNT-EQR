@@ -11,6 +11,12 @@ Entries through 3.28.0 are more verbose than the current policy. Newer notes are
 
 ## [Unreleased]
 
+## [3.44.4] - 2026-11-15
+
+### Changed
+
+- **Help links** - Help Center links in the app now open the guide in your language (Vietnamese or Korean) instead of always opening the English one.
+
 ## [3.44.3] - 2026-11-15
 
 ### Changed
