@@ -4,15 +4,7 @@ import EquipmentCard from './EquipmentCard';
 import EquipmentEmptyState from './EquipmentEmptyState';
 import EquipmentTable from './EquipmentTable';
 import type { EquipmentViewMode } from './EquipmentCard';
-import type { EquipmentPMStatus } from '@/features/equipment/hooks/useEquipmentPMStatus';
-import type {
-  EquipmentColumnFilterOptions,
-  SortConfig,
-} from '@/features/equipment/hooks/useEquipmentFiltering';
-import type {
-  EquipmentColumnFilterKey,
-  EquipmentColumnFilters,
-} from '@/features/equipment/services/EquipmentService';
+import type { EquipmentTableViewProps } from '@/features/equipment/components/equipmentTableViewTypes';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Equipment {
@@ -32,26 +24,22 @@ interface Equipment {
   management_responsible_secondary?: string | null;
 }
 
-interface EquipmentGridProps {
+interface EquipmentManagementCodeRow {
+  id: string;
+  management_code: string | null;
+  management_responsible_primary?: string | null;
+  management_responsible_secondary?: string | null;
+}
+
+interface EquipmentGridProps extends EquipmentTableViewProps {
   equipment: Equipment[];
   searchQuery: string;
   statusFilter: string;
   organizationName: string;
   canCreate: boolean;
-  onShowQRCode: (id: string) => void;
   onAddEquipment: () => void;
   onClearFilters?: () => void;
   viewMode?: EquipmentViewMode;
-  pmStatuses?: Map<string, EquipmentPMStatus>;
-  sortConfig?: SortConfig;
-  onSortChange?: (field: string, direction?: 'asc' | 'desc') => void;
-  /** Forwarded to `EquipmentTable` when `viewMode === 'table'`. */
-  visibleColumns?: Record<string, boolean>;
-  onToggleColumn?: (key: string) => void;
-  organizationId?: string;
-  columnFilterOptions?: EquipmentColumnFilterOptions;
-  columnFilters?: EquipmentColumnFilters;
-  onColumnFilterChange?: (key: EquipmentColumnFilterKey, values: string[]) => void;
 }
 
 const EquipmentGrid: React.FC<EquipmentGridProps> = ({
@@ -80,17 +68,12 @@ const EquipmentGrid: React.FC<EquipmentGridProps> = ({
     enabled: equipmentIds.length > 0,
     staleTime: 30_000,
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('equipment')
-        .select(viewMode === 'table' ? 'id, management_code, management_responsible_primary, management_responsible_secondary' : 'id, management_code')
+        .select<string, EquipmentManagementCodeRow>(viewMode === 'table' ? 'id, management_code, management_responsible_primary, management_responsible_secondary' : 'id, management_code')
         .in('id', equipmentIds);
       if (error) throw error;
-      return (data ?? []) as Array<{
-        id: string;
-        management_code: string | null;
-        management_responsible_primary?: string | null;
-        management_responsible_secondary?: string | null;
-      }>;
+      return data ?? [];
     },
   });
 

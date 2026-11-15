@@ -29,8 +29,7 @@ import { DataTableEmptyState, ResizableFixedDataTable } from '@/components/commo
 import { applyAutoFitColumnWidth, createResizableSortableColumnBase, getDataTableAlignClass, getResizableTableWidth, usePersistedColumnOrder, usePersistedColumnSizing } from '@/components/common/dataTableSharedUtils';
 import { DotStatus } from '@/components/ui/dot-status';
 import { DEFAULT_VISIBLE_COLUMNS, EQUIPMENT_TABLE_ACTIONS_COLUMN_KEY, EQUIPMENT_TABLE_COLUMN_META, EQUIPMENT_TABLE_COLUMN_ORDER, getDefaultEquipmentColumnSizing, getEquipmentTableColumnMeta, type EquipmentTableColumnKey, type EquipmentTableSortField } from '@/features/equipment/components/equipmentTableColumns';
-import type { SortConfig } from '@/features/equipment/hooks/useEquipmentFiltering';
-import type { EquipmentPMStatus } from '@/features/equipment/hooks/useEquipmentPMStatus';
+import type { EquipmentTableViewProps } from '@/features/equipment/components/equipmentTableViewTypes';
 import { safeFormatDate } from '@/features/equipment/utils/equipmentHelpers';
 import { getEquipmentTableCellDisplayValue, type EquipmentTableRow } from '@/features/equipment/utils/equipmentTableRows';
 import { useUserSettings } from '@/hooks/useUserSettings';
@@ -50,8 +49,8 @@ import {
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
-import type { EquipmentColumnFilterKey, EquipmentColumnFilters } from '@/features/equipment/services/EquipmentService';
-import type { EquipmentColumnFilterOption, EquipmentColumnFilterOptions } from '@/features/equipment/hooks/useEquipmentFiltering';
+import type { EquipmentColumnFilterKey } from '@/features/equipment/services/EquipmentService';
+import type { EquipmentColumnFilterOption } from '@/features/equipment/hooks/useEquipmentFiltering';
 
 const STATUS_COLUMN_KEY: EquipmentTableColumnKey = 'status';
 const COLUMN_SIZING_STORAGE_KEY = 'znteqr:equipment-table-column-sizing:v3';
@@ -60,7 +59,7 @@ const PINNED_COLUMNS_STORAGE_PREFIX = 'znteqr:equipment-table-pinned-columns:';
 const COLUMN_KEYS: Record<EquipmentTableColumnKey, string> = { status:'equipment.status', name:'equipment.name', manufacturer:'equipment.manufacturer', model:'equipment.model', serial_number:'equipment.serialNumber', working_hours:'equipment.hours', location:'equipment.location', team_name:'equipment.team', last_maintenance:'equipment.lastMaintenanceFull', management_responsible_primary:'equipment.managementResponsiblePrimary', management_responsible_secondary:'equipment.managementResponsibleSecondary' };
 const DEFAULT_EQUIPMENT_COLUMN_SIZING = getDefaultEquipmentColumnSizing();
 const COLUMN_DRAG_THRESHOLD_PX = 6;
-export interface EquipmentTableProps { equipment: EquipmentTableRow[]; onShowQRCode: (id:string)=>void; pmStatuses?:Map<string,EquipmentPMStatus>; sortConfig?:SortConfig; onSortChange?:(field:string,direction?:'asc'|'desc')=>void; visibleColumns?:Record<string,boolean>; onToggleColumn?:(key:string)=>void; organizationId?:string; columnFilterOptions?:EquipmentColumnFilterOptions; columnFilters?:EquipmentColumnFilters; onColumnFilterChange?:(key:EquipmentColumnFilterKey,values:string[])=>void; }
+export interface EquipmentTableProps extends EquipmentTableViewProps { equipment: EquipmentTableRow[]; }
 
 function readPinnedColumns(storageKey: string): EquipmentTableColumnKey[] {
   const defaultPinned: EquipmentTableColumnKey[] = [STATUS_COLUMN_KEY];
