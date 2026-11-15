@@ -16,10 +16,10 @@ describe('workOrderTimelineLabels', () => {
     expect(
       buildCreationDescription({
         status: 'assigned',
-        createdByName: 'Nicholas King',
-        assigneeName: 'Nicholas King',
+        createdByName: 'Alex Morgan',
+        assigneeName: 'Alex Morgan',
       }),
-    ).toBe('Submitted by Nicholas King • Assigned to Nicholas King');
+    ).toBe('Submitted by Alex Morgan • Assigned to Alex Morgan');
   });
 
   it('uses distinct titles for non-creation status changes', () => {

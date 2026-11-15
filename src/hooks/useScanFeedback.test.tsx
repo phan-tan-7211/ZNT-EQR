@@ -12,7 +12,7 @@ vi.mock('@/lib/scanFeedback', () => ({
   prepareScanFeedback: hoisted.prepareScanFeedback,
   markScanFeedbackPending: hoisted.markScanFeedbackPending,
   triggerPendingScanFeedback: hoisted.triggerPendingScanFeedback,
-  PENDING_SCAN_FEEDBACK_STORAGE_KEY: 'equipqr_pending_scan_feedback',
+  PENDING_SCAN_FEEDBACK_STORAGE_KEY: 'znteqr_pending_scan_feedback',
   playDirectScanFeedbackTone: vi.fn(),
   getScanFeedbackDebugInfo: vi.fn(),
   resetScanFeedbackForTests: vi.fn(),

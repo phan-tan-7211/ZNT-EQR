@@ -24,7 +24,7 @@ ZNTEQR™ uses Supabase as its backend platform, which provides robust backup an
 | Environment | Project Ref | Purpose |
 |-------------|-------------|---------|
 | **Production** | `wgynakhoppqkrutnslmv` | Live production database (also serves cloud preview via `wgynakhoppqkrutnslmv.supabase.co`) |
-| **Legacy preview branch** | `olsdirkvvfegvclbpgrg` | **Retiring (#1033)** — decommission after cutover validation |
+| **Legacy preview branch** | `<retired-preview-ref>` | **Retiring (#1033)** — decommission after cutover validation |
 
 ### Recovery Time Objective (RTO)
 
@@ -66,7 +66,7 @@ export SUPABASE_ACCESS_TOKEN="your-access-token"
 export PROJECT_REF="wgynakhoppqkrutnslmv"
 
 # For Staging (if recovering staging environment)
-# export PROJECT_REF="olsdirkvvfegvclbpgrg"
+# export PROJECT_REF="<retired-preview-ref>"
 ```
 
 ### 4. Communication Plan
@@ -382,7 +382,7 @@ Perform disaster recovery tests quarterly using the **staging environment**:
 
 ```bash
 # Use staging project for DR testing
-export PROJECT_REF="olsdirkvvfegvclbpgrg"
+export PROJECT_REF="<retired-preview-ref>"
 
 # Run full recovery test
 # Document time taken and any issues encountered

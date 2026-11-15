@@ -138,7 +138,7 @@ The export test work order must:
 - Have `status = completed`
 - Belong to equipment assigned to a team
 - Have that team/customer mapped to QuickBooks
-- Live in the same organization the Nicholas account can manage QuickBooks for
+- Live in the same organization the maintainer account can manage QuickBooks for
 
 ## Run commands
 

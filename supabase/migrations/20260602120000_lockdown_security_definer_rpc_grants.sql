@@ -169,6 +169,6 @@ END;
 $lockdown$;
 
 COMMENT ON SCHEMA public IS
-  'EquipQR application schema. SECURITY DEFINER EXECUTE grants follow docs/ops/security-definer-rpc-policy.md (issue #762).';
+  'ZNTEQR application schema. SECURITY DEFINER EXECUTE grants follow docs/ops/security-definer-rpc-policy.md (issue #762).';
 
 COMMIT;

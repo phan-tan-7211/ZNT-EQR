@@ -6,7 +6,7 @@ import {
 } from '@/lib/legalPolicyVersions';
 import { logger } from '@/utils/logger';
 
-const storageKey = (userId: string) => `equipqr_pending_terms_acceptance:${userId}`;
+const storageKey = (userId: string) => `znteqr_pending_terms_acceptance:${userId}`;
 
 export function markPendingTermsAcceptanceForUser(userId: string): void {
   try {

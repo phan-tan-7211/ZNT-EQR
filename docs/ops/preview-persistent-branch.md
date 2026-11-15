@@ -33,7 +33,7 @@ Important constraints locked by Product:
 - This is **not** a second paid Supabase project.
 - Production remains `wgynakhoppqkrutnslmv` / `https://wgynakhoppqkrutnslmv.supabase.co`.
 - The branch must be created with **`with_data: false`**.
-- Production rows, including 3-A Equipment shop data, must never be cloned or
+- Production rows, including customer shop data, must never be cloned or
   seeded into the preview branch.
 
 ---
@@ -42,7 +42,7 @@ Important constraints locked by Product:
 
 | Surface | Decision | Notes |
 |---------|----------|-------|
-| `preview.eqr-zinitek.pages.dev` backend | Create a **new persistent Supabase Database Branch** on the production project | Do **not** reuse retired branch `olsdirkvvfegvclbpgrg` as-is. |
+| `preview.eqr-zinitek.pages.dev` backend | Create a **new persistent Supabase Database Branch** on the production project | Do **not** reuse retired branch `<retired-preview-ref>` as-is. |
 | Branch data | Create with **`with_data: false`** | Never clone production rows. Never seed production. |
 | Cloudflare Pages Preview env for git `preview` | Point `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` at the persistent branch | The stable hostname remains `https://preview.eqr-zinitek.pages.dev`. |
 | Edge Function secrets | Restore `edge-env-preview-secrets` onto the persistent branch | Set `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev` on that branch. |
@@ -62,14 +62,14 @@ where it already matches. Extend the preview seed contract as follows:
 
 | Requirement | Contract |
 |-------------|----------|
-| Org naming | Seed **fictional test org names** only. Do not use live ZNT or 3-A Equipment stand-ins. |
+| Org naming | Seed **fictional test org names** only. Do not use live ZNT or customer stand-ins. |
 | Primary preview org | Provide one shared test org with at least one **Owner or Admin**, one **Technician**, and one **Viewer**. Each persona must be able to sign in and open at least one seeded work order in that org. |
 | Viewer scope | The Viewer can open the seeded work order but still sees **no cost, inventory, or labor** data. |
 | Technician scope | The Technician can open the seeded work order with technician permissions, but still **does not** see Delete. |
 | Plain org member | A plain org member with no team is **not** a QA persona for this branch. |
 | Second org isolation | Seed a second fictional org with its own work order so Org B users cannot see Org A work orders. |
 | Quick Login | Quick Login is **preview-only test chrome** on this branch. It must never be enabled against production Auth or the current live preview before cutover. |
-| QA identities | Nicholas Google accounts are **not** preview QA logins. Use preview-only email/password personas instead. |
+| QA identities | Maintainer Google accounts are **not** preview QA logins. Use preview-only email/password personas instead. |
 
 Implementation should keep the existing fictional persona set where practical
 (`owner@apex.test`, `admin@apex.test`, `tech@apex.test`, `owner@metro.test`,
@@ -107,7 +107,7 @@ this checklist:
 1. Create a **new persistent Supabase Database Branch** from
    `wgynakhoppqkrutnslmv` with **`with_data: false`**.
 2. Verify the new branch ref is **not** `wgynakhoppqkrutnslmv` and **not**
-   `olsdirkvvfegvclbpgrg`.
+   `<retired-preview-ref>`.
 3. Restore `edge-env-preview-secrets` onto the new branch and confirm
    `PUBLIC_SITE_URL=https://preview.eqr-zinitek.pages.dev`.
 4. Point the Cloudflare Pages **Preview** env for git `preview` at the branch

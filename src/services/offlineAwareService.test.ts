@@ -227,7 +227,7 @@ describe('OfflineAwareWorkOrderService', () => {
       expect(result.data).toBeNull();
 
       // Verify item is in localStorage
-      const raw = localStorage.getItem(`equipqr_offline_queue_${USER_ID}_${ORG_ID}`);
+      const raw = localStorage.getItem(`znteqr_offline_queue_${USER_ID}_${ORG_ID}`);
       expect(raw).toBeTruthy();
       const items = JSON.parse(raw!);
       expect(items).toHaveLength(1);

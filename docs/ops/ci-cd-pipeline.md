@@ -35,7 +35,7 @@ preview today; ephemeral branches only for PRs that touch supabase/**.
 | **Integration preview** | Push/merge to git **`preview`** | `<https://preview.eqr-zinitek.pages.dev>` | **Current live:** production API (`wgynakhoppqkrutnslmv.supabase.co`). **Approved target:** persistent dataless branch per `docs/ops/preview-persistent-branch.md` |
 | **PR Preview** | Feature PRs / work-branch pushes | Per-deployment `https://<hash>.eqr-zinitek.pages.dev` (GitHub **Cloudflare Pages** check) | Prod API by default; ephemeral Supabase when `supabase/**` changes |
 
-> **Train (#1282):** feat → preview → main. Authoritative loop: **`docs/ops/git-and-deploy.md`**. Retired: Vercel (all projects and `*.vercel.app` hosts), `preview-domain-alias.yml`, Vercel custom **`staging`**, persistent Supabase **`olsdirkvvfegvclbpgrg`**.
+> **Train (#1282):** feat → preview → main. Authoritative loop: **`docs/ops/git-and-deploy.md`**. Retired: Vercel (all projects and `*.vercel.app` hosts), `preview-domain-alias.yml`, Vercel custom **`staging`**, persistent Supabase **`<retired-preview-ref>`**.
 >
 > **Target decision (not yet live):** `docs/ops/preview-persistent-branch.md`
 > records the approved move away from production Supabase for
@@ -176,7 +176,7 @@ Local preview: from repo root, `npm run docs:dev` or `npm run docs:preview` afte
 - **Current live preview app:** still uses the production project above
 - **Approved target preview backend:** a new persistent dataless branch for `preview.eqr-zinitek.pages.dev` (not yet cut over; see `preview-persistent-branch.md`)
 - **Ephemeral PR branches:** Created automatically when `supabase/**` changes on a PR (schema validation only)
-- **Retired persistent preview branch:** `olsdirkvvfegvclbpgrg` — decommissioned after the #1033 cutover
+- **Retired persistent preview branch:** `<retired-preview-ref>` — decommissioned after the #1033 cutover
 
 #### Auth Site URL (current live vs target)
 

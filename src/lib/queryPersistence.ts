@@ -145,8 +145,8 @@ export function setActivePersistenceScope(scope: PersistenceScope | null): void 
 export function createScopedQueryPersister() {
   const scope = currentScope;
   const prefix = scope
-    ? `equipqr:tq:${scope.userId}:${scope.orgId}`
-    : 'equipqr:tq:noscope';
+    ? `znteqr:tq:${scope.userId}:${scope.orgId}`
+    : 'znteqr:tq:noscope';
 
   if (cachedPersisterKey === prefix && cachedPersister) {
     return cachedPersister;

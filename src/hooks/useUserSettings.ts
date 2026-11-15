@@ -3,7 +3,7 @@ import { useWhenPreferenceStorageAllowed } from '@/contexts/CookieConsentContext
 import { UserSettings, defaultUserSettings } from '@/types/settings';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
-const SETTINGS_STORAGE_KEY = 'equipqr-user-settings';
+const SETTINGS_STORAGE_KEY = 'znteqr-user-settings';
 
 export const useUserSettings = () => {
   const [settings, setSettings] = useState<UserSettings>(defaultUserSettings);

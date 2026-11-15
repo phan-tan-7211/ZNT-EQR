@@ -1,7 +1,7 @@
 import { logger } from '@/utils/logger';
 
-const SESSION_STORAGE_KEY = 'equipqr_session_data';
-const ORGANIZATION_PREFERENCE_KEY = 'equipqr_current_org';
+const SESSION_STORAGE_KEY = 'znteqr_session_data';
+const ORGANIZATION_PREFERENCE_KEY = 'znteqr_current_org';
 /** v3: session cache omits inventory default location / address fields (no PII in Web Storage). */
 const SESSION_VERSION = 3;
 

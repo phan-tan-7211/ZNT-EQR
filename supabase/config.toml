@@ -293,6 +293,6 @@ sql_paths = ['./seeds/*.sql', './seeds/generated/*.sql']
 # go in [remotes.<branch_name>] blocks below.
 #
 # Cloud preview uses production (wgynakhoppqkrutnslmv). Persistent preview branch
-# olsdirkvvfegvclbpgrg was decommissioned in #1033.
+# The earlier persistent preview branch was decommissioned in #1033.
 #
 # See docs/ops/supabase-branching.md.

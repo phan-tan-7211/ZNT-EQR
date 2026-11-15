@@ -81,7 +81,7 @@ function TeamRoleContacts({
                   {roleLabel}
                 </span>
                 <Badge variant="outline" className="text-xs px-1.5 py-0 h-5">
-                  {t('teamsCustomer.equipqrUser')}
+                  {t('teamsCustomer.znteqrUser')}
                 </Badge>
               </div>
               {email && (

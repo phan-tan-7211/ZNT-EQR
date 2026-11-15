@@ -17,7 +17,7 @@ export function PrivacyCookiesSection() {
             <p>
               On your first visit, ZNTEQR shows a cookies and browser-storage notice with explicit
               Accept and Reject choices. Your choice is stored in localStorage under{' '}
-              <code>equipqr:cookie-consent</code> so the notice does not reappear on every page load
+              <code>znteqr:cookie-consent</code> so the notice does not reappear on every page load
               (until you clear site data). Preference cookies and optional UI preferences are written
               only after Accept. Strictly necessary mechanisms (sign-in tokens, QR login redirects,
               offline queues, and the consent preference itself) remain available after Reject so you
@@ -51,7 +51,7 @@ export function PrivacyCookiesSection() {
             <PolicyList
               items={[
                 {
-                  label: <code>equipqr:cookie-consent</code>,
+                  label: <code>znteqr:cookie-consent</code>,
                   content: (
                     <>
                       &mdash; Stores your Accept or Reject decision for the cookies notice (strictly necessary
@@ -95,7 +95,7 @@ export function PrivacyCookiesSection() {
                   ),
                 },
                 {
-                  label: <code>equipqr_admin_grants_*</code>,
+                  label: <code>znteqr_admin_grants_*</code>,
                   content: (
                     <>
                       &mdash; Throttles redundant permission grant RPCs after sign-in. Strictly necessary for

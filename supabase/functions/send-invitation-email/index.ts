@@ -263,14 +263,14 @@ async function handle(req: Request, _ctx: RequestContext): Promise<Response> {
 
     // Construct absolute URLs for logos
     // Use purple medium logo (preferred branding that works on any background)
-    const equipQRLogoUrl = `${baseUrl}/images/brand/icons/ZNTEQR-Icon-Purple-Medium.png`;
+    const znteqrLogoUrl = `${baseUrl}/images/brand/icons/ZNTEQR-Icon-Purple-Medium.png`;
 
     // Create email HTML content
     const emailHtml = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <!-- ZNTEQR Logo Section -->
         <div style="text-align: center; margin-bottom: 16px; padding: 12px 0;">
-          <img src="${equipQRLogoUrl}" alt="ZNTEQR™ Logo" style="width: 100px; height: auto; display: block; margin: 0 auto;" />
+          <img src="${znteqrLogoUrl}" alt="ZNTEQR™ Logo" style="width: 100px; height: auto; display: block; margin: 0 auto;" />
         </div>
         
         <div style="text-align: center; margin-bottom: 32px;">

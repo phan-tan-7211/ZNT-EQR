@@ -38,7 +38,7 @@ If you have access to the ZNTEQR Agents 1Password vault, use `dev-start.bat` as 
 op --version
 
 # Optional (Cursor agents / headless terminals): set User-scope OP_SERVICE_ACCOUNT_TOKEN
-# for the read-only op-svc-equipqr-agents service account, then refresh in-session:
+# for the read-only op-svc-znteqr-agents service account, then refresh in-session:
 #   $env:OP_SERVICE_ACCOUNT_TOKEN = [Environment]::GetEnvironmentVariable('OP_SERVICE_ACCOUNT_TOKEN', 'User')
 # Never echo the token. See AGENTS.md and .cursor/skills/toolbelt/SKILL.md.
 

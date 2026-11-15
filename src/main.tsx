@@ -1,3 +1,6 @@
+// Keep this import first: it moves browser data stored under the previous key
+// prefix before any other module reads storage.
+import '@/lib/legacyStorageMigration.boot';
 import { createRoot } from 'react-dom/client'
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';

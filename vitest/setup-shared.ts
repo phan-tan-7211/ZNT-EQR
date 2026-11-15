@@ -106,7 +106,7 @@ beforeEach(() => {
     globalThis.sessionStorage?.clear();
     // Preference writes are gated on Accept; default unit tests to accepted so
     // existing suites keep asserting persistence. Cookie-consent specs clear this.
-    globalThis.localStorage?.setItem('equipqr:cookie-consent', 'accepted');
+    globalThis.localStorage?.setItem('znteqr:cookie-consent', 'accepted');
   } catch {
     // ignore — storage may be missing in non-browser test environments
   }

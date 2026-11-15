@@ -33,7 +33,7 @@ import { useWhenPreferenceStorageAllowed } from '@/contexts/CookieConsentContext
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
 function readEquipmentViewMode(isMobile: boolean): EquipmentViewMode {
-  const stored = getPreferenceLocalStorage('equipqr:equipment-view-mode');
+  const stored = getPreferenceLocalStorage('znteqr:equipment-view-mode');
   let initial: EquipmentViewMode;
   switch (stored) {
     case 'table': initial = 'table'; break;
@@ -62,9 +62,9 @@ const Equipment = () => {
   viewModeRef.current = viewMode;
 
   const rehydrateOrFlushViewMode = useCallback(() => {
-    const stored = getPreferenceLocalStorage('equipqr:equipment-view-mode');
+    const stored = getPreferenceLocalStorage('znteqr:equipment-view-mode');
     if (stored) { setViewMode(readEquipmentViewMode(isMobile)); return; }
-    setPreferenceLocalStorage('equipqr:equipment-view-mode', viewModeRef.current);
+    setPreferenceLocalStorage('znteqr:equipment-view-mode', viewModeRef.current);
   }, [isMobile]);
   useWhenPreferenceStorageAllowed(rehydrateOrFlushViewMode);
 
@@ -80,7 +80,7 @@ const Equipment = () => {
   }, [pmStatusList]);
 
   useEffect(() => { if (isMobile && viewMode === 'table') setViewMode('grid'); }, [isMobile, viewMode]);
-  const handleViewModeChange = useCallback((mode: EquipmentViewMode) => { setViewMode(mode); setPreferenceLocalStorage('equipqr:equipment-view-mode', mode); }, []);
+  const handleViewModeChange = useCallback((mode: EquipmentViewMode) => { setViewMode(mode); setPreferenceLocalStorage('znteqr:equipment-view-mode', mode); }, []);
 
   useEffect(() => {
     if (initializedFromUrl.current) return;

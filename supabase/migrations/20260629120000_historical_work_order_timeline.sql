@@ -264,7 +264,7 @@ BEGIN
     v_previous_status := v_new_status;
   END LOOP;
 
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'true', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'true', true);
 
   UPDATE public.work_orders
   SET
@@ -277,7 +277,7 @@ BEGIN
     updated_at = NOW()
   WHERE id = p_work_order_id;
 
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'false', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'false', true);
 
   IF NOT p_skip_audit THEN
     PERFORM public.log_audit_entry(
@@ -308,7 +308,7 @@ BEGIN
   );
 
 EXCEPTION WHEN OTHERS THEN
-  PERFORM set_config('equipqr.skip_work_order_status_log', 'false', true);
+  PERFORM set_config('znteqr.skip_work_order_status_log', 'false', true);
   RETURN jsonb_build_object(
     'success', false,
     'error', 'Failed to replace historical timeline: ' || SQLERRM
@@ -325,7 +325,7 @@ AS $$
 DECLARE
   changed_by_user uuid;
 BEGIN
-  IF current_setting('equipqr.skip_work_order_status_log', true) = 'true' THEN
+  IF current_setting('znteqr.skip_work_order_status_log', true) = 'true' THEN
     RETURN NEW;
   END IF;
 

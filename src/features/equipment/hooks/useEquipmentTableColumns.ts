@@ -7,7 +7,7 @@ import {
 } from '@/features/equipment/components/equipmentTableColumns';
 import { getPreferenceLocalStorage, setPreferenceLocalStorage } from '@/lib/cookieConsent';
 
-const STORAGE_PREFIX = 'equipqr:equipment-table-columns:';
+const STORAGE_PREFIX = 'znteqr:equipment-table-columns:';
 
 const buildStorageKey = (organizationId: string): string =>
   `${STORAGE_PREFIX}${organizationId}`;
@@ -81,8 +81,8 @@ export interface UseEquipmentTableColumnsResult {
 /**
  * Per-user-per-org column visibility for the dense `EquipmentTable` view.
  *
- * Persists to `localStorage` under `equipqr:equipment-table-columns:{orgId}`,
- * mirroring the `equipqr:equipment-view-mode` precedent in `Equipment.tsx`.
+ * Persists to `localStorage` under `znteqr:equipment-table-columns:{orgId}`,
+ * mirroring the `znteqr:equipment-view-mode` precedent in `Equipment.tsx`.
  * When `organizationId` is undefined (e.g. before the user has selected an org)
  * the hook returns the defaults and refuses to write — this prevents leaking
  * pre-org-selection state into a key that would never be read again.

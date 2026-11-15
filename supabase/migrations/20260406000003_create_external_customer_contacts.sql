@@ -1,5 +1,5 @@
 -- Migration: Create external_customer_contacts table
--- Stores contacts who are NOT registered EquipQR users (e.g. a client's site manager,
+-- Stores contacts who are NOT registered ZNTEQR users (e.g. a client's site manager,
 -- billing contact, dispatcher). Separate from the existing customer_contacts table
 -- which requires user_id FK → profiles.
 
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS public.external_customer_contacts (
 ALTER TABLE public.external_customer_contacts OWNER TO postgres;
 
 COMMENT ON TABLE public.external_customer_contacts IS
-  'External contacts for a customer account — people who do not have EquipQR logins (site managers, billing contacts, dispatchers, etc.).';
+  'External contacts for a customer account — people who do not have ZNTEQR logins (site managers, billing contacts, dispatchers, etc.).';
 
 -- Index for parent lookup
 CREATE INDEX IF NOT EXISTS idx_external_customer_contacts_customer

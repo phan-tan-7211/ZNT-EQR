@@ -230,7 +230,7 @@ Each consolidated policy maintains exact same logic as original policies using O
 
 ### Scope
 
-Addressed 105 Info-level performance advisor findings on `equipqr-prod`:
+Addressed 105 Info-level performance advisor findings on `znteqr-prod`:
 
 - **13 `unindexed_foreign_keys`** on deprecated billing and resurrected part-picker tables.
 - **91 `unused_index`** across 45 active tables.

@@ -178,9 +178,32 @@ self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
+// Runtime caches this worker owns (see section 4). Any other cache that is not
+// a Workbox precache was created by an earlier release under a different name
+// and would otherwise stay on the device forever.
+const RUNTIME_CACHE_NAMES: ReadonlySet<string> = new Set([
+  'znteqr-pages-v1',
+  'znteqr-static-v1',
+  'znteqr-display-images-v2',
+]);
+
+async function deleteStaleRuntimeCaches(): Promise<void> {
+  const names = await caches.keys();
+  await Promise.all(
+    names
+      .filter((name) => !RUNTIME_CACHE_NAMES.has(name) && !name.startsWith('workbox-'))
+      .map((name) => caches.delete(name)),
+  );
+}
+
 self.addEventListener('activate', (event) => {
   log('[SW] Service worker activated');
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    Promise.all([
+      deleteStaleRuntimeCaches().catch(() => undefined),
+      self.clients.claim(),
+    ]),
+  );
 });
 
 // ── 3. Workbox precache (Vite-injected manifest) ─────────────────────────────
@@ -200,7 +223,7 @@ precacheAndRoute(self.__WB_MANIFEST ?? []);
 registerRoute(
   ({ request }) => request.mode === 'navigate',
   new NetworkFirst({
-    cacheName: 'equipqr-pages-v1',
+    cacheName: 'znteqr-pages-v1',
     networkTimeoutSeconds: 5,
     plugins: [
       new ExpirationPlugin({
@@ -221,7 +244,7 @@ registerRoute(
       url.pathname.startsWith('/images/') ||
       url.pathname.startsWith('/static/')),
   new CacheFirst({
-    cacheName: 'equipqr-static-v1',
+    cacheName: 'znteqr-static-v1',
     plugins: [
       new ExpirationPlugin({
         maxEntries: 80,
@@ -252,7 +275,7 @@ registerRoute(
     isSupabaseStorageHost(url) &&
     DISPLAY_IMAGE_V2_PUBLIC_PATH.test(url.pathname),
   new CacheFirst({
-    cacheName: 'equipqr-display-images-v2',
+    cacheName: 'znteqr-display-images-v2',
     plugins: [
       new ExpirationPlugin({
         maxEntries: 1000,
@@ -285,7 +308,7 @@ registerRoute(
 setCatchHandler(async ({ request }) => {
   if (request.mode === 'navigate') {
     // index.html is precached by Workbox into the precache store, not into
-    // equipqr-pages-v1. matchPrecache() resolves the versioned precache key
+    // znteqr-pages-v1. matchPrecache() resolves the versioned precache key
     // so the SPA shell loads correctly on a first offline navigation.
     const precached = await matchPrecache('/index.html');
     if (precached) return precached;

@@ -72,7 +72,7 @@ describe('MobileWorkOrderCompactSummary', () => {
     render(
       <MobileWorkOrderCompactSummary
         workOrder={baseWorkOrder}
-        assignee={{ name: 'Nicholas King' }}
+        assignee={{ name: 'Alex Morgan' }}
         organizationId="org-1"
       />,
     );

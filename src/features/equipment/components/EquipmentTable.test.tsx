@@ -63,7 +63,7 @@ describe('EquipmentTable', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
     resetEquipmentCardTransitionStoreForTests();
   });
 

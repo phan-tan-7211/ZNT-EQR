@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { validateImageFile } from '@/services/imageUploadService';
 import { getRuntimeFinalHardcodedAuditCopy } from '@/i18n/finalHardcodedAuditRuntime';
 
-const STORE_PREFIX = 'equipqr-offline-blob';
+const STORE_PREFIX = 'znteqr-offline-blob';
 
 export interface OfflineBlobRecord {
   blob: Blob;

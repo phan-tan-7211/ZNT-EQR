@@ -66,7 +66,7 @@ Deno.test("resolveOAuthRedirectBaseUrl normalizes retired preview Supabase hostn
   assertEquals(
     resolveOAuthRedirectBaseUrl(
       "https://wgynakhoppqkrutnslmv.supabase.co",
-      "https://olsdirkvvfegvclbpgrg.supabase.co",
+      "https://retiredpreviewprojref.supabase.co",
     ),
     "https://wgynakhoppqkrutnslmv.supabase.co",
   );
@@ -126,7 +126,7 @@ Deno.test({
     const productionUrl = "https://preview.eqr-zinitek.pages.dev";
     assertEquals(isValidRedirectUrl("http://localhost:8080/dashboard", productionUrl), false);
     assertEquals(isValidRedirectUrl("http://127.0.0.1:8080/dashboard", productionUrl), false);
-    assertEquals(isValidRedirectUrl("https://equip-qr-evil.vercel.app/dashboard", productionUrl), false);
+    assertEquals(isValidRedirectUrl("https://znteqr-evil.vercel.app/dashboard", productionUrl), false);
   });
 });
 

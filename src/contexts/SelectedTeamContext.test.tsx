@@ -36,12 +36,12 @@ const Probe: React.FC = () => {
   );
 };
 
-const STORAGE_KEY = 'equipqr:selectedTeamId:org-1';
+const STORAGE_KEY = 'znteqr:selectedTeamId:org-1';
 
 describe('SelectedTeamProvider', () => {
   beforeEach(() => {
     localStorage.clear();
-    localStorage.setItem('equipqr:cookie-consent', 'accepted');
+    localStorage.setItem('znteqr:cookie-consent', 'accepted');
     mockOrganization.organizationId = 'org-1';
     mockTeam.teamMemberships = [];
     mockTeam.isLoading = true;

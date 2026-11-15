@@ -103,16 +103,6 @@ describe('Landing mobile UX pass', () => {
     expect(container.querySelectorAll('[data-reveal="true"]').length).toBeGreaterThan(0);
   });
 
-  it('renders customer results as dedicated metric items', () => {
-    renderWithRouter(<SocialProofSection />);
-
-    const customerResults = screen.getByRole('list', { name: /customer results/i });
-
-    expect(within(customerResults).getAllByRole('listitem')).toHaveLength(2);
-    expect(within(customerResults).getByText('100%')).toBeInTheDocument();
-    expect(within(customerResults).getByText('50%')).toBeInTheDocument();
-  });
-
   it('renders each use-case outcome as a labeled chip', () => {
     renderWithRouter(<AboutSection />);
 

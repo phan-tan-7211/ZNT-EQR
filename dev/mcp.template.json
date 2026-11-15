@@ -45,19 +45,19 @@
       "command": "npx.cmd",
       "args": ["-y", "@google-cloud/gcloud-mcp@0.5.3"],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "${userHome}${pathSeparator}.config${pathSeparator}gcloud${pathSeparator}equipqr-agent-viewer.json",
-        "CLOUDSDK_CORE_PROJECT": "equipqr-prod"
+        "GOOGLE_APPLICATION_CREDENTIALS": "${userHome}${pathSeparator}.config${pathSeparator}gcloud${pathSeparator}znteqr-agent-viewer.json",
+        "CLOUDSDK_CORE_PROJECT": "znteqr-prod"
       }
     },
-    "_comment_warning_gcloud_write": "WRITE ACCESS via impersonation - gcloud-write reuses the viewer SA JSON for bootstrap auth and sets CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT to the editor SA email, so every gcloud command launched through this MCP automatically impersonates the editor SA without a static second key. Matches the AGENTS.md line 25 hybrid impersonation pattern. The viewer SA holds roles/iam.serviceAccountTokenCreator on the editor SA (project-scoped to equipqr-prod) so impersonation works without keys. Only invoke when explicitly authorizing a write/admin action.",
+    "_comment_warning_gcloud_write": "WRITE ACCESS via impersonation - gcloud-write reuses the viewer SA JSON for bootstrap auth and sets CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT to the editor SA email, so every gcloud command launched through this MCP automatically impersonates the editor SA without a static second key. Matches the AGENTS.md line 25 hybrid impersonation pattern. The viewer SA holds roles/iam.serviceAccountTokenCreator on the editor SA (project-scoped to znteqr-prod) so impersonation works without keys. Only invoke when explicitly authorizing a write/admin action.",
     "gcloud-write": {
       "type": "stdio",
       "command": "npx.cmd",
       "args": ["-y", "@google-cloud/gcloud-mcp@0.5.3"],
       "env": {
-        "GOOGLE_APPLICATION_CREDENTIALS": "${userHome}${pathSeparator}.config${pathSeparator}gcloud${pathSeparator}equipqr-agent-viewer.json",
-        "CLOUDSDK_CORE_PROJECT": "equipqr-prod",
-        "CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT": "equipqr-cursor-agent-editor-pr@equipqr-prod.iam.gserviceaccount.com"
+        "GOOGLE_APPLICATION_CREDENTIALS": "${userHome}${pathSeparator}.config${pathSeparator}gcloud${pathSeparator}znteqr-agent-viewer.json",
+        "CLOUDSDK_CORE_PROJECT": "znteqr-prod",
+        "CLOUDSDK_AUTH_IMPERSONATE_SERVICE_ACCOUNT": "znteqr-cursor-agent-editor-pr@znteqr-prod.iam.gserviceaccount.com"
       }
     }
   }

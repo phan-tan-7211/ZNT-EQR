@@ -57,7 +57,7 @@ Deno.test({
 });
 
 Deno.test({
-  name: "resolvePublicSiteUrl maps retired hosts (stale preview Supabase app, old Vercel preview) to the live app",
+  name: "resolvePublicSiteUrl maps a retired host (stale preview Supabase app) to the live app",
   permissions: { env: [...PUBLIC_SITE_ENV] },
   fn: () => {
     const prevPublic = Deno.env.get("PUBLIC_SITE_URL");
@@ -67,7 +67,7 @@ Deno.test({
       Deno.env.set("PRODUCTION_URL", "https://eqr.zinitek.com");
       assertEquals(resolvePublicSiteUrl(), "https://eqr.zinitek.com");
 
-      Deno.env.set("PUBLIC_SITE_URL", "https://equip-qr-preview-columbia-cloudworks-llc.vercel.app/");
+      Deno.env.set("PUBLIC_SITE_URL", "https://preview.supabase.app/");
       assertEquals(resolvePublicSiteUrl(), "https://eqr.zinitek.com");
 
       Deno.env.delete("PUBLIC_SITE_URL");

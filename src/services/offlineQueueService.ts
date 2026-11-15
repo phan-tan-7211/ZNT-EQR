@@ -34,7 +34,7 @@ type OfflineTranslator = (key: `offlineQueue.${OfflineCopyKey}`, params?: Record
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const STORAGE_KEY_PREFIX = 'equipqr_offline_queue';
+const STORAGE_KEY_PREFIX = 'znteqr_offline_queue';
 const MAX_ITEMS = 50;
 const MAX_ITEM_SIZE_BYTES = 50 * 1024; // 50 KB per item
 const MAX_QUEUE_SIZE_BYTES = 2 * 1024 * 1024; // 2 MB total budget

@@ -3,7 +3,7 @@
  * Live camera scans mark a short-lived sessionStorage flag; QR redirect completion consumes it.
  */
 
-export const PENDING_SCAN_FEEDBACK_STORAGE_KEY = 'equipqr_pending_scan_feedback';
+export const PENDING_SCAN_FEEDBACK_STORAGE_KEY = 'znteqr_pending_scan_feedback';
 
 /** Ignore markers older than this (ms) so abandoned flows do not surprise the user later. */
 const PENDING_MARKER_MAX_AGE_MS = 60_000;

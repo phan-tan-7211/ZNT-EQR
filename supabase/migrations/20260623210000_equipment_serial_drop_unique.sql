@@ -8,7 +8,7 @@
 --   The product contract is now: warn the operator about a possible duplicate
 --   (with a link to the existing record) but never block creation.
 -- Affected tables: public.equipment
--- Notes: Follows EquipQR's "never edit applied migrations" rule. The dropped
+-- Notes: Follows ZNTEQR's "never edit applied migrations" rule. The dropped
 --   constraint's backing unique index is removed automatically; we add a plain
 --   (non-unique) composite index so the client-side duplicate lookup
 --   (EquipmentService.findBySerial) and offline idempotency replay stay fast.
