@@ -2,8 +2,8 @@ import { toast } from 'sonner';
 import type { PlaceLocationData } from '@/components/ui/GooglePlacesAutocomplete';
 import { logEquipmentLocationChange } from '@/features/equipment/services/equipmentLocationHistoryService';
 import type { Tables } from '@/integrations/supabase/types';
-import { resolveRuntimeLanguage } from '@/i18n/finalHardcodedAuditRuntime';
 import { getFinalHardcodedAuditRemainingCopy } from '@/i18n/finalHardcodedAuditRemainingCopy';
+import { resolvePreferredLanguage } from '@/i18n/languageStorage';
 
 type EquipmentUpdatePayload = Partial<Tables<'equipment'>>;
 
@@ -42,5 +42,5 @@ export async function persistEquipmentAssignedLocation(
     formattedAddress: data.formatted_address || undefined,
   });
 
-  toast.success(getFinalHardcodedAuditRemainingCopy(resolveRuntimeLanguage()).equipmentLocationUpdated);
+  toast.success(getFinalHardcodedAuditRemainingCopy(resolvePreferredLanguage()).equipmentLocationUpdated);
 }

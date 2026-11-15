@@ -17,8 +17,8 @@ import {
   getUnifiedMemberStatusBadgeVariant,
   getStatusIcon,
   getUnifiedMemberDisplayName,
-  useUnifiedMemberLabels,
 } from '@/features/organization/utils/unifiedMemberPresentation';
+import { useUnifiedMemberLabels } from '@/features/organization/hooks/useUnifiedMemberLabels';
 import { useFormatTimestamp } from '@/hooks/useFormatTimestamp';
 import { useI18n } from '@/i18n';
 

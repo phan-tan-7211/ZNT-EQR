@@ -3,7 +3,7 @@ import { useI18n } from '@/i18n';
 import { Plus, X } from 'lucide-react';
 import { CompatibilityRulesCardShell } from '@/components/common/CompatibilityRulesCardShell';
 import { CompatibilityManufacturerSelect } from '@/components/common/CompatibilityManufacturerSelect';
-import { useCompatibilityRuleManufacturers } from '@/components/common/useCompatibilityRuleManufacturers';
+import { useCompatibilityRuleManufacturers } from '@/features/equipment/hooks/useCompatibilityRuleManufacturers';
 import { Button } from '@/components/ui/button';
 import {
   Select,

@@ -17,7 +17,7 @@ import PageHeader from '@/components/layout/PageHeader';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { AuditExplorer } from '@/components/audit/explorer';
-import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/features/organization/components/OrganizationPageAlerts';
+import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/components/common/OrganizationPageAlerts';
 import { OrganizationSubnav } from '@/features/organization/components/OrganizationSubnav';
 import { AUDIT_ENTITY_TYPES, type AuditEntityType, type AuditLogFilters } from '@/types/audit';
 import { useI18n } from '@/i18n/I18nProvider';

@@ -10,7 +10,7 @@ import type { WorkOrderFiltersToolbarProps } from '@/features/work-orders/types/
 import {
   getWorkOrderListPriorityLabels,
   getWorkOrderListStatusLabels,
-} from '@/features/work-orders/utils/workOrderListLabels';
+} from '@/features/work-orders/utils/workOrderI18nLabels';
 import { useI18n } from '@/i18n';
 
 type WorkOrderToolbarProps = Omit<

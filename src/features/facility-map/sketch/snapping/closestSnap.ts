@@ -24,7 +24,7 @@ export type ClosestIntersectionSnap = IntersectionSnapCandidate & {
  * strictly inside the threshold and strictly closer than the current best,
  * so on a tie the earlier candidate is kept.
  */
-export const isCloserSnapCandidate = (
+const isCloserSnapCandidate = (
   candidateDistance: number,
   threshold: number,
   best: { distance: number } | null,

@@ -19,7 +19,7 @@ import { useTeamMembers } from '@/features/teams/hooks/useTeamManagement';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { logger } from '@/utils/logger';
 import { TeamRoleSelect } from '@/features/teams/components/TeamRoleSelect';
-import { getTeamRoleOptions } from '@/features/teams/components/teamRoleOptions';
+import { getTeamRoleOptions } from '@/features/teams/utils/teamRoleOptions';
 
 import { useI18n } from '@/i18n';
 

@@ -27,7 +27,7 @@ import { getAssigneeInitials } from '@/features/work-orders/utils/workOrderCardM
 import {
   getWorkOrderListPriorityLabels,
   getWorkOrderListStatusLabels,
-} from '@/features/work-orders/utils/workOrderListLabels';
+} from '@/features/work-orders/utils/workOrderI18nLabels';
 import { WorkOrderEquipmentThumbnail } from './WorkOrderEquipmentThumbnail';
 import { WorkOrderQuickActions } from '../WorkOrderQuickActions';
 import type { WorkOrderCardProps } from '../WorkOrderCard';

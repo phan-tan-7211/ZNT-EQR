@@ -8,8 +8,8 @@ import {
   getUnifiedMemberStatusBadgeVariant,
   getStatusIcon,
   getUnifiedMemberDisplayName,
-  useUnifiedMemberLabels,
 } from '@/features/organization/utils/unifiedMemberPresentation';
+import { useUnifiedMemberLabels } from '@/features/organization/hooks/useUnifiedMemberLabels';
 
 export function UnifiedMembersMobileList({
   unifiedMembers,

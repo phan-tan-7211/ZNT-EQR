@@ -1,4 +1,5 @@
-import type { Language } from '@/i18n/I18nProvider';
+/** Supported UI languages (also exported from `@/i18n` and `@/i18n/I18nProvider`). */
+export type Language = 'vi' | 'en' | 'ko';
 
 export const LANGUAGE_STORAGE_KEY = 'znteqr-language';
 

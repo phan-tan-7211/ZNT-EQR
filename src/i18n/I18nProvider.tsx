@@ -107,10 +107,10 @@ import { toolingOperationsResources } from './toolingOperationsResources';
 import { toolingInsightsResources } from './toolingInsightsResources';
 import { toolingReportsResources } from './toolingReportsResources';
 import { toolingImportResources } from './toolingImportResources';
-import { LANGUAGE_STORAGE_KEY, resolvePreferredLanguage } from '@/i18n/languageStorage';
+import { LANGUAGE_STORAGE_KEY, resolvePreferredLanguage, type Language } from '@/i18n/languageStorage';
 
 
-export type Language = 'vi' | 'en' | 'ko';
+export type { Language } from '@/i18n/languageStorage';
 
 const resources = {
 

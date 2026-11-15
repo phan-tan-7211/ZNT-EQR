@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { UnifiedMembersListViewProps } from '@/features/organization/components/unifiedMembersListViewProps';
 import type { UnifiedMember } from '@/features/organization/utils/buildUnifiedMembers';
-import { useUnifiedMemberLabels } from '@/features/organization/utils/unifiedMemberPresentation';
+import { useUnifiedMemberLabels } from '@/features/organization/hooks/useUnifiedMemberLabels';
 import { getRoleBadgeVariant } from '@/utils/badgeVariants';
 import { useI18n } from '@/i18n';
 

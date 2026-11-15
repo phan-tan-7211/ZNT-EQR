@@ -1,4 +1,3 @@
-import type { Language } from '@/i18n/I18nProvider';
 import { resolvePreferredLanguage } from '@/i18n/languageStorage';
 
 export const errorHandlingResources = {
@@ -34,11 +33,7 @@ export const errorHandlingResources = {
   },
 } as const;
 
-export function resolveErrorHandlingLanguage(): Language {
-  return resolvePreferredLanguage();
-}
-
-export function getErrorHandlingCopy(language = resolveErrorHandlingLanguage()) {
+export function getErrorHandlingCopy(language = resolvePreferredLanguage()) {
   return errorHandlingResources[language];
 }
 

@@ -5,7 +5,7 @@ import PageHeader from '@/components/layout/PageHeader';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { useOrganization } from '@/contexts/OrganizationContext';
-import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/features/organization/components/OrganizationPageAlerts';
+import { AdminOnlyPageAlert, NoOrganizationPageAlert } from '@/components/common/OrganizationPageAlerts';
 import { OrganizationSubnav } from '@/features/organization/components/OrganizationSubnav';
 import { TeamPermissionSettings } from '../permissions/TeamPermissionSettings';
 import { useI18n } from '@/i18n';

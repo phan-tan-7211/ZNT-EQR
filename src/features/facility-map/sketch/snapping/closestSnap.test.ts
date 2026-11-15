@@ -4,7 +4,6 @@ import {
   findClosestEntityPointsSnap,
   findClosestEntitySnap,
   findClosestIntersectionSnap,
-  isCloserSnapCandidate,
 } from '@/features/facility-map/sketch/snapping/closestSnap';
 import type {
   SketchEntity,
@@ -28,21 +27,82 @@ const circle = (id: string, cx: number, cy: number): SketchEntity => ({
 const circleCenter = (entity: SketchEntity): SketchPoint | null =>
   entity.type === 'circle' ? { x: entity.cx, y: entity.cy } : null;
 
-describe('isCloserSnapCandidate', () => {
+const origin: SketchPoint = { x: 0, y: 0 };
+
+/**
+ * Candidate i at `distances[i]` from the origin, each on its own axis
+ * direction so candidates at equal distance stay distinguishable.
+ */
+const candidatesAt = (distances: number[]): SketchPoint[] =>
+  distances.map((d, i) => [{ x: d, y: 0 }, { x: 0, y: d }, { x: -d, y: 0 }][i]);
+
+type SnapWinner = { index: number; distance: number } | null;
+
+const winnerOf = (
+  candidates: SketchPoint[],
+  result: { point: SketchPoint; distance: number } | null,
+): SnapWinner =>
+  result && {
+    index: candidates.findIndex(
+      (candidate) => candidate.x === result.point.x && candidate.y === result.point.y,
+    ),
+    distance: result.distance,
+  };
+
+const closestSnapHelpers: [
+  string,
+  (candidates: SketchPoint[], threshold: number) => SnapWinner,
+][] = [
+  [
+    'findClosestEntitySnap',
+    (candidates, threshold) =>
+      winnerOf(
+        candidates,
+        findClosestEntitySnap(
+          origin,
+          candidates.map((candidate, i) => circle(`c${i}`, candidate.x, candidate.y)),
+          threshold,
+          circleCenter,
+        ),
+      ),
+  ],
+  [
+    'findClosestEntityPointsSnap',
+    (candidates, threshold) =>
+      winnerOf(
+        candidates,
+        findClosestEntityPointsSnap(origin, [circle('c', 0, 0)], threshold, () => candidates),
+      ),
+  ],
+  [
+    'findClosestIntersectionSnap',
+    (candidates, threshold) =>
+      winnerOf(
+        candidates,
+        findClosestIntersectionSnap(
+          origin,
+          candidates.map((point, i) => ({ point, entityIds: [`a${i}`, `b${i}`] })),
+          threshold,
+        ),
+      ),
+  ],
+];
+
+describe.each(closestSnapHelpers)('%s acceptance rule', (_name, closest) => {
   it('accepts a candidate strictly inside the threshold when there is no best yet', () => {
-    expect(isCloserSnapCandidate(2.9, 3, null)).toBe(true);
-    expect(isCloserSnapCandidate(0, 3, null)).toBe(true);
+    expect(closest(candidatesAt([2.9]), 3)).toEqual({ index: 0, distance: 2.9 });
+    expect(closest(candidatesAt([0]), 3)).toEqual({ index: 0, distance: 0 });
   });
 
   it('rejects a candidate at or outside the threshold', () => {
-    expect(isCloserSnapCandidate(3, 3, null)).toBe(false);
-    expect(isCloserSnapCandidate(3.1, 3, null)).toBe(false);
+    expect(closest(candidatesAt([3]), 3)).toBeNull();
+    expect(closest(candidatesAt([3.1]), 3)).toBeNull();
   });
 
   it('only replaces the best when strictly closer, so ties keep the earlier one', () => {
-    expect(isCloserSnapCandidate(1, 3, { distance: 2 })).toBe(true);
-    expect(isCloserSnapCandidate(2, 3, { distance: 2 })).toBe(false);
-    expect(isCloserSnapCandidate(2.5, 3, { distance: 2 })).toBe(false);
+    expect(closest(candidatesAt([2, 1]), 3)).toEqual({ index: 1, distance: 1 });
+    expect(closest(candidatesAt([2, 2]), 3)).toEqual({ index: 0, distance: 2 });
+    expect(closest(candidatesAt([2, 2.5]), 3)).toEqual({ index: 0, distance: 2 });
   });
 });
 
