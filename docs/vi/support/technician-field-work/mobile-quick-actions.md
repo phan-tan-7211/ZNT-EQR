@@ -7,7 +7,7 @@ requirement: "Khả dụng trên điện thoại (màn hình nhỏ). Các thao t
 ---
 
 **Dành cho:** Kỹ thuật viên, Quản lý, Quản trị viên, Chủ sở hữu  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 
 ::: info Yêu cầu
 Khả dụng trên điện thoại (màn hình nhỏ). Các thao tác tuân theo quyền thông thường của bạn.

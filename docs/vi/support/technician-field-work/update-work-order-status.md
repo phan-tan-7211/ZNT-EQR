@@ -6,7 +6,7 @@ personas: ["technician","manager"]
 ---
 
 **Dành cho:** Kỹ thuật viên, Quản lý  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 Lệnh công việc đi theo một vòng đời nhất quán để mọi người đều thấy được điều gì đang thực sự diễn ra trong xưởng. Các nút thao tác chỉ hiển thị những trạng thái tiếp theo hợp lệ, vì vậy bạn không thể vô tình bỏ qua một trạng thái.
 
 ![Lệnh công việc đã được chấp nhận và giao cho một kỹ thuật viên](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/technician-field-work/desktop/04-status-accepted-assigned.png)

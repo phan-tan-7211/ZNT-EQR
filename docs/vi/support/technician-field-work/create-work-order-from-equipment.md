@@ -7,7 +7,7 @@ requirement: "Bạn phải là Quản lý hoặc Kỹ thuật viên của nhóm 
 ---
 
 **Dành cho:** Kỹ thuật viên, Quản lý  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 
 ::: info Yêu cầu
 Bạn phải là Quản lý hoặc Kỹ thuật viên của nhóm sở hữu thiết bị.

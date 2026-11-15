@@ -6,7 +6,7 @@ personas: ["technician","requestor"]
 ---
 
 **Dành cho:** Kỹ thuật viên, Người yêu cầu  
-**Xem xét lần cuối:** 2026-07-06
+**Rà soát lần cuối:** 2026-07-06
 Mã QR của ZNTEQR chỉ là URL thông thường — không cần cài thêm ứng dụng nào. Camera điện thoại sẽ mở hồ sơ trực tiếp trong trình duyệt hoặc trong ứng dụng ZNTEQR nếu đã cài đặt.
 
 ![Hồ sơ thiết bị được mở từ một lần quét QR](https://wgynakhoppqkrutnslmv.supabase.co/storage/v1/object/public/docs-media/support/technician-field-work/desktop/01-scan-qr-landing.png)

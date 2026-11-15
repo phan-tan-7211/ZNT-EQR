@@ -30,5 +30,5 @@ Các quy trình nhanh, ưu tiên thiết bị di động, dành cho kỹ thuật
 - [Cập nhật trạng thái lệnh công việc](./update-work-order-status) — Chuyển lệnh công việc qua các trạng thái Đã gửi → Đã chấp nhận → Đã giao → Đang thực hiện → Hoàn thành với các bước kiểm tra quyền phù hợp.
 - [Thêm ghi chú và ảnh vào lệnh công việc](./add-notes-and-photos) — Ghi lại những gì bạn phát hiện, những gì bạn đã làm và đính kèm ảnh trước/trong/sau khi làm — tất cả đều hiển thị trong thư viện ảnh của thiết bị.
 - [Hoàn thành danh sách kiểm tra PM](./pm-checklist) — Đánh dấu các hạng mục bảo trì định kỳ, ghi nhận ngoại lệ và đính kèm ảnh minh chứng cho những hạng mục cần theo dõi tiếp.
-- [Ghi nhận vật tư sử dụng trên lệnh công việc](./consume-inventory-on-wo) — Ghi lại các linh kiện bạn đã dùng khi sửa chữa để tồn kho tự động giảm và chi phí được đưa vào hóa đơn.
+- [Sử dụng linh kiện trong kho cho lệnh công việc](./consume-inventory-on-wo) — Ghi lại các linh kiện bạn đã dùng khi sửa chữa để tồn kho tự động giảm và chi phí được đưa vào hóa đơn.
 - [Sử dụng thao tác nhanh trên di động](./mobile-quick-actions) — Một nút nằm trong tầm ngón cái trên trang thiết bị và trang lệnh công việc sẽ mở ngăn chứa mã QR, thao tác chuyển trạng thái, ghi chú và xuất dữ liệu.

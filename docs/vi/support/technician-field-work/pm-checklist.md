@@ -7,7 +7,7 @@ requirement: "Lệnh công việc phải có danh sách kiểm tra PM đính kè
 ---
 
 **Dành cho:** Kỹ thuật viên, Quản lý  
-**Xem xét lần cuối:** 2026-07-04
+**Rà soát lần cuối:** 2026-07-04
 
 ::: info Yêu cầu
 Lệnh công việc phải có danh sách kiểm tra bảo trì định kỳ (PM) đính kèm. Bạn có thể đính kèm khi tạo lệnh công việc hoặc thêm sau trên một công việc đang hoạt động — xem [Quản lý mẫu bảo trì định kỳ trên lệnh công việc đang hoạt động](../work-orders/manage-pm-template-on-work-order).
